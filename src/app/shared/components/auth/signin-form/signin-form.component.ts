@@ -1,38 +1,65 @@
-
-import { Component } from '@angular/core';
-import { LabelComponent } from '../../form/label/label.component';
-import { ButtonComponent } from '../../ui/button/button.component';
-import { InputFieldComponent } from '../../form/input/input-field.component';
-import { RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { LabelComponent } from '../../form/label/label.component';
+import { InputFieldComponent } from '../../form/input/input-field.component';
+import { AuthService } from '../../../../services/auth.service';
+import { AuthLoginRequest } from '../../../../dto/auth-login.request';
 
 @Component({
   selector: 'app-signin-form',
+  standalone: true,
   imports: [
     LabelComponent,
-    ButtonComponent,
     InputFieldComponent,
     RouterModule,
-    FormsModule
-],
+    FormsModule,
+  ],
   templateUrl: './signin-form.component.html',
-  styles: ``
 })
 export class SigninFormComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  showPassword = false;
-  isChecked = false;
-
-  email = '';
+  // ===== modelo =====
+  username = '';
   password = '';
 
-  togglePasswordVisibility() {
+  // ===== ui =====
+  showPassword = false;
+  submitted = false;
+  isSubmitting = false;
+  errorMessage = '';
+
+  togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  onSignIn() {
-    console.log('Email:', this.email);
-    console.log('Password:', this.password);
-    console.log('Remember Me:', this.isChecked);
+  onSignIn(): void {
+    this.submitted = true;
+    this.errorMessage = '';
+
+    // validación simple (frontend)
+    if (!this.username || !this.password) {
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    const payload: AuthLoginRequest = {
+      username: this.username,
+      password: this.password,
+    };
+
+    this.authService.login(payload).subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        console.error('Error login', err);
+        this.errorMessage = 'Usuario o contraseña incorrectos';
+        this.isSubmitting = false;
+      },
+    });
   }
 }

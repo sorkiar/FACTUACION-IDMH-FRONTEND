@@ -17,13 +17,16 @@ import { ImagesComponent } from './pages/ui-elements/images/images.component';
 import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
-import { CalenderComponent } from './pages/calender/calender.component';
+import { AuthGuard } from './security/auth.guard';
+import { GuestGuard } from './security/guest.guard';
+import { ClientsComponent } from './pages/clients/clients.component';
 
 export const routes: Routes = [
   {
-    path:'',
-    component:AppLayoutComponent,
-    children:[
+    path: '',
+    component: AppLayoutComponent,
+    canActivate: [AuthGuard],
+    children: [
       {
         path: '',
         component: EcommerceComponent,
@@ -32,93 +35,96 @@ export const routes: Routes = [
           'Angular Ecommerce Dashboard | IDMH Perú',
       },
       {
-        path:'calendar',
-        component:CalenderComponent,
-        title:'Angular Calender | IDMH Perú'
+        path: 'profile',
+        component: ProfileComponent,
+        title: 'Angular Profile Dashboard | IDMH Perú'
       },
       {
-        path:'profile',
-        component:ProfileComponent,
-        title:'Angular Profile Dashboard | IDMH Perú'
+        path: 'form-elements',
+        component: FormElementsComponent,
+        title: 'Angular Form Elements Dashboard | IDMH Perú'
       },
       {
-        path:'form-elements',
-        component:FormElementsComponent,
-        title:'Angular Form Elements Dashboard | IDMH Perú'
+        path: 'basic-tables',
+        component: BasicTablesComponent,
+        title: 'Angular Basic Tables Dashboard | IDMH Perú'
       },
       {
-        path:'basic-tables',
-        component:BasicTablesComponent,
-        title:'Angular Basic Tables Dashboard | IDMH Perú'
-      },
-      {
-        path:'blank',
-        component:BlankComponent,
-        title:'Angular Blank Dashboard | IDMH Perú'
+        path: 'blank',
+        component: BlankComponent,
+        title: 'Angular Blank Dashboard | IDMH Perú'
       },
       // support tickets
       {
-        path:'invoice',
-        component:InvoicesComponent,
-        title:'Angular Invoice Details Dashboard | IDMH Perú'
+        path: 'invoice',
+        component: InvoicesComponent,
+        title: 'Angular Invoice Details Dashboard | IDMH Perú'
       },
       {
-        path:'line-chart',
-        component:LineChartComponent,
-        title:'Angular Line Chart Dashboard | IDMH Perú'
+        path: 'line-chart',
+        component: LineChartComponent,
+        title: 'Angular Line Chart Dashboard | IDMH Perú'
       },
       {
-        path:'bar-chart',
-        component:BarChartComponent,
-        title:'Angular Bar Chart Dashboard | IDMH Perú'
+        path: 'bar-chart',
+        component: BarChartComponent,
+        title: 'Angular Bar Chart Dashboard | IDMH Perú'
       },
       {
-        path:'alerts',
-        component:AlertsComponent,
-        title:'Angular Alerts Dashboard | IDMH Perú'
+        path: 'alerts',
+        component: AlertsComponent,
+        title: 'Angular Alerts Dashboard | IDMH Perú'
       },
       {
-        path:'avatars',
-        component:AvatarElementComponent,
-        title:'Angular Avatars Dashboard | IDMH Perú'
+        path: 'avatars',
+        component: AvatarElementComponent,
+        title: 'Angular Avatars Dashboard | IDMH Perú'
       },
       {
-        path:'badge',
-        component:BadgesComponent,
-        title:'Angular Badges Dashboard | IDMH Perú'
+        path: 'badge',
+        component: BadgesComponent,
+        title: 'Angular Badges Dashboard | IDMH Perú'
       },
       {
-        path:'buttons',
-        component:ButtonsComponent,
-        title:'Angular Buttons Dashboard | IDMH Perú'
+        path: 'buttons',
+        component: ButtonsComponent,
+        title: 'Angular Buttons Dashboard | IDMH Perú'
       },
       {
-        path:'images',
-        component:ImagesComponent,
-        title:'Angular Images Dashboard | IDMH Perú'
+        path: 'images',
+        component: ImagesComponent,
+        title: 'Angular Images Dashboard | IDMH Perú'
       },
       {
-        path:'videos',
-        component:VideosComponent,
-        title:'Angular Videos Dashboard | IDMH Perú'
+        path: 'videos',
+        component: VideosComponent,
+        title: 'Angular Videos Dashboard | IDMH Perú'
+      },
+      {
+        path: 'clients',
+        component: ClientsComponent,
+        title: 'Clientes | IDMH Perú'
       },
     ]
   },
   // auth pages
   {
-    path:'signin',
-    component:SignInComponent,
-    title:'Iniciar Sesión | IDMH Perú'
+    path: 'signin',
+    component: SignInComponent,
+    canActivate: [GuestGuard],
+    title: 'Iniciar Sesión | IDMH Perú'
   },
   {
-    path:'signup',
-    component:SignUpComponent,
-    title:'Registro | IDMH Perú'
+    path: 'signup',
+    component: SignUpComponent,
+    canActivate: [GuestGuard],
+    title: 'Registro | IDMH Perú'
   },
   // error pages
   {
-    path:'**',
-    component:NotFoundComponent,
-    title:'Not Found | IDMH Perú'
+    path: '**',
+    component: NotFoundComponent,
+    canActivate: [GuestGuard],
+    title: 'Not Found | IDMH Perú'
   },
 ];

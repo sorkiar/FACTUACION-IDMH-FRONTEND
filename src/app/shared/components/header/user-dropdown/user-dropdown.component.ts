@@ -1,22 +1,43 @@
-import { Component } from '@angular/core';
-import { DropdownComponent } from '../../ui/dropdown/dropdown.component';
+import { Component, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdown-item.component-two';
+
+import { DropdownComponent } from '../../ui/dropdown/dropdown.component';
+import { AuthService } from '../../../../services/auth.service';
 
 @Component({
   selector: 'app-user-dropdown',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    DropdownComponent,
+  ],
   templateUrl: './user-dropdown.component.html',
-  imports:[CommonModule,RouterModule,DropdownComponent,DropdownItemTwoComponent]
 })
 export class UserDropdownComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   isOpen = false;
 
-  toggleDropdown() {
+  get userName(): string {
+    return this.authService.userName;
+  }
+
+  toggleDropdown(): void {
     this.isOpen = !this.isOpen;
   }
 
-  closeDropdown() {
+  closeDropdown(): void {
     this.isOpen = false;
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.closeDropdown();
+
+    // navegación limpia (evita volver atrás)
+    this.router.navigateByUrl('/signin', { replaceUrl: true });
   }
 }
