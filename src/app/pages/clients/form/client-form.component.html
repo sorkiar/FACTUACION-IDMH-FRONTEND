@@ -1,0 +1,96 @@
+<app-modal
+  [isOpen]="isOpen"
+  className="max-w-5xl mx-auto p-6"
+  (close)="close()"
+>
+  <!-- Tabs -->
+  <div class="flex gap-3 mb-6">
+    <button
+      class="px-4 py-2 rounded-lg border"
+      [class.bg-blue-100]="personTypeId === 1"
+      (click)="personTypeId = 1"
+    >
+      Persona Natural
+    </button>
+
+    <button
+      class="px-4 py-2 rounded-lg border"
+      [class.bg-blue-100]="personTypeId === 2"
+      (click)="personTypeId = 2"
+    >
+      Persona Jurídica
+    </button>
+  </div>
+
+  <!-- IDENTIFICACIÓN -->
+  <div class="grid grid-cols-2 gap-6 mb-6">
+    <div>
+      <label>Tipo de documento</label>
+      <select [(ngModel)]="form.documentTypeId">
+        @for (dt of documentTypes; track dt.id) {
+          <option [value]="dt.id">{{ dt.name }}</option>
+        }
+      </select>
+
+      <input placeholder="N° Documento" [(ngModel)]="form.documentNumber" />
+      <small class="text-red-500">{{ errors.documentNumber }}</small>
+
+      @if (personTypeId === 1) {
+        <input type="date" [(ngModel)]="form.birthDate" />
+        <small class="text-red-500">{{ errors.birthDate }}</small>
+      }
+    </div>
+
+    <div>
+      @if (personTypeId === 1) {
+        <input placeholder="Nombre" [(ngModel)]="form.firstName" />
+        <small class="text-red-500">{{ errors.firstName }}</small>
+
+        <input placeholder="Apellido" [(ngModel)]="form.lastName" />
+        <small class="text-red-500">{{ errors.lastName }}</small>
+      } @else {
+        <input placeholder="Razón social" [(ngModel)]="form.businessName" />
+        <small class="text-red-500">{{ errors.businessName }}</small>
+
+        <input
+          placeholder="Persona de contacto"
+          [(ngModel)]="form.contactPersonName"
+        />
+        <small class="text-red-500">{{ errors.contactPersonName }}</small>
+      }
+    </div>
+  </div>
+
+  <!-- CONTACTO -->
+  <div class="grid grid-cols-2 gap-6 mb-6">
+    <div>
+      <input placeholder="Teléfono 1" [(ngModel)]="form.phone1" />
+      <small class="text-red-500">{{ errors.phone1 }}</small>
+
+      <input placeholder="Teléfono 2" [(ngModel)]="form.phone2" />
+    </div>
+
+    <div>
+      <input placeholder="Correo 1" [(ngModel)]="form.email1" />
+      <small class="text-red-500">{{ errors.email1 }}</small>
+
+      <input placeholder="Correo 2" [(ngModel)]="form.email2" />
+    </div>
+  </div>
+
+  <!-- DIRECCIÓN -->
+  <textarea
+    rows="3"
+    placeholder="Dirección"
+    [(ngModel)]="form.address"
+  ></textarea>
+  <small class="text-red-500">{{ errors.address }}</small>
+
+  <!-- ACTIONS -->
+  <div class="flex justify-end gap-3 mt-6">
+    <button (click)="close()">Cancelar</button>
+    <button class="bg-blue-500 text-white px-4 py-2" (click)="save()">
+      Guardar Cliente
+    </button>
+  </div>
+</app-modal>
