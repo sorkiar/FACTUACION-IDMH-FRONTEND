@@ -1,10 +1,10 @@
-import { environment } from './../../environments/environment.dev';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../dto/api-response.response';
 import { CategoryResponse } from '../dto/category.response';
 import { CategoryFilter } from '../dto/category.filter';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root',
