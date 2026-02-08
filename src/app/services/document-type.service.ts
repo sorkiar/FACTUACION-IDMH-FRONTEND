@@ -18,11 +18,15 @@ export class DocumentTypeService {
    * Obtiene tipos de documento
    * @param status (opcional) 1 = activo, 0 = inactivo
    */
-  getAll(status?: number): Observable<ApiResponse<DocumentTypeResponse[]>> {
+  getAll(status?: number, personTypeId?: number): Observable<ApiResponse<DocumentTypeResponse[]>> {
     let params = new HttpParams();
 
     if (status !== undefined) {
       params = params.set('status', status);
+    }
+
+    if (personTypeId !== undefined) {
+      params = params.set('personTypeId', personTypeId);
     }
 
     return this.http.get<ApiResponse<DocumentTypeResponse[]>>(this.baseUrl, {

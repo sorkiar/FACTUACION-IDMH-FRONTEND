@@ -4,7 +4,7 @@ export interface ClientRequest {
     documentNumber: string
     firstName: string
     lastName: string
-    birthDate: string
+    birthDate: string | null
     businessName: string
     contactPersonName: string
     phone1: string

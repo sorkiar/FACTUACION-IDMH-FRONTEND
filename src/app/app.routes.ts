@@ -20,6 +20,7 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { AuthGuard } from './security/auth.guard';
 import { GuestGuard } from './security/guest.guard';
 import { ClientsComponent } from './pages/clients/clients.component';
+import { ProductComponent } from './pages/product/product.component';
 
 export const routes: Routes = [
   {
@@ -104,6 +105,11 @@ export const routes: Routes = [
         path: 'clients',
         component: ClientsComponent,
         title: 'Clientes | IDMH Perú'
+      },
+      {
+        path: 'products',
+        component: ProductComponent,
+        title: 'Productos | IDMH Perú'
       },
     ]
   },

@@ -7,21 +7,30 @@ import { PageBreadcrumbComponent } from '../../shared/components/common/page-bre
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import { ClientService } from '../../services/client.service';
-import { ClientFormComponent } from "./form/client-form.component";
-
-type UiStatus = 'Success' | 'Pending' | 'Failed';
+import { ModalComponent } from "../../shared/components/ui/modal/modal.component";
+import { LabelComponent } from "../../shared/components/form/label/label.component";
+import { Option, SelectComponent } from "../../shared/components/form/select/select.component";
+import { InputFieldComponent } from "../../shared/components/form/input/input-field.component";
+import { DocumentTypeService } from '../../services/document-type.service';
+import { ClientRequest } from '../../dto/client.request';
+import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 
 @Component({
   selector: 'app-clients',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     PageBreadcrumbComponent,
     ButtonComponent,
     NgClass,
     BadgeComponent,
-    ClientFormComponent
-],
+    ModalComponent,
+    LabelComponent,
+    InputFieldComponent,
+    SelectComponent
+  ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.css',
 })
@@ -32,12 +41,11 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
   // UI states
   loading = false;
+  loadingTable = false;
   errorMessage: string | null = null;
 
   // Filters
-  filters: ClientFilter = {
-    status: 1, // por defecto: activos
-  };
+  filters: ClientFilter = {};
 
   // Search input (del input "Search..." del HTML)
   searchTerm = '';
@@ -52,9 +60,14 @@ export class ClientsComponent implements OnInit, OnDestroy {
   isEditMode = false;
   selectedClient?: ClientResponse;
 
-  constructor(private clientService: ClientService) { }
+  constructor(
+    private clientService: ClientService,
+    private documentTypeService: DocumentTypeService,
+    private notify: NotificationService,
+  ) { }
 
   ngOnInit(): void {
+    this.loadDocumentTypes(Number(this.personTypeId));
     this.loadClients();
   }
 
@@ -67,6 +80,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
   // -----------------------------
   loadClients(): void {
     this.loading = true;
+    this.loadingTable = true;
     this.errorMessage = null;
 
     const s = this.clientService.getAll(this.filters).subscribe({
@@ -75,12 +89,13 @@ export class ClientsComponent implements OnInit, OnDestroy {
         this.clients = res?.data ?? [];
         this.currentPage = 1;
         this.loading = false;
+        this.loadingTable = false;
       },
       error: (err) => {
         this.loading = false;
+        this.loadingTable = false;
         this.clients = [];
-        this.errorMessage =
-          err?.error?.message ?? 'Ocurrió un error al listar clientes.';
+        this.notify.error(err?.error?.message ?? 'Ocurrió un error al listar clientes.');
       },
     });
 
@@ -152,55 +167,261 @@ export class ClientsComponent implements OnInit, OnDestroy {
   // -----------------------------
   onCreateClient(): void {
     this.isEditMode = false;
-    this.selectedClient = {} as ClientResponse;
+    this.selectedClient = undefined;
+    this.resetClientForm();
+    this.disabledDocumentType = this.isLegalPersonSelected;
+    this.loadDocumentTypes(Number(this.personTypeId)); // por defecto Natural
     this.showForm = true;
   }
 
   onEditClient(client: ClientResponse): void {
     this.isEditMode = true;
     this.selectedClient = client;
+    this.resetClientForm();
+    this.patchClientToForm(client);
+    this.disabledDocumentType = this.isLegalPersonSelected;
+    this.loadDocumentTypes(Number(this.personTypeId), this.documentTypeId);
     this.showForm = true;
   }
 
   onCloseForm(): void {
     this.showForm = false;
+    this.submittedClient = false;
   }
 
-  onToggleStatus(client: ClientResponse): void {
-    // Si está activo (1), inactivar; si está inactivo (0), activar
+  // ===== Confirm modal (toggle status) =====
+  showConfirmToggle = false;
+  toggleTarget?: ClientResponse;
+  isToggleStatus = false;
+
+  openToggleConfirm(client: ClientResponse): void {
+    this.toggleTarget = client;
+    this.showConfirmToggle = true;
+  }
+
+  closeToggleConfirm(): void {
+    this.showConfirmToggle = false;
+    this.toggleTarget = undefined;
+  }
+
+  get toggleActionLabel(): string {
+    if (!this.toggleTarget) return '';
+    return this.toggleTarget.status === 1 ? 'Inactivar' : 'Activar';
+  }
+
+  get toggleConfirmText(): string {
+    if (!this.toggleTarget) return '';
+    const action = this.toggleTarget.status === 1 ? 'inactivar' : 'activar';
+    const name =
+      this.toggleTarget.personType === 'Jurídica'
+        ? (this.toggleTarget.businessName ?? 'este cliente')
+        : `${this.toggleTarget.firstName ?? ''} ${this.toggleTarget.lastName ?? ''}`.trim() || 'este cliente';
+
+    return `¿Deseas ${action} a ${name}?`;
+  }
+
+  confirmToggleStatus(): void {
+    if (!this.toggleTarget) return;
+
+    this.isToggleStatus = true;
+    const client = this.toggleTarget;
     const newStatus = client.status === 1 ? 0 : 1;
 
     const s = this.clientService.updateStatus(client.id, newStatus).subscribe({
-      next: () => {
-        // refrescamos lista
+      next: (res) => {
+        this.notify.success(res?.message ?? 'Estado actualizado');
+        this.closeToggleConfirm();
         this.loadClients();
+        this.isToggleStatus = false;
       },
       error: (err) => {
-        this.errorMessage =
-          err?.error?.message ?? 'No se pudo actualizar el estado del cliente.';
+        this.notify.error(err?.error?.message ?? 'No se pudo actualizar el estado del cliente.');
+        this.isToggleStatus = false;
       },
     });
 
     this.sub.add(s);
   }
 
-  // -----------------------------
-  // Helpers para el template actual (imagen y textos)
-  // -----------------------------
-  getAvatarForClient(_client: ClientResponse): string {
-    // Tu tabla muestra una imagen. De momento usamos un placeholder local.
-    // Puedes cambiar esto por un avatar real cuando lo tengas.
-    return '/images/brand/brand-08.svg';
+  onSubmitClient(): void {
+    this.submittedClient = true;
+
+    if (!this.isClientFormValid()) return;
+
+    this.isSubmittingClient = true;
+
+    const normalizedBirthDate = this.birthDate?.trim() ? this.birthDate : null;
+
+    const payload: ClientRequest = {
+      personTypeId: Number(this.personTypeId),
+      documentTypeId: Number(this.documentTypeId),
+      documentNumber: this.documentNumber?.trim(),
+
+      firstName: this.isNaturalPerson() ? this.firstName?.trim() : '',
+      lastName: this.isNaturalPerson() ? this.lastName?.trim() : '',
+      birthDate: normalizedBirthDate as any,
+      businessName: this.isLegalPerson() ? this.businessName?.trim() : '',
+      contactPersonName: this.isLegalPerson() ? this.contactPersonName?.trim() : '',
+
+      phone1: this.phone1?.trim(),
+      phone2: this.phone2?.trim() || '',
+
+      email1: this.email1?.trim(),
+      email2: this.email2?.trim() || '',
+
+      address: this.address?.trim() || '',
+    };
+
+    const request$ =
+      this.isEditMode && this.selectedClient?.id
+        ? this.clientService.update(this.selectedClient.id, payload)
+        : this.clientService.create(payload);
+
+    const s = request$.subscribe({
+      next: (res) => {
+        this.isSubmittingClient = false;
+        this.showForm = false;
+        this.resetClientForm();
+        this.loadClients();
+        this.notify.success(res?.message ?? 'Guardado correctamente');
+      },
+      error: (err) => {
+        this.isSubmittingClient = false;
+        this.notify.error(err?.error?.message ?? 'No se pudo guardar el cliente.');
+      },
+    });
+
+    this.sub.add(s);
   }
 
-  getDisplayName(client: ClientResponse): string {
-    const fullName = `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim();
-    return fullName || client.businessName || '-';
+  // ====== UI form state ======
+  submittedClient = false;
+  isSubmittingClient = false;
+
+  // ====== selects ======
+  documentTypeOptions: Option[] = [];
+  personTypeOptions: Option[] = [
+    { value: '1', label: 'Natural' },
+    { value: '2', label: 'Jurídica' },
+  ];
+
+  // ====== form model (ngModel style) ======
+  personTypeId = '1';
+  documentTypeId = '';
+  documentNumber = '';
+  firstName = '';
+  lastName = '';
+  birthDate = '';
+  businessName = '';
+  contactPersonName = '';
+  phone1 = '';
+  phone2 = '';
+  email1 = '';
+  email2 = '';
+  address = '';
+
+  loadingDocumentTypes = false;
+
+  private loadDocumentTypes(personTypeId: number, selectedId?: string): void {
+    this.loadingDocumentTypes = true;
+
+    const s = this.documentTypeService.getAll(1, personTypeId).subscribe({
+      next: (res) => {
+        this.documentTypeOptions = (res?.data ?? []).map((dt: any) => ({
+          value: String(dt.id),
+          label: dt.name,
+        }));
+
+        const exists = selectedId && this.documentTypeOptions.some(o => o.value === String(selectedId));
+
+        if (exists) {
+          this.documentTypeId = String(selectedId);
+        } else {
+          this.documentTypeId = this.documentTypeOptions[0]?.value ?? '';
+        }
+
+        this.loadingDocumentTypes = false;
+      },
+      error: () => {
+        this.loadingDocumentTypes = false;
+        this.documentTypeOptions = [];
+      },
+    });
+
+    this.sub.add(s);
   }
 
-  getDocumentText(client: ClientResponse): string {
-    const type = client.documentType ?? '';
-    const num = client.documentNumber ?? '';
-    return `${type} ${num}`.trim();
+  isNaturalPerson(): boolean {
+    return String(this.personTypeId) === '1';
+  }
+  isLegalPerson(): boolean {
+    return String(this.personTypeId) === '2';
+  }
+
+  private resetClientForm(): void {
+    this.submittedClient = false;
+    this.isSubmittingClient = false;
+
+    this.personTypeId = '1';
+    this.documentTypeId = '';
+    this.documentNumber = '';
+    this.firstName = '';
+    this.lastName = '';
+    this.birthDate = '';
+    this.businessName = '';
+    this.contactPersonName = '';
+    this.phone1 = '';
+    this.phone2 = '';
+    this.email1 = '';
+    this.email2 = '';
+    this.address = '';
+  }
+
+  private patchClientToForm(c: ClientResponse): void {
+    this.personTypeId = String(c.personTypeId ?? '1');
+    this.documentTypeId = String(c.documentTypeId ?? '');
+    this.documentNumber = c.documentNumber ?? '';
+    this.firstName = c.firstName ?? '';
+    this.lastName = c.lastName ?? '';
+    this.birthDate = (c.birthDate as any) ?? '';
+    this.businessName = c.businessName ?? '';
+    this.contactPersonName = c.contactPersonName ?? '';
+    this.phone1 = c.phone1 ?? '';
+    this.phone2 = c.phone2 ?? '';
+    this.email1 = c.email1 ?? '';
+    this.email2 = c.email2 ?? '';
+    this.address = c.address ?? '';
+  }
+
+  // Validación mínima para crear/editar
+  private isClientFormValid(): boolean {
+    if (!this.personTypeId || !this.documentTypeId || !this.documentNumber) return false;
+
+    if (this.isNaturalPerson()) {
+      if (!this.firstName || !this.lastName) return false;
+    }
+
+    if (this.isLegalPerson()) {
+      if (!this.businessName) return false;
+    }
+
+    if (!this.phone1 || !this.email1) return false;
+
+    return true;
+  }
+
+  get isLegalPersonSelected(): boolean {
+    return String(this.personTypeId) === '2';
+  }
+
+  disabledDocumentType = false;
+
+  onPersonTypeChange(value: string): void {
+    this.personTypeId = value;
+
+    this.disabledDocumentType = this.isLegalPersonSelected;
+    this.documentTypeId = ''; // se recalcula cuando llegue la lista
+
+    this.loadDocumentTypes(Number(this.personTypeId));
   }
 }
