@@ -1,20 +1,21 @@
 <div>
-    <app-page-breadcrumb pageTitle="Mantenimiento de Productos" />
+    <app-page-breadcrumb pageTitle="Mantenimiento de Servicios" />
 
     <div
         class="mb-4 flex justify-end rounded-2xl border border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-white/[0.03]">
         <button type="button"
             class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-            (click)="onCreateProduct()">
+            (click)="onCreateService()">
             + Agregar
         </button>
 
         <button type="button"
             class="ml-2 inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
-            (click)="loadProducts()" [disabled]="loadingTable">
+            (click)="loadServices()" [disabled]="loadingTable">
             {{ loadingTable ? 'Actualizando…' : 'Actualizar' }}
         </button>
     </div>
+
 
     <div
         class="min-h-[60vh] rounded-2xl border border-gray-200 bg-white px-3 py-5 dark:border-gray-800 dark:bg-white/[0.03] xl:px-4 xl:py-5">
@@ -23,7 +24,7 @@
                 <div class="flex flex-col gap-2 px-5 mb-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            Listado de productoss
+                            Listado de servicios
                         </h3>
                     </div>
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -55,7 +56,7 @@
                                         SKU</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        Producto</th>
+                                        Servicio</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Precio</th>
@@ -80,18 +81,18 @@
                             <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
                                 @if (loadingTable) {
                                 <tr>
-                                    <td colspan="7" class="py-6 text-center text-sm text-gray-500">
-                                        Cargando productos…
+                                    <td colspan="8" class="py-6 text-center text-sm text-gray-500">
+                                        Cargando servicios…
                                     </td>
                                 </tr>
-                                } @else if (products.length === 0) {
+                                } @else if (services.length === 0) {
                                 <tr>
-                                    <td colspan="7" class="py-6 text-center text-sm text-gray-500">
-                                        No hay productos registrados.
+                                    <td colspan="8" class="py-6 text-center text-sm text-gray-500">
+                                        No hay servicios registrados.
                                     </td>
                                 </tr>
                                 } @else {
-                                @for (item of products; track item.id) {
+                                @for (item of services; track item.id) {
                                 <tr>
                                     <!-- SKU -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
@@ -105,17 +106,17 @@
 
                                     <!-- Precio -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ item.salePrice | number:'1.2-2' }}
+                                        S/ {{ item.price | number:'1.2-2' }}
                                     </td>
 
                                     <!-- Categoría -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        {{ item.categoryName }}
+                                        {{ item.serviceCategoryName }}
                                     </td>
 
-                                    <!-- Unidad de medida -->
+                                    <!-- Unidad de cobro -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        {{ item.unitMeasureCode }}
+                                        {{ item.chargeUnitName }}
                                     </td>
 
                                     <!-- Ficha técnica -->
@@ -123,10 +124,10 @@
                                         @if (item.technicalSheetUrl) {
                                         <a [href]="item.technicalSheetUrl" target="_blank"
                                             class="text-brand-500 font-medium hover:underline">
-                                            Ver ficha técnica
+                                            Ver ficha
                                         </a>
                                         } @else {
-                                        <span class="text-gray-400">No tiene</span>
+                                        <span class="text-gray-400">—</span>
                                         }
                                     </td>
 
@@ -138,56 +139,55 @@
                                     </td>
 
                                     <!-- Acciones -->
-                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        <div>
-                                            <div class="shadow-theme-xs inline-flex items-center gap-1.5">
-                                                <button type="button"
-                                                    class="bg-orange-300 hover:bg-orange-400 inline-flex items-center gap-2 px-2.5 py-2 text-sm font-medium text-white rounded-md"
-                                                    (click)="onEditProduct(item)">
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                        xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd"
-                                                            d="M20.8749 2.51272C20.1915 1.8293 19.0835 1.8293 18.4001 2.51272L13.2418 7.67095C12.879 8.03379 12.6511 8.50974 12.5959 9.0199L12.4069 10.7668C12.3824 10.9926 12.4616 11.2173 12.6222 11.3778C12.7827 11.5384 13.0074 11.6176 13.2332 11.5931L14.9801 11.4041C15.4903 11.3489 15.9662 11.121 16.3291 10.7582L21.4873 5.59994C22.1707 4.91652 22.1707 3.80848 21.4873 3.12506L20.8749 2.51272ZM18.5981 4.43601L19.564 5.40191L15.2684 9.69751C15.1474 9.81846 14.9888 9.89443 14.8187 9.91283L13.9984 10.0016L14.0872 9.18126C14.1056 9.01121 14.1815 8.85256 14.3025 8.73161L18.5981 4.43601Z"
-                                                            fill="#323544" />
-                                                        <path
-                                                            d="M5.5 3.25H15.5411L14.0411 4.75H5.5C5.08579 4.75 4.75 5.08579 4.75 5.5V18.5C4.75 18.9142 5.08579 19.25 5.5 19.25H18.5C18.9142 19.25 19.25 18.9142 19.25 18.5V9.95823L20.75 8.45823V18.5C20.75 19.7426 19.7426 20.75 18.5 20.75H5.5C4.25736 20.75 3.25 19.7426 3.25 18.5V5.5C3.25 4.25736 4.25736 3.25 5.5 3.25Z"
-                                                            fill="#323544" />
-                                                    </svg>
-                                                </button>
-                                                <button type="button"
-                                                    class="inline-flex items-center gap-2 px-2.5 py-2 text-sm font-medium text-white rounded-md"
-                                                    [ngClass]="
-                                                                      item.status === 1
-                                                                        ? 'bg-red-300 hover:bg-red-400'
-                                                                        : 'bg-green-300 hover:bg-green-400'
-                                                                    " (click)="openToggleConfirm(item)" [attr.title]="
-                                                                      item.status === 1 ? 'Inactivar' : 'Activar'
-                                                                    ">
-                                                    @if (item.status === 1) {
-                                                    <!-- icono inactivar (basurero / deshabilitar) -->
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                        xmlns="http://www.w3.org/2000/svg">
-                                                        <path
-                                                            d="M14.7223 12.7585C14.7426 12.3448 14.4237 11.9929 14.01 11.9726C13.5963 11.9522 13.2444 12.2711 13.2241 12.6848L12.9999 17.2415C12.9796 17.6552 13.2985 18.0071 13.7122 18.0274C14.1259 18.0478 14.4778 17.7289 14.4981 17.3152L14.7223 12.7585Z"
-                                                            fill="#323544" />
-                                                        <path
-                                                            d="M9.98802 11.9726C9.5743 11.9929 9.25542 12.3448 9.27577 12.7585L9.49993 17.3152C9.52028 17.7289 9.87216 18.0478 10.2859 18.0274C10.6996 18.0071 11.0185 17.6552 10.9981 17.2415L10.774 12.6848C10.7536 12.2711 10.4017 11.9522 9.98802 11.9726Z"
-                                                            fill="#323544" />
-                                                        <path fill-rule="evenodd" clip-rule="evenodd"
-                                                            d="M10.249 2C9.00638 2 7.99902 3.00736 7.99902 4.25V5H5.5C4.25736 5 3.25 6.00736 3.25 7.25C3.25 8.28958 3.95503 9.16449 4.91303 9.42267L5.54076 19.8848C5.61205 21.0729 6.59642 22 7.78672 22H16.2113C17.4016 22 18.386 21.0729 18.4573 19.8848L19.085 9.42267C20.043 9.16449 20.748 8.28958 20.748 7.25C20.748 6.00736 19.7407 5 18.498 5H15.999V4.25C15.999 3.00736 14.9917 2 13.749 2H10.249ZM14.499 5V4.25C14.499 3.83579 14.1632 3.5 13.749 3.5H10.249C9.83481 3.5 9.49902 3.83579 9.49902 4.25V5H14.499ZM5.5 6.5C5.08579 6.5 4.75 6.83579 4.75 7.25C4.75 7.66421 5.08579 8 5.5 8H18.498C18.9123 8 19.248 7.66421 19.248 7.25C19.248 6.83579 18.9123 6.5 18.498 6.5H5.5ZM6.42037 9.5H17.5777L16.96 19.7949C16.9362 20.191 16.6081 20.5 16.2113 20.5H7.78672C7.38995 20.5 7.06183 20.191 7.03807 19.7949L6.42037 9.5Z"
-                                                            fill="#323544" />
-                                                    </svg>
-                                                    } @else {
-                                                    <!-- icono activar (check) -->
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                        xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd"
-                                                            d="M20.285 6.709a1 1 0 0 1 .006 1.414l-9.2 9.3a1 1 0 0 1-1.42-.002L3.71 11.46a1 1 0 1 1 1.414-1.414l4.06 4.06 8.49-8.58a1 1 0 0 1 1.41.183Z"
-                                                            fill="#323544" />
-                                                    </svg>
-                                                    }
-                                                </button>
-                                            </div>
+                                    <td class="py-2">
+                                        <div class="inline-flex items-center gap-1.5">
+                                            <button type="button"
+                                                class="bg-orange-300 hover:bg-orange-400 inline-flex items-center gap-2 px-2.5 py-2 text-sm font-medium text-white rounded-md"
+                                                (click)="onEditService(item)">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                                        d="M20.8749 2.51272C20.1915 1.8293 19.0835 1.8293 18.4001 2.51272L13.2418 7.67095C12.879 8.03379 12.6511 8.50974 12.5959 9.0199L12.4069 10.7668C12.3824 10.9926 12.4616 11.2173 12.6222 11.3778C12.7827 11.5384 13.0074 11.6176 13.2332 11.5931L14.9801 11.4041C15.4903 11.3489 15.9662 11.121 16.3291 10.7582L21.4873 5.59994C22.1707 4.91652 22.1707 3.80848 21.4873 3.12506L20.8749 2.51272ZM18.5981 4.43601L19.564 5.40191L15.2684 9.69751C15.1474 9.81846 14.9888 9.89443 14.8187 9.91283L13.9984 10.0016L14.0872 9.18126C14.1056 9.01121 14.1815 8.85256 14.3025 8.73161L18.5981 4.43601Z"
+                                                        fill="#323544" />
+                                                    <path
+                                                        d="M5.5 3.25H15.5411L14.0411 4.75H5.5C5.08579 4.75 4.75 5.08579 4.75 5.5V18.5C4.75 18.9142 5.08579 19.25 5.5 19.25H18.5C18.9142 19.25 19.25 18.9142 19.25 18.5V9.95823L20.75 8.45823V18.5C20.75 19.7426 19.7426 20.75 18.5 20.75H5.5C4.25736 20.75 3.25 19.7426 3.25 18.5V5.5C3.25 4.25736 4.25736 3.25 5.5 3.25Z"
+                                                        fill="#323544" />
+                                                </svg>
+                                            </button>
+                                            <button type="button"
+                                                class="inline-flex items-center gap-2 px-2.5 py-2 text-sm font-medium text-white rounded-md"
+                                                [ngClass]="
+                                                                                                                  item.status === 1
+                                                                                                                    ? 'bg-red-300 hover:bg-red-400'
+                                                                                                                    : 'bg-green-300 hover:bg-green-400'
+                                                                                                                "
+                                                (click)="openToggleConfirm(item)" [attr.title]="
+                                                                                                                  item.status === 1 ? 'Inactivar' : 'Activar'
+                                                                                                                ">
+                                                @if (item.status === 1) {
+                                                <!-- icono inactivar (basurero / deshabilitar) -->
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M14.7223 12.7585C14.7426 12.3448 14.4237 11.9929 14.01 11.9726C13.5963 11.9522 13.2444 12.2711 13.2241 12.6848L12.9999 17.2415C12.9796 17.6552 13.2985 18.0071 13.7122 18.0274C14.1259 18.0478 14.4778 17.7289 14.4981 17.3152L14.7223 12.7585Z"
+                                                        fill="#323544" />
+                                                    <path
+                                                        d="M9.98802 11.9726C9.5743 11.9929 9.25542 12.3448 9.27577 12.7585L9.49993 17.3152C9.52028 17.7289 9.87216 18.0478 10.2859 18.0274C10.6996 18.0071 11.0185 17.6552 10.9981 17.2415L10.774 12.6848C10.7536 12.2711 10.4017 11.9522 9.98802 11.9726Z"
+                                                        fill="#323544" />
+                                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                                        d="M10.249 2C9.00638 2 7.99902 3.00736 7.99902 4.25V5H5.5C4.25736 5 3.25 6.00736 3.25 7.25C3.25 8.28958 3.95503 9.16449 4.91303 9.42267L5.54076 19.8848C5.61205 21.0729 6.59642 22 7.78672 22H16.2113C17.4016 22 18.386 21.0729 18.4573 19.8848L19.085 9.42267C20.043 9.16449 20.748 8.28958 20.748 7.25C20.748 6.00736 19.7407 5 18.498 5H15.999V4.25C15.999 3.00736 14.9917 2 13.749 2H10.249ZM14.499 5V4.25C14.499 3.83579 14.1632 3.5 13.749 3.5H10.249C9.83481 3.5 9.49902 3.83579 9.49902 4.25V5H14.499ZM5.5 6.5C5.08579 6.5 4.75 6.83579 4.75 7.25C4.75 7.66421 5.08579 8 5.5 8H18.498C18.9123 8 19.248 7.66421 19.248 7.25C19.248 6.83579 18.9123 6.5 18.498 6.5H5.5ZM6.42037 9.5H17.5777L16.96 19.7949C16.9362 20.191 16.6081 20.5 16.2113 20.5H7.78672C7.38995 20.5 7.06183 20.191 7.03807 19.7949L6.42037 9.5Z"
+                                                        fill="#323544" />
+                                                </svg>
+                                                } @else {
+                                                <!-- icono activar (check) -->
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                                        d="M20.285 6.709a1 1 0 0 1 .006 1.414l-9.2 9.3a1 1 0 0 1-1.42-.002L3.71 11.46a1 1 0 1 1 1.414-1.414l4.06 4.06 8.49-8.58a1 1 0 0 1 1.41.183Z"
+                                                        fill="#323544" />
+                                                </svg>
+                                                }
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -258,14 +258,14 @@
 
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-            {{ isEditMode ? 'Editar producto' : 'Registrar producto' }}
+            {{ isEditMode ? 'Editar servicio' : 'Registrar servicio' }}
         </h3>
         <p class="text-sm text-gray-500">
-            Registro comercial y técnico del producto.
+            Registro comercial y técnico del servicio.
         </p>
     </div>
 
-    <form (ngSubmit)="onSubmitProduct()" class="space-y-6">
+    <form (ngSubmit)="onSubmitService()" class="space-y-6">
 
         <!-- Datos básicos -->
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-12">
@@ -291,82 +291,34 @@
             </div>
 
             <div class="sm:col-span-4">
-                <app-label>Categoría *</app-label>
-                <app-select placeholder="Seleccione una categoría" [options]="categoryOptions" [(value)]="categoryId"
-                    [loading]="loadingCategories">
+                <app-label>Categoría de servicio *</app-label>
+                <app-select placeholder="Seleccione categoría" [options]="serviceCategoryOptions"
+                    [(value)]="serviceCategoryId" [loading]="loadingServiceCategories">
                 </app-select>
-
-                @if (submitted && !categoryId) {
-                <p class="mt-1 text-sm text-red-500">
-                    Debe seleccionar una categoría
-                </p>
-                }
             </div>
 
             <div class="sm:col-span-4">
-                <app-label>Unidad de medida *</app-label>
-                <app-select placeholder="Seleccione una unidad de medida" [options]="unitMeasureOptions"
-                    [(value)]="unitMeasureId" [loading]="loadingUnitMeasures">
+                <app-label>Unidad de cobro *</app-label>
+                <app-select placeholder="Seleccione unidad" [options]="chargeUnitOptions" [(value)]="chargeUnitId"
+                    [loading]="loadingChargeUnits">
                 </app-select>
-
-                @if (submitted && !unitMeasureId) {
-                <p class="mt-1 text-sm text-red-500">
-                    Debe seleccionar una unidad de medida
-                </p>
-                }
             </div>
 
-            <div class="sm:col-span-2">
-                <app-label>Costo estimado</app-label>
-                <app-input-field type="number" [step]="0.01" [(value)]="estimatedCost" />
-
-                @if (submitted && estimatedCost < 0) { <p class="mt-1 text-sm text-red-500">
-                    El costo no puede ser negativo
-                    </p>
-                    }
+            <div class="sm:col-span-4">
+                <app-label>Precio</app-label>
+                <app-input-field type="number" [(value)]="price" />
             </div>
 
-            <div class="sm:col-span-2">
-                <app-label>Precio de venta *</app-label>
-                <app-input-field type="number" [step]="0.01" [(value)]="salePrice" />
-
-                @if (submitted && (!salePrice || salePrice <= 0)) { <p class="mt-1 text-sm text-red-500">
-                    El precio debe ser mayor a 0
-                    </p>
-                    }
-            </div>
-
-            <!-- Imagen -->
-            <div class="sm:col-span-6">
-                <app-label>Imagen principal *</app-label>
-                <app-file-input accept="image/*" (change)="onMainImageChange($event)"
-                    className="custom-class"></app-file-input>
-
-                @if (submitted && !isEditMode && !mainImage) {
-                <p class="mt-1 text-sm text-red-500">
-                    La imagen principal es obligatoria
-                </p>
-                }
-
-                @if (isEditMode && selectedProduct?.mainImageUrl) {
-                <a [href]="selectedProduct?.mainImageUrl" target="_blank" class="mt-2 block text-brand-500 hover:underline">
-                    Ver imagen actual
-                </a>
-                }
-            </div>
-
-            <!-- Ficha -->
-            <div class="sm:col-span-6">
-                <app-label>Ficha técnica (PDF)</app-label>
-                <app-file-input accept="application/pdf" (change)="onTechnicalSheetChange($event)"
-                    className="custom-class"></app-file-input>
-
-                @if (isEditMode && selectedProduct?.technicalSheetUrl) {
-                <a [href]="selectedProduct?.technicalSheetUrl" target="_blank"
-                    class="mt-2 block text-brand-500 hover:underline">
-                    Ver ficha actual
-                </a>
-                }
+            <!-- Condiciones del servicio -->
+            <div class="sm:col-span-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Requiere materiales -->
+                <app-switch label="Requiere materiales" [defaultChecked]="requiresMaterials"
+                    (valueChange)="requiresMaterials = $event">
+                </app-switch>
+                <!-- Requiere especificación -->
+                <app-switch label="Requiere especificación" [defaultChecked]="requiresSpecification"
+                    (valueChange)="requiresSpecification = $event">
+                </app-switch>
             </div>
 
             <!-- Descripciones -->
@@ -383,17 +335,49 @@
             </div>
 
             <div class="sm:col-span-12">
-                <app-label>Especificación técnica *</app-label>
-                <app-text-area [value]="technicalSpec" (valueChange)="technicalSpec = $event" [rows]="4"
-                    placeholder="Ingrese la especificación técnica"></app-text-area>
+                <app-label>Descripción detallada *</app-label>
+                <app-text-area [(value)]="detailedDescription" placeholder="Ingrese la descripción detallada"
+                    [rows]="4"></app-text-area>
 
-                @if (submitted && !technicalSpec) {
+                @if (submitted && !detailedDescription) {
                 <p class="mt-1 text-sm text-red-500">
-                    La especificación técnica es obligatoria
+                    La descripción detallada es obligatoria
                 </p>
                 }
             </div>
 
+            <!-- Imagen -->
+            <div class="sm:col-span-6">
+                <app-label>Imagen principal *</app-label>
+                <app-file-input accept="image/*" (change)="onMainImageChange($event)"
+                    className="custom-class"></app-file-input>
+
+                @if (submitted && !isEditMode && !mainImage) {
+                <p class="mt-1 text-sm text-red-500">
+                    La imagen principal es obligatoria
+                </p>
+                }
+
+                @if (isEditMode && selectedService?.imageUrl) {
+                <a [href]="selectedService?.imageUrl" target="_blank" class="mt-2 block text-brand-500 hover:underline">
+                    Ver imagen actual
+                </a>
+                }
+            </div>
+
+            <!-- Ficha -->
+            <div class="sm:col-span-6">
+                <app-label>Ficha técnica (PDF)</app-label>
+                <app-file-input accept="application/pdf" (change)="onTechnicalSheetChange($event)"
+                    className="custom-class"></app-file-input>
+
+                @if (isEditMode && selectedService?.technicalSheetUrl) {
+                <a [href]="selectedService?.technicalSheetUrl" target="_blank"
+                    class="mt-2 block text-brand-500 hover:underline">
+                    Ver ficha actual
+                </a>
+                }
+            </div>
         </div>
 
 
@@ -405,7 +389,7 @@
             </button>
             <button type="submit" class="btn-primary" [disabled]="isSubmitting"
                 class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50">
-                {{ isSubmitting ? 'Guardando…' : 'Guardar producto' }}
+                {{ isSubmitting ? 'Guardando…' : 'Guardar servicio' }}
             </button>
         </div>
 
@@ -419,7 +403,7 @@
 
     <p class="text-sm text-gray-500 dark:text-gray-400">
         ¿Deseas {{ toggleTarget?.status === 1 ? 'inactivar' : 'activar' }}
-        el producto <strong>{{ toggleTarget?.name }}</strong>?
+        el servicio <strong>{{ toggleTarget?.name }}</strong>?
     </p>
 
     <div class="flex items-center justify-end gap-3 pt-4">

@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const token = authService.token;
 
     // (opcional) evita mandar token al login
-    const isAuthEndpoint = req.url.includes('/auth/login');
+    const isAuthEndpoint = req.url.includes('/signin');
 
     if (token && !isAuthEndpoint) {
         req = req.clone({
