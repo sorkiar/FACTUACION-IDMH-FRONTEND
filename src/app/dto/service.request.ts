@@ -1,5 +1,4 @@
 export interface ServiceRequest {
-    sku: string;
     name: string;
     serviceCategoryId: number;
     chargeUnitId: number;

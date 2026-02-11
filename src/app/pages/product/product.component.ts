@@ -279,7 +279,6 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
 
     const payload: ProductRequest = {
-      sku: this.sku.trim(),
       name: this.name.trim(),
       categoryId: Number(this.categoryId),
       unitMeasureId: Number(this.unitMeasureId),

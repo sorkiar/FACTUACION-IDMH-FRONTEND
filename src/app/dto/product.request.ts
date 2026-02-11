@@ -1,5 +1,4 @@
 export interface ProductRequest {
-    sku: string;
     name: string;
     categoryId: number;
     unitMeasureId: number;

@@ -296,7 +296,6 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
 
     const payload: ServiceRequest = {
-      sku: this.sku.trim(),
       name: this.name.trim(),
       serviceCategoryId: Number(this.serviceCategoryId),
       chargeUnitId: Number(this.chargeUnitId),
