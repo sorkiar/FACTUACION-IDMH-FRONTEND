@@ -20,6 +20,7 @@ import { TextAreaComponent } from "../../shared/components/form/input/text-area.
 import { ServiceCategoryService } from '../../services/service-category.service';
 import { ChargeUnitService } from '../../services/charge-unit.service';
 import { SwitchComponent } from "../../shared/components/form/input/switch.component";
+import { SkuSequenceService } from '../../services/sku-sequence.service';
 
 @Component({
   selector: 'app-service',
@@ -122,6 +123,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     private serviceService: ServiceService,
     private serviceCategoryService: ServiceCategoryService,
     private chargeUnitService: ChargeUnitService,
+    private skuSequenceService: SkuSequenceService,
     private notify: NotificationService
   ) { }
 
@@ -203,12 +205,25 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.sub.add(s);
   }
 
+  private loadSkuPreview(): void {
+    this.skuSequenceService.preview('SRV').subscribe({
+      next: res => {
+        this.sku = res?.data ?? '';
+      },
+      error: err => {
+        this.sku = '';
+        this.notify.error(err?.error?.message ?? 'No se pudo generar el SKU');
+      }
+    });
+  }
+
   onCreateService(): void {
     this.isEditMode = false;
     this.selectedService = undefined;
     this.resetForm();
     this.showForm = true;
 
+    this.loadSkuPreview();
     this.loadServiceCategories();
     this.loadChargeUnits();
   }

@@ -66,6 +66,8 @@
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Unidad M.</th>
+                                    <th class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Imagen</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Ficha técnica</th>
@@ -81,13 +83,13 @@
                             <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
                                 @if (loadingTable) {
                                 <tr>
-                                    <td colspan="8" class="py-6 text-center text-sm text-gray-500">
+                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
                                         Cargando servicios…
                                     </td>
                                 </tr>
                                 } @else if (services.length === 0) {
                                 <tr>
-                                    <td colspan="8" class="py-6 text-center text-sm text-gray-500">
+                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
                                         No hay servicios registrados.
                                     </td>
                                 </tr>
@@ -117,6 +119,17 @@
                                     <!-- Unidad de cobro -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
                                         {{ item.chargeUnitName }}
+                                    </td>
+
+                                    <!-- Imagen -->
+                                    <td class="py-3 text-sm">
+                                        @if (item.imageUrl) {
+                                        <a [href]="item.imageUrl" target="_blank" class="text-brand-500 font-medium hover:underline">
+                                            Ver imagen
+                                        </a>
+                                        } @else {
+                                        <span class="text-gray-400">No tiene</span>
+                                        }
                                     </td>
 
                                     <!-- Ficha técnica -->
@@ -271,7 +284,7 @@
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-12">
             <div class="sm:col-span-4">
                 <app-label>SKU *</app-label>
-                <app-input-field [(value)]="sku" placeholder="Ej: MM-EST-0001" />
+                <app-input-field [(value)]="sku" placeholder="Ej: SRV000000X" [disabled]="true" />
 
                 @if (submitted && (!sku || sku.length < 3)) { <p class="mt-1 text-sm text-red-500">
                     El SKU es obligatorio (mínimo 3 caracteres)

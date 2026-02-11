@@ -1,3 +1,4 @@
+import { SkuSequenceService } from './../../services/sku-sequence.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PageBreadcrumbComponent } from "../../shared/components/common/page-breadcrumb/page-breadcrumb.component";
 import { ProductResponse } from '../../dto/product.response';
@@ -34,7 +35,7 @@ import { TextAreaComponent } from "../../shared/components/form/input/text-area.
     FormsModule,
     FileInputComponent,
     TextAreaComponent
-],
+  ],
   templateUrl: './product.component.html',
   styleUrl: './product.component.css',
 })
@@ -114,6 +115,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private categoryService: CategoryService,
     private unitMeasureService: UnitMeasureService,
+    private skuSequenceService: SkuSequenceService,
     private notify: NotificationService
   ) { }
 
@@ -199,12 +201,25 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.sub.add(s);
   }
 
+  private loadSkuPreview(): void {
+    this.skuSequenceService.preview('PRD').subscribe({
+      next: res => {
+        this.sku = res?.data ?? '';
+      },
+      error: err => {
+        this.sku = '';
+        this.notify.error(err?.error?.message ?? 'No se pudo generar el SKU');
+      }
+    });
+  }
+
   onCreateProduct(): void {
     this.isEditMode = false;
     this.selectedProduct = undefined;
     this.resetForm();
     this.showForm = true;
 
+    this.loadSkuPreview();
     this.loadCategories();
     this.loadUnitMeasures();
   }

@@ -67,7 +67,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loadDocumentTypes(Number(this.personTypeId));
     this.loadClients();
   }
 
@@ -405,7 +404,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
       if (!this.businessName) return false;
     }
 
-    if (!this.phone1 || !this.email1) return false;
+    if (!this.phone1 || !this.email1 || !this.address) return false;
 
     return true;
   }

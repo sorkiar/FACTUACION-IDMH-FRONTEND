@@ -318,7 +318,7 @@
 
       <!-- CONTACT -->
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-12">
-        <div class="sm:col-span-4">
+        @if (isNaturalPerson()) {<div class="sm:col-span-4">
           <app-label>Fecha de nacimiento</app-label>
           <app-input-field [(value)]="birthDate" name="birthDate" type="date" />
         </div>
@@ -330,16 +330,14 @@
             El teléfono es obligatorio
           </p>
           }
-        </div>
+        </div>}
 
         <div class="sm:col-span-4">
           <app-label>Teléfono 2</app-label>
           <app-input-field [(value)]="phone2" name="phone2" placeholder="Opcional" />
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div>
+        <div [ngClass]="isLegalPerson() ? 'sm:col-span-4' : 'sm:col-span-6'">
           <app-label>Correo 1 <span class="text-error-500">*</span></app-label>
           <app-input-field [(value)]="email1" name="email1" placeholder="correo@dominio.com" />
           @if (submittedClient && !email1) {
@@ -347,15 +345,18 @@
           }
         </div>
 
-        <div>
+        <div [ngClass]="isLegalPerson() ? 'sm:col-span-4' : 'sm:col-span-6'">
           <app-label>Correo 2</app-label>
           <app-input-field [(value)]="email2" name="email2" placeholder="Opcional" />
         </div>
       </div>
 
       <div>
-        <app-label>Dirección</app-label>
+        <app-label>Dirección <span class="text-error-500">*</span></app-label>
         <app-input-field [(value)]="address" name="address" placeholder="Ingrese dirección" />
+        @if (submittedClient && !address) {
+        <p class="mt-1 text-sm text-error-500">La dirección es obligatoria</p>
+        }
       </div>
 
       <!-- ACTIONS -->
