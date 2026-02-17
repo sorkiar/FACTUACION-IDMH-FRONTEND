@@ -53,6 +53,9 @@
                                         Estado</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Estado Sunat</th>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Subtotal</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -77,7 +80,7 @@
                                 <!-- LOADING -->
                                 @if (loadingTable) {
                                 <tr>
-                                    <td colspan="8" class="py-6 text-center text-sm text-gray-500">
+                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
                                         Cargando ventas…
                                     </td>
                                 </tr>
@@ -86,7 +89,7 @@
                                 <!-- VACÍO -->
                                 @else if (!loadingTable && sales.length === 0) {
                                 <tr>
-                                    <td colspan="8" class="py-6 text-center text-sm text-gray-500">
+                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
                                         No hay ventas registradas.
                                     </td>
                                 </tr>
@@ -106,13 +109,29 @@
                                                 [color]="sale.saleStatus === 'BORRADOR' ? 'warning' : 'success'">
                                                 {{ sale.saleStatus }}
                                             </app-badge>
-                                            @if (sale.document?.sunatMessage) {
-                                            <div class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-72 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block">
-                                                <span class="font-semibold">{{ sale.document!.sunatResponseCode }}</span> - {{ sale.document!.sunatMessage }}
-                                                <div class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                            </div>
-                                            }
                                         </div>
+                                    </td>
+
+                                    <td class="py-3 text-sm">
+                                        @if (!sale.document) {
+                                            <span class="text-gray-400">Sin emitir</span>
+                                        } @else {
+                                        <div class="relative inline-block group">
+                                            <app-badge size="sm"
+                                                [color]="sale.document.status  === 'PENDIENTE' ? 'warning' : 'success'">
+                                                {{ sale.saleStatus }}
+                                            </app-badge>
+                                            <div
+                                                class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-72 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block">
+                                                <span
+                                                    class="font-semibold">{{ sale.document!.sunatResponseCode }}</span>
+                                                - {{ sale.document!.sunatMessage }}
+                                                <div
+                                                    class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        }
                                     </td>
 
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
@@ -147,9 +166,12 @@
                                             <button
                                                 class="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
                                                 (click)="onEditSale(sale)">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                                 Detalle
                                             </button>
@@ -158,9 +180,12 @@
                                             <button
                                                 class="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
                                                 (click)="openPdf(sale.document!.pdfUrl!)">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6M9 9h3"/>
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M9 13h6M9 17h6M9 9h3" />
                                                 </svg>
                                                 PDF
                                             </button>
@@ -235,10 +260,7 @@
     </div>
 
     <!-- MODAL REGISTRO/EDICIÓN DE VENTA -->
-    <app-sale-register
-        [isOpen]="showForm"
-        [selectedSale]="selectedSale"
-        (onClose)="onCloseForm()"
+    <app-sale-register [isOpen]="showForm" [selectedSale]="selectedSale" (onClose)="onCloseForm()"
         (onSaved)="handleSaleSaved()">
     </app-sale-register>
 </div>
