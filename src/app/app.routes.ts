@@ -22,6 +22,7 @@ import { GuestGuard } from './security/guest.guard';
 import { ClientsComponent } from './pages/clients/clients.component';
 import { ProductComponent } from './pages/product/product.component';
 import { ServiceComponent } from './pages/services/service.component';
+import { SaleComponent } from './pages/sales/sale.component';
 
 export const routes: Routes = [
   {
@@ -116,6 +117,11 @@ export const routes: Routes = [
         path: 'services',
         component: ServiceComponent,
         title: 'Servicios | IDMH Perú'
+      },
+      {
+        path: 'sales',
+        component: SaleComponent,
+        title: 'Ventas | IDMH Perú'
       },
     ]
   },
