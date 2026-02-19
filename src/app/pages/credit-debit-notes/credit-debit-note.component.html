@@ -1,5 +1,5 @@
 <div>
-    <app-page-breadcrumb pageTitle="Ventas" />
+    <app-page-breadcrumb pageTitle="Notas de Crédito / Débito" />
 
     <!-- ACCIONES SUPERIORES -->
     <div
@@ -7,13 +7,13 @@
 
         <button type="button"
             class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-            (click)="onCreateSale()">
-            + Nueva venta
+            (click)="onCreateNote()">
+            + Nueva nota
         </button>
 
         <button type="button"
             class="ml-2 inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
-            (click)="loadSales()" [disabled]="loadingTable">
+            (click)="loadNotes()" [disabled]="loadingTable">
             {{ loadingTable ? 'Actualizando…' : 'Actualizar' }}
         </button>
     </div>
@@ -28,11 +28,11 @@
                 <!-- HEADER TABLA -->
                 <div class="flex flex-col gap-2 px-5 mb-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Listado de ventas
+                        Listado de notas de crédito / débito
                     </h3>
 
                     <div class="relative">
-                        <input type="text" placeholder="Buscar por cliente..."
+                        <input type="text" placeholder="Buscar por cliente o comprobante..."
                             (input)="setSearchTerm($any($event.target).value)"
                             class="dark:bg-dark-900 h-[42px] w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[300px]" />
                     </div>
@@ -53,13 +53,16 @@
                                         Fecha emisión</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Tipo</th>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Cliente</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        Estado</th>
+                                        Doc. Referencia</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        Estado Sunat</th>
+                                        Estado SUNAT</th>
                                     <th
                                         class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Subtotal</th>
@@ -80,83 +83,90 @@
                                 <!-- LOADING -->
                                 @if (loadingTable) {
                                 <tr>
-                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
-                                        Cargando ventas…
+                                    <td colspan="10" class="py-6 text-center text-sm text-gray-500">
+                                        Cargando notas…
                                     </td>
                                 </tr>
                                 }
 
                                 <!-- VACÍO -->
-                                @else if (!loadingTable && sales.length === 0) {
+                                @else if (!loadingTable && notes.length === 0) {
                                 <tr>
-                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
-                                        No hay ventas registradas.
+                                    <td colspan="10" class="py-6 text-center text-sm text-gray-500">
+                                        No hay notas de crédito/débito registradas.
                                     </td>
                                 </tr>
                                 }
 
                                 <!-- DATA -->
                                 @else {
-                                @for (sale of currentItems; track sale.id) {
+                                @for (note of currentItems; track note.id) {
                                 <tr>
+                                    <!-- COMPROBANTE -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        @if (sale.document) {
-                                        {{ sale.document.series }}-{{ sale.document.sequence }}
-                                        } @else {
-                                        <span class="text-gray-400">Sin emitir</span>
-                                        }
+                                        {{ getNoteDoc(note) }}
                                     </td>
 
                                     <!-- FECHA EMISIÓN -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        {{ formatIssueDate(sale.document?.issueDate) }}
+                                        {{ formatDate(note.issueDate) }}
                                     </td>
 
+                                    <!-- TIPO NC/ND -->
+                                    <td class="py-3 text-sm">
+                                        <app-badge size="sm"
+                                            [color]="getNoteTypeBadgeColor(note.creditDebitNoteType.noteCategory)">
+                                            {{ note.creditDebitNoteType.noteCategory === 'CREDITO' ? 'NC' : 'ND' }}
+                                            · {{ note.creditDebitNoteType.name }}
+                                        </app-badge>
+                                    </td>
+
+                                    <!-- CLIENTE -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        {{ sale.client.businessName ? sale.client.businessName : sale.client.firstName + " " + sale.client.lastName }}
+                                        {{ getClientName(note) }}
                                     </td>
 
-                                    <td class="py-3 text-sm">
-                                        <div class="relative inline-block group">
-                                            <app-badge size="sm"
-                                                [color]="sale.saleStatus === 'BORRADOR' ? 'warning' : 'success'">
-                                                {{ sale.saleStatus }}
-                                            </app-badge>
-                                        </div>
+                                    <!-- DOCUMENTO REFERENCIA -->
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                        {{ getOriginalDoc(note) }}
                                     </td>
 
+                                    <!-- ESTADO SUNAT -->
                                     <td class="py-3 text-sm">
-                                        @if (!sale.document) {
+                                        @if (!note.series) {
                                         <span class="text-gray-400">Sin emitir</span>
                                         } @else {
                                         <div class="relative inline-block group">
-                                            <app-badge size="sm"
-                                                [color]="sale.document.status  === 'PENDIENTE' ? 'warning' : 'success'">
-                                                {{ sale.document.status }}
+                                            <app-badge size="sm" [color]="getStatusBadgeColor(note.status)">
+                                                {{ note.status }}
                                             </app-badge>
+                                            @if (note.sunatMessage) {
                                             <div
                                                 class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-72 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block">
-                                                <span
-                                                    class="font-semibold">{{ sale.document!.sunatResponseCode }}</span>
-                                                - {{ sale.document!.sunatMessage }}
+                                                <span class="font-semibold">{{ note.sunatResponseCode }}</span>
+                                                - {{ note.sunatMessage }}
                                                 <div
                                                     class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900">
                                                 </div>
                                             </div>
+                                            }
                                         </div>
                                         }
                                     </td>
 
+                                    <!-- SUBTOTAL -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ sale.subtotalAmount | number:'1.2-2' }}
+                                        S/ {{ note.subtotalAmount | number:'1.2-2' }}
                                     </td>
 
+                                    <!-- IGV -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ sale.taxAmount | number:'1.2-2' }}
+                                        S/ {{ note.taxAmount | number:'1.2-2' }}
                                     </td>
 
+                                    <!-- TOTAL -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ sale.totalAmount | number:'1.2-2' }}
+                                        S/ {{ note.totalAmount | number:'1.2-2' }}
                                     </td>
 
                                     <!-- ACCIONES -->
@@ -165,7 +175,7 @@
 
                                             <button
                                                 class="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-                                                (click)="onEditSale(sale)">
+                                                (click)="onViewNote(note)">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                                                     stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -176,10 +186,10 @@
                                                 Detalle
                                             </button>
 
-                                            @if (sale.document?.pdfUrl) {
+                                            @if (note.pdfUrl) {
                                             <button
                                                 class="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-                                                (click)="openPdf(sale.document!.pdfUrl!)">
+                                                (click)="openFile(note.pdfUrl!)">
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                                                     stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -188,6 +198,45 @@
                                                         d="M9 13h6M9 17h6M9 9h3" />
                                                 </svg>
                                                 PDF
+                                            </button>
+                                            }
+
+                                            @if (note.xmlUrl) {
+                                            <button
+                                                class="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                                                (click)="openFile(note.xmlUrl!)">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6M9 9h3" />
+                                                </svg>
+                                                XML
+                                            </button>
+                                            }
+
+                                            @if (note.cdrUrl) {
+                                            <button
+                                                class="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                                                (click)="openFile(note.cdrUrl!)">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6M9 9h3" />
+                                                </svg>
+                                                CDR
+                                            </button>
+                                            }
+
+                                            @if (canResend(note)) {
+                                            <button
+                                                class="inline-flex items-center gap-1 bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                                                (click)="onResend(note)">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                                Reenviar
                                             </button>
                                             }
 
@@ -220,7 +269,7 @@
                         </app-button>
                         <!-- Page Info -->
                         <span class="block text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
-                            Page {{ currentPage }} of {{ totalPages }}
+                            Página {{ currentPage }} de {{ totalPages }}
                         </span>
                         <!-- Page Numbers -->
                         <ul class="hidden items-center gap-0.5 sm:flex">
@@ -235,7 +284,7 @@
                                     [ngClass]="{
                                       'bg-brand-500 text-white': currentPage === idx + 1,
                                       'text-gray-700 hover:bg-brand-500/[0.08] dark:hover:bg-brand-500 dark:hover:text-white hover:text-brand-500 dark:text-gray-400':
-                                        currentPage !== idx + 1,
+                                        currentPage !== idx + 1
                                     }">
                                     {{ idx + 1 }}
                                 </button>
@@ -259,8 +308,8 @@
         </div>
     </div>
 
-    <!-- MODAL REGISTRO/EDICIÓN DE VENTA -->
-    <app-sale-register [isOpen]="showForm" [selectedSale]="selectedSale" (onClose)="onCloseForm()"
-        (onSaved)="handleSaleSaved()">
-    </app-sale-register>
+    <!-- MODAL REGISTRO/DETALLE DE NOTA -->
+    <app-credit-debit-note-register [isOpen]="showForm" [selectedNote]="selectedNote" (onClose)="onCloseForm()"
+        (onSaved)="handleNoteSaved()">
+    </app-credit-debit-note-register>
 </div>

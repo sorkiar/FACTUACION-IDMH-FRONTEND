@@ -23,6 +23,7 @@ import { ClientsComponent } from './pages/clients/clients.component';
 import { ProductComponent } from './pages/product/product.component';
 import { ServiceComponent } from './pages/services/service.component';
 import { SaleComponent } from './pages/sales/sale.component';
+import { CreditDebitNoteComponent } from './pages/credit-debit-notes/credit-debit-note.component';
 
 export const routes: Routes = [
   {
@@ -122,6 +123,11 @@ export const routes: Routes = [
         path: 'sales',
         component: SaleComponent,
         title: 'Ventas | IDMH Perú'
+      },
+      {
+        path: 'credit-debit-notes',
+        component: CreditDebitNoteComponent,
+        title: 'Notas de Crédito / Débito | IDMH Perú'
       },
     ]
   },

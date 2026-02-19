@@ -29,4 +29,16 @@ export class DocumentSeriesService {
             { params }
         );
     }
+
+    getNextSequenceById(seriesId: number):
+        Observable<ApiResponse<DocumentSeriesResponse>> {
+
+        let params = new HttpParams()
+            .set('seriesId', seriesId);
+
+        return this.http.get<ApiResponse<DocumentSeriesResponse>>(
+            `${this.baseUrl}/next-sequence`,
+            { params }
+        );
+    }
 }

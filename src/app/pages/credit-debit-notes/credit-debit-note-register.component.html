@@ -4,80 +4,133 @@
     <div class="mb-6 flex items-start justify-between">
         <div>
             <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">
-                {{ isViewMode ? ('Detalle de venta' + (selectedSale?.id != null ? ' #' + selectedSale!.id : '')) : 'Registro de Venta' }}
+                {{ isViewMode ? ('Detalle de nota #' + selectedNote?.id) : 'Registrar Nota de Crédito / Débito' }}
             </h3>
             <p class="text-sm text-gray-500">
-                {{ isViewMode ? 'Información de la venta registrada.' : 'Selecciona cliente, agrega productos/servicios y finaliza la venta.' }}
+                {{ isViewMode ? 'Información de la nota registrada.' : 'Selecciona la venta de referencia, el tipo de nota e ingresa los ítems a afectar.' }}
             </p>
         </div>
-        @if (loadingDetail) {
-        <span class="text-sm text-gray-400 animate-pulse mt-1 mr-13">Cargando datos…</span>
-        }
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
 
         <!-- ========================================================= -->
-        <!-- IZQUIERDA (DETALLE) -->
+        <!-- IZQUIERDA -->
         <!-- ========================================================= -->
         <div class="lg:col-span-3 space-y-6">
 
-            <!-- ================= CLIENTE ================= -->
+            <!-- ================= VENTA REFERENCIA ================= -->
             <div
                 class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">
-                        Cliente
+                        Venta / Comprobante de referencia
                     </h4>
 
                     @if (!isViewMode) {
                     <div class="flex gap-2">
                         <button type="button"
                             class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
-                            (click)="openClientModal()">
+                            (click)="openSaleModal()">
                             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" clip-rule="evenodd"
                                     d="M3.04199 9.37381C3.04199 5.87712 5.87735 3.04218 9.37533 3.04218C12.8733 3.04218 15.7087 5.87712 15.7087 9.37381C15.7087 12.8705 12.8733 15.7055 9.37533 15.7055C5.87735 15.7055 3.04199 12.8705 3.04199 9.37381ZM9.37533 1.54218C5.04926 1.54218 1.54199 5.04835 1.54199 9.37381C1.54199 13.6993 5.04926 17.2055 9.37533 17.2055C11.2676 17.2055 13.0032 16.5346 14.3572 15.4178L17.1773 18.2381C17.4702 18.531 17.945 18.5311 18.2379 18.2382C18.5308 17.9453 18.5309 17.4704 18.238 17.1775L15.4182 14.3575C16.5367 13.0035 17.2087 11.2671 17.2087 9.37381C17.2087 5.04835 13.7014 1.54218 9.37533 1.54218Z"
                                     fill="white" />
                             </svg>
-                            Buscar
+                            Buscar venta
                         </button>
-
                         <button type="button"
                             class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
-                            (click)="clearClient()">
+                            (click)="clearSale()">
                             Limpiar
                         </button>
                     </div>
                     }
-
                 </div>
 
                 <div
                     class="rounded-lg border border-dashed border-gray-300 p-3 text-sm text-gray-600 dark:border-gray-700 dark:text-white/90">
-                    @if (!selectedClient) {
-                    <span>Sin cliente seleccionado</span>
-                    } @else {
+                    @if (isViewMode) {
                     <div>
                         <p class="font-medium text-gray-800 dark:text-white">
-                            {{ getClientDisplay(selectedClient) }}
+                            Doc. referencia:
+                            {{ selectedNote?.originalDocument?.series }}-{{ selectedNote?.originalDocument?.sequence }}
                         </p>
-                        <p class="text-xs text-gray-500">
-                            {{ selectedClient.documentType }}: {{ selectedClient.documentNumber }}
-                        </p>
+                        <p class="text-xs text-gray-500 mt-1">Venta ID: {{ selectedNote?.sale?.id }}</p>
+                    </div>
+                    } @else if (!selectedSale) {
+                    <span>Sin venta seleccionada</span>
+                    } @else {
+                    <div>
+                        <p class="font-medium text-gray-800 dark:text-white">{{ getSaleDoc(selectedSale) }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ getClientName(selectedSale) }}</p>
                     </div>
                     }
                 </div>
             </div>
 
-            <!-- ================= DETALLE ================= -->
+            <!-- ================= TIPO Y MOTIVO ================= -->
+            <div
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Tipo de nota y motivo</h4>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                    <!-- Tipo de nota -->
+                    <div>
+                        <app-label>Tipo de nota *</app-label>
+                        @if (isViewMode) {
+                        <app-input-field type="text"
+                            [value]="(selectedNote?.creditDebitNoteType?.noteCategory === 'CREDITO' ? 'NC' : 'ND') + ' - ' + (selectedNote?.creditDebitNoteType?.name ?? '')"
+                            [disabled]="true">
+                        </app-input-field>
+                        } @else {
+                        <app-select
+                            placeholder="{{ !selectedSale ? 'Primero selecciona una venta' : (loadingNoteTypes ? 'Cargando...' : 'Seleccionar tipo') }}"
+                            [options]="noteTypeOptions" [(value)]="selectedNoteTypeCode"
+                            (valueChange)="onNoteTypeChange()" [disabled]="!selectedSale || loadingNoteTypes">
+                        </app-select>
+                        }
+                    </div>
+
+                    <!-- Comprobante a generar -->
+                    <div>
+                        <app-label>Comprobante a generar</app-label>
+                        <app-input-field type="text"
+                            [value]="isViewMode
+                                ? ((selectedNote?.series && selectedNote?.sequence) ? selectedNote!.series + '-' + selectedNote!.sequence : 'Sin emitir')
+                                : (formattedDocument || (!selectedSale ? 'Primero selecciona una venta' : (selectedNoteTypeCode ? 'Cargando correlativo...' : 'Selecciona un tipo de nota')))"
+                            [disabled]="true">
+                        </app-input-field>
+                        @if (loadingSeries && !isViewMode) {
+                        <p class="text-xs text-gray-400 animate-pulse mt-1">Obteniendo correlativo...</p>
+                        }
+                    </div>
+
+                </div>
+
+                <!-- Motivo -->
+                <div class="mt-4">
+                    <app-label>Motivo *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="selectedNote?.reason ?? ''" [disabled]="true">
+                    </app-input-field>
+                    } @else {
+                    <app-text-area [(value)]="reason" [rows]="2"
+                        placeholder="Ingresa el motivo de la nota...">
+                    </app-text-area>
+                    }
+                </div>
+            </div>
+
+            <!-- ================= DETALLE ITEMS ================= -->
             <div
                 class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 
                 <div class="flex items-start justify-between mb-1">
                     <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">
-                        Detalle de venta
+                        Detalle de la nota
                     </h4>
 
                     @if (!isViewMode) {
@@ -104,12 +157,11 @@
                         </button>
                     </div>
                     }
-
                 </div>
 
                 @if (!isViewMode) {
                 <p class="text-xs text-gray-400 mb-4 dark:text-gray-500">
-                    Agrega varios productos o servicios. Para servicios no registrados, usa "Servicio rápido".
+                    Agrega los productos o servicios afectados por esta nota.
                 </p>
                 }
 
@@ -117,7 +169,7 @@
                 <div class="overflow-x-auto rounded-lg">
                     <table class="min-w-full text-sm">
 
-                        <thead class="border-b border-gray-200 dark:border-white/[0.05] bg-gray-50 dark:bg-gray-800/50">
+                        <thead class="border-b border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-gray-800/50">
                             <tr class="text-gray-500 dark:text-gray-400">
                                 <th class="py-3 px-3 text-left font-medium text-xs uppercase tracking-wider">Tipo</th>
                                 <th class="py-3 px-3 text-left font-medium text-xs uppercase tracking-wider">Ítem</th>
@@ -133,16 +185,15 @@
                                 <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Acción
                                 </th>
                                 }
-
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
 
                             @if (items.length === 0) {
                             <tr>
                                 <td colspan="7" class="py-8 text-center text-gray-400">
-                                    Aún no hay items agregados.
+                                    Aún no hay ítems agregados.
                                 </td>
                             </tr>
                             }
@@ -154,11 +205,11 @@
                                     <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full"
                                         [class.bg-brand-100]="item.itemType === 'PRODUCTO'"
                                         [class.text-brand-700]="item.itemType === 'PRODUCTO'"
-                                        [class.dark:bg-brand-900/30]="item.itemType === 'PRODUCTO'"
+                                        [class.dark:bg-brand-900\/30]="item.itemType === 'PRODUCTO'"
                                         [class.dark:text-brand-300]="item.itemType === 'PRODUCTO'"
                                         [class.bg-indigo-100]="item.itemType === 'SERVICIO'"
                                         [class.text-indigo-700]="item.itemType === 'SERVICIO'"
-                                        [class.dark:bg-indigo-900/30]="item.itemType === 'SERVICIO'"
+                                        [class.dark:bg-indigo-900\/30]="item.itemType === 'SERVICIO'"
                                         [class.dark:text-indigo-300]="item.itemType === 'SERVICIO'"
                                         [class.bg-gray-100]="item.itemType === 'PERSONALIZADO'"
                                         [class.text-gray-700]="item.itemType === 'PERSONALIZADO'"
@@ -197,7 +248,8 @@
                                 </td>
 
                                 <td class="py-3 px-3 text-center font-semibold text-gray-800 dark:text-white">
-                                    S/ {{ item.quantity * item.unitPrice * (1 - (item.discountPercentage || 0) / 100) | number:'1.2-2' }}
+                                    S/
+                                    {{ item.quantity * item.unitPrice * (1 - (item.discountPercentage || 0) / 100) | number:'1.2-2' }}
                                 </td>
 
                                 @if (!isViewMode) {
@@ -222,7 +274,6 @@
                                 </td>
                                 }
 
-
                             </tr>
                             }
 
@@ -239,157 +290,71 @@
         <!-- ========================================================= -->
         <div class="space-y-6">
 
-            <!-- ================= TOTALES ================= -->
+            <!-- TOTALES -->
             <div
                 class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 
-                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">
-                    Totales
-                </h4>
+                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Totales</h4>
 
                 <div class="space-y-3 text-sm">
-
                     <div class="flex justify-between dark:text-white/90">
                         <span>Subtotal</span>
                         <span>S/
-                            {{ (isViewMode ? (selectedSale?.subtotalAmount ?? 0) : subtotal) | number:'1.2-2' }}</span>
+                            {{ (isViewMode ? (selectedNote?.subtotalAmount ?? 0) : subtotal) | number:'1.2-2' }}</span>
                     </div>
-
                     <div class="flex justify-between dark:text-white/90">
                         <span>IGV (18%)</span>
-                        <span>S/ {{ (isViewMode ? (selectedSale?.taxAmount ?? 0) : igv) | number:'1.2-2' }}</span>
+                        <span>S/ {{ (isViewMode ? (selectedNote?.taxAmount ?? 0) : igv) | number:'1.2-2' }}</span>
                     </div>
-
                     <div class="flex justify-between border-t pt-3 text-base font-semibold dark:text-white/90">
                         <span>Total</span>
-                        <span>S/ {{ (isViewMode ? (selectedSale?.totalAmount ?? 0) : total) | number:'1.2-2' }}</span>
+                        <span>S/ {{ (isViewMode ? (selectedNote?.totalAmount ?? 0) : total) | number:'1.2-2' }}</span>
                     </div>
-
                 </div>
-
             </div>
 
-            <!-- ================= PAGOS (solo en modo edición) ================= -->
-            @if (!isViewMode) {
+            <!-- COMPROBANTE (modo vista) -->
+            @if (isViewMode && selectedNote?.series) {
             <div
                 class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Documento emitido</h4>
 
-                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">
-                    Pagos
-                </h4>
-
-                @for (p of payments; track $index; let i = $index) {
-
-                <div class="mb-4 border-b pb-4 dark:border-gray-700">
-
-                    <div class="mb-3">
-                        <app-label>Método de pago</app-label>
-                        <app-select placeholder="Seleccione método de pago" [options]="paymentMethodOptions"
-                            [(value)]="p.paymentMethodId">
-                        </app-select>
-                    </div>
-
-                    <div class="mb-3">
-                        <app-label>Monto pagado</app-label>
-                        <app-input-field type="number" [step]="0.01" placeholder="0.00" [(value)]="p.amountPaid">
-                        </app-input-field>
-                    </div>
-
-                    <div class="mb-3">
-                        <app-label>Referencia (opcional)</app-label>
-                        <app-input-field type="text" placeholder="Número de operación" [(value)]="p.paymentReference">
-                        </app-input-field>
-                    </div>
-
-                    <div class="mb-3">
-                        <app-label>Comprobante de pago</app-label>
-                        <app-file-input accept="image/*,application/pdf" (change)="onPaymentFileChange(i, $event)">
-                        </app-file-input>
-                    </div>
-
-                    <button type="button" class="text-red-500 hover:text-red-600 text-sm font-medium"
-                        (click)="removePayment(i)">
-                        🗑️ Eliminar pago
-                    </button>
-
-                </div>
-
-                }
-
-                <button type="button"
-                    class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gray-200 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    (click)="addPayment()">
-                    <span class="text-lg">+</span> Agregar pago
-                </button>
-
-                <div class="mt-4 text-sm space-y-2">
-                    <div class="flex justify-between dark:text-white/90">
-                        <span>Total pagado</span>
-                        <span>S/ {{ totalPaid | number:'1.2-2' }}</span>
-                    </div>
-
-                    <div class="flex justify-between font-medium dark:text-white/90">
-                        <span>Vuelto</span>
-                        <span [class.text-red-500]="change < 0">
-                            S/ {{ change | number:'1.2-2' }}
-                        </span>
-                    </div>
-                </div>
-
-            </div>
-            }
-
-            <!-- ================= COMPROBANTE / DOCUMENTO ================= -->
-            <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-
-                @if (isViewMode) {
-
-                <!-- Modo vista: info del documento emitido -->
-                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">
-                    Documento emitido
-                </h4>
-
-                @if (selectedSale?.document) {
                 <div class="space-y-3 text-sm">
-
                     <div class="flex justify-between">
                         <span class="text-gray-500 dark:text-gray-400">Serie / Número</span>
                         <span class="font-semibold text-gray-800 dark:text-white">
-                            {{ selectedSale!.document?.series }}-{{ selectedSale!.document?.sequence }}
+                            {{ selectedNote!.series }}-{{ selectedNote!.sequence }}
                         </span>
                     </div>
-
                     <div class="flex justify-between">
                         <span class="text-gray-500 dark:text-gray-400">Fecha emisión</span>
                         <span class="text-gray-700 dark:text-gray-300">
-                            {{ selectedSale!.document?.issueDate | date:'dd/MM/yyyy' }}
+                            {{ selectedNote!.issueDate | date:'dd/MM/yyyy' }}
                         </span>
                     </div>
-
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500 dark:text-gray-400">Estado SUNAT</span>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                            [class.bg-green-100]="selectedSale!.document?.status === 'ACEPTADO'"
-                            [class.text-green-700]="selectedSale!.document?.status === 'ACEPTADO'"
-                            [class.bg-red-100]="selectedSale!.document?.status !== 'ACEPTADO'"
-                            [class.text-red-700]="selectedSale!.document?.status !== 'ACEPTADO'">
-                            {{ selectedSale!.document?.status }}
+                            [class.bg-green-100]="selectedNote!.status === 'ACEPTADO'"
+                            [class.text-green-700]="selectedNote!.status === 'ACEPTADO'"
+                            [class.bg-red-100]="selectedNote!.status !== 'ACEPTADO'"
+                            [class.text-red-700]="selectedNote!.status !== 'ACEPTADO'">
+                            {{ selectedNote!.status }}
                         </span>
                     </div>
 
-                    @if (selectedSale!.document?.sunatMessage) {
+                    @if (selectedNote!.sunatMessage) {
                     <div
                         class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-3 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                         <span class="font-medium text-gray-700 dark:text-gray-300">
-                            Código {{ selectedSale!.document?.sunatResponseCode }}:
+                            Código {{ selectedNote!.sunatResponseCode }}:
                         </span>
-                        {{ selectedSale!.document?.sunatMessage }}
+                        {{ selectedNote!.sunatMessage }}
                     </div>
                     }
 
-                    @if (selectedSale!.document?.pdfUrl) {
-                    <a [href]="selectedSale!.document?.pdfUrl" target="_blank"
+                    @if (selectedNote!.pdfUrl) {
+                    <a [href]="selectedNote!.pdfUrl" target="_blank"
                         class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-500 hover:bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
@@ -400,53 +365,9 @@
                         Ver PDF
                     </a>
                     }
-
                 </div>
-                } @else {
-                <p class="text-sm text-gray-400">Sin comprobante emitido.</p>
-                }
-
-                } @else {
-
-                <!-- Modo edición: ingresar serie -->
-                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">
-                    Comprobante
-                </h4>
-
-                <div class="space-y-4">
-
-                    <!-- TIPO DOCUMENTO -->
-                    <div>
-                        <app-label>Tipo de documento *</app-label>
-
-                        <app-select placeholder="Selecciona el tipo de documento" [options]="[
-                                { value: '03', label: 'Boleta' },
-                                { value: '01', label: 'Factura' }
-                            ]" [(value)]="documentTypeCode" [disabled]="documentTypeLocked"
-                            (valueChange)="onDocumentTypeChange()">
-                        </app-select>
-                    </div>
-
-                    <div>
-                        <app-label>Documento</app-label>
-
-                        <app-input-field type="text" [value]="formattedDocument" [disabled]="true"
-                            placeholder="Cargando...">
-                        </app-input-field>
-                    </div>
-
-                    <!-- Loader -->
-                    @if (loadingSeries) {
-                    <p class="text-xs text-gray-400 animate-pulse">
-                        Obteniendo correlativo...
-                    </p>
-                    }
-
-                </div>
-
-                }
-
             </div>
+            }
 
         </div>
 
@@ -456,156 +377,108 @@
     <div class="flex items-center justify-end gap-3 mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
 
         @if (isViewMode) {
-
         <button type="button" (click)="closeModal()"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cerrar
         </button>
-
         } @else {
-
         <button type="button" (click)="closeModal()"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
         </button>
 
-        <button type="button" (click)="submitSale(false)" [disabled]="isSubmitting"
-            class="px-4 py-2 text-sm font-medium text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 disabled:opacity-50">
-            Guardar borrador
-        </button>
-
-        <button type="button" (click)="submitSale(true)" [disabled]="isSubmitting"
+        <button type="button" (click)="submitNote()" [disabled]="isSubmitting"
             class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50">
-            {{ isSubmitting ? 'Procesando…' : 'Finalizar y emitir' }}
+            {{ isSubmitting ? 'Registrando…' : 'Registrar nota' }}
         </button>
-
         }
 
     </div>
 
 </app-modal>
 
+
 <!-- ================================================================ -->
-<!-- MODAL BUSCAR CLIENTE -->
+<!-- MODAL BUSCAR VENTA DE REFERENCIA -->
 <!-- ================================================================ -->
-<app-modal [isOpen]="showClientModal" [className]="'max-w-2xl p-6'" (close)="showClientModal = false">
+<app-modal [isOpen]="showSaleModal" [className]="'max-w-2xl p-6'" (close)="showSaleModal = false">
 
     <div class="mb-5">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Buscar cliente
-        </h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            Buscar por nombre / razón social / documento
-        </p>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Buscar venta emitida</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Solo se muestran ventas con comprobante emitido</p>
     </div>
 
     <!-- BUSCADOR -->
-    <div class="mb-5">
+    <div class="mb-4">
         <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
-            <input type="text" [(ngModel)]="clientSearchTerm" (input)="searchClients()"
-                placeholder="Ej: Pérez / 12345678 / 20123456789"
-                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
+            <input type="text" [(ngModel)]="saleSearchTerm" (input)="searchSales()"
+                placeholder="Ej: F001-00000001 / Empresa SAC"
+                class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
                 autofocus>
         </div>
     </div>
 
     <!-- RESULTADOS -->
-    <div class="max-h-[400px] overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+    <div class="max-h-100 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
 
-        @if (loadingClients) {
-        <div class="py-12 text-center text-gray-500 dark:text-gray-400">
-            <svg class="w-16 h-16 mx-auto mb-3 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+        @if (loadingSales) {
+        <div class="py-10 text-center text-gray-400">
+            <svg class="w-10 h-10 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            <p class="text-sm">Cargando clientes...</p>
+            <p class="text-sm">Cargando ventas...</p>
         </div>
-        }
-        @else if (clientResults.length === 0 && !clientSearchTerm) {
-        <div class="py-12 text-center text-gray-500 dark:text-gray-400">
-            <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <p class="text-sm">Mostrando todos los clientes activos</p>
-            <p class="text-xs mt-1">Usa el buscador para filtrar</p>
+        } @else if (saleResults.length === 0) {
+        <div class="py-10 text-center text-gray-400">
+            <p class="text-sm">{{ saleSearchTerm ? 'No se encontraron resultados' : 'Sin ventas emitidas disponibles' }}
+            </p>
         </div>
-        }
-        @else if (clientResults.length === 0) {
-        <div class="py-12 text-center text-gray-500 dark:text-gray-400">
-            <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p class="text-sm">No se encontraron clientes</p>
-        </div>
-        }
-        @else {
-        <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            @for (client of pagedClientResults; track client.id) {
-            <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
-                (click)="selectClient(client)">
-
-                <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h4 class="font-semibold text-gray-800 dark:text-white">
-                                {{ getClientFullName(client) }}
-                            </h4>
-                        </div>
-
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            {{ client.documentType }}: {{ client.documentNumber }}
-                        </p>
-
-                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            @if (client.address) { 📍 {{ client.address }}}
-                            @if (client.phone1) { - 📞 {{ client.phone1 }} }
-                        </p>
-                    </div>
-
-                    <button type="button"
-                        class="ml-4 px-3 py-1.5 my-auto text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg transition-colors"
-                        (click)="selectClient(client); $event.stopPropagation()">
-                        Seleccionar
-                    </button>
+        } @else {
+        <div class="divide-y divide-gray-100 dark:divide-gray-700">
+            @for (sale of pagedSaleResults; track sale.id) {
+            <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                (click)="selectSale(sale)">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                        {{ getSaleDoc(sale) }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ getClientName(sale) }}</p>
                 </div>
+                <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    S/ {{ sale.totalAmount | number:'1.2-2' }}
+                </span>
             </div>
             }
         </div>
         }
+
     </div>
 
     <!-- PAGINACIÓN -->
-    @if (clientResults.length > clientPageSize) {
-    <div class="flex items-center justify-between mt-4 px-1">
+    @if (saleResults.length > salePageSize) {
+    <div class="flex items-center justify-between mt-3 px-1">
         <p class="text-xs text-gray-500 dark:text-gray-400">
-            Mostrando {{ (clientCurrentPage - 1) * clientPageSize + 1 }}–{{ clientPageEnd }} de
-            {{ clientResults.length }} clientes
+            {{ (saleCurrentPage - 1) * salePageSize + 1 }}–{{ salePageEnd }} de {{ saleResults.length }}
         </p>
-        <div class="flex items-center gap-1">
-            <button type="button" [disabled]="clientCurrentPage === 1" (click)="clientPrevPage()"
-                class="inline-flex items-center px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+        <div class="flex gap-1">
+            <button type="button" [disabled]="saleCurrentPage === 1" (click)="salePrevPage()"
+                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-
-            <span class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300">
-                {{ clientCurrentPage }} / {{ clientTotalPages }}
-            </span>
-
-            <button type="button" [disabled]="clientCurrentPage === clientTotalPages" (click)="clientNextPage()"
-                class="inline-flex items-center px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ saleCurrentPage }} /
+                {{ saleTotalPages }}</span>
+            <button type="button" [disabled]="saleCurrentPage === saleTotalPages" (click)="saleNextPage()"
+                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
@@ -615,14 +488,15 @@
     }
 
     <!-- FOOTER -->
-    <div class="flex justify-end gap-3 mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
-        <button type="button" (click)="showClientModal = false"
+    <div class="flex justify-end mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button type="button" (click)="showSaleModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
         </button>
     </div>
 
 </app-modal>
+
 
 <!-- ================================================================ -->
 <!-- MODAL AGREGAR PRODUCTO -->
@@ -725,6 +599,7 @@
     </div>
 
 </app-modal>
+
 
 <!-- ================================================================ -->
 <!-- MODAL AGREGAR SERVICIO -->
@@ -844,6 +719,7 @@
 
 </app-modal>
 
+
 <!-- ================================================================ -->
 <!-- MODAL SERVICIO RÁPIDO -->
 <!-- ================================================================ -->
@@ -852,7 +728,7 @@
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Servicio rápido</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-            Agrega un servicio personalizado directo a esta venta.
+            Agrega un servicio personalizado directo a esta nota.
         </p>
     </div>
 
@@ -860,7 +736,7 @@
 
         <div>
             <app-label>Nombre del servicio <span class="text-red-500">*</span></app-label>
-            <app-input-field type="text" placeholder="Ej: Soldadura TIG inoxidable" [(value)]="quickServiceName">
+            <app-input-field type="text" placeholder="Ej: Consultoría técnica" [(value)]="quickServiceName">
             </app-input-field>
         </div>
 
