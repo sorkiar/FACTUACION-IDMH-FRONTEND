@@ -1,4 +1,5 @@
 import { SaleItemResponse } from './sale-item.response';
+import { SalePaymentResponse } from './sale-payment.response';
 import { DocumentResponse } from './document.response';
 import { ClientResponse } from './client.response';
 
@@ -12,5 +13,6 @@ export interface SaleResponse {
     documentSequence?: string;
     client: ClientResponse;
     items: SaleItemResponse[];
+    payments?: SalePaymentResponse[];
     document?: DocumentResponse;
 }

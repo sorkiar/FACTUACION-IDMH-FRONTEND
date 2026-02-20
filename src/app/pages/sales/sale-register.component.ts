@@ -18,7 +18,6 @@ import { FileInputComponent } from "../../shared/components/form/input/file-inpu
 import { LabelComponent } from "../../shared/components/form/label/label.component";
 import { InputFieldComponent } from "../../shared/components/form/input/input-field.component";
 import { SelectComponent } from "../../shared/components/form/select/select.component";
-import { ButtonComponent } from "../../shared/components/ui/button/button.component";
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { DocumentSeriesService } from '../../services/document-series.service';
 
@@ -696,6 +695,10 @@ export class SaleRegisterComponent implements OnChanges {
         this.loadingDetail = false;
         this.documentTypeLocked = false;
         this.documentTypeCode = '03';
+    }
+
+    getViewPaymentTotal(): number {
+        return (this.selectedSale?.payments ?? []).reduce((sum, p) => sum + p.amountPaid, 0);
     }
 
     closeModal() {
