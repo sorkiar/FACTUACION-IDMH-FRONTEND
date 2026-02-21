@@ -24,6 +24,7 @@ import { ProductComponent } from './pages/product/product.component';
 import { ServiceComponent } from './pages/services/service.component';
 import { SaleComponent } from './pages/sales/sale.component';
 import { CreditDebitNoteComponent } from './pages/credit-debit-notes/credit-debit-note.component';
+import { RemissionGuideComponent } from './pages/remission-guides/remission-guide.component';
 
 export const routes: Routes = [
   {
@@ -36,73 +37,7 @@ export const routes: Routes = [
         component: EcommerceComponent,
         pathMatch: 'full',
         title:
-          'Angular Ecommerce Dashboard | IDMH Perú',
-      },
-      {
-        path: 'profile',
-        component: ProfileComponent,
-        title: 'Angular Profile Dashboard | IDMH Perú'
-      },
-      {
-        path: 'form-elements',
-        component: FormElementsComponent,
-        title: 'Angular Form Elements Dashboard | IDMH Perú'
-      },
-      {
-        path: 'basic-tables',
-        component: BasicTablesComponent,
-        title: 'Angular Basic Tables Dashboard | IDMH Perú'
-      },
-      {
-        path: 'blank',
-        component: BlankComponent,
-        title: 'Angular Blank Dashboard | IDMH Perú'
-      },
-      // support tickets
-      {
-        path: 'invoice',
-        component: InvoicesComponent,
-        title: 'Angular Invoice Details Dashboard | IDMH Perú'
-      },
-      {
-        path: 'line-chart',
-        component: LineChartComponent,
-        title: 'Angular Line Chart Dashboard | IDMH Perú'
-      },
-      {
-        path: 'bar-chart',
-        component: BarChartComponent,
-        title: 'Angular Bar Chart Dashboard | IDMH Perú'
-      },
-      {
-        path: 'alerts',
-        component: AlertsComponent,
-        title: 'Angular Alerts Dashboard | IDMH Perú'
-      },
-      {
-        path: 'avatars',
-        component: AvatarElementComponent,
-        title: 'Angular Avatars Dashboard | IDMH Perú'
-      },
-      {
-        path: 'badge',
-        component: BadgesComponent,
-        title: 'Angular Badges Dashboard | IDMH Perú'
-      },
-      {
-        path: 'buttons',
-        component: ButtonsComponent,
-        title: 'Angular Buttons Dashboard | IDMH Perú'
-      },
-      {
-        path: 'images',
-        component: ImagesComponent,
-        title: 'Angular Images Dashboard | IDMH Perú'
-      },
-      {
-        path: 'videos',
-        component: VideosComponent,
-        title: 'Angular Videos Dashboard | IDMH Perú'
+          'Dashboard | IDMH Perú',
       },
       {
         path: 'clients',
@@ -128,6 +63,11 @@ export const routes: Routes = [
         path: 'credit-debit-notes',
         component: CreditDebitNoteComponent,
         title: 'Notas de Crédito / Débito | IDMH Perú'
+      },
+      {
+        path: 'remission-guides',
+        component: RemissionGuideComponent,
+        title: 'Guías de Remisión | IDMH Perú'
       },
     ]
   },

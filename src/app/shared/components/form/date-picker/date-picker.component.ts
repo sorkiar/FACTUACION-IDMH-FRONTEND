@@ -15,6 +15,7 @@ export class DatePickerComponent {
   @Input() id!: string;
   @Input() mode: 'single' | 'multiple' | 'range' | 'time' = 'single';
   @Input() defaultDate?: string | Date | string[] | Date[];
+  @Input() minDate?: string | Date;
   @Input() label?: string;
   @Input() placeholder?: string;
   @Output() dateChange = new EventEmitter<any>();
@@ -30,6 +31,7 @@ export class DatePickerComponent {
       monthSelectorType: 'static',
       dateFormat: 'Y-m-d',
       defaultDate: this.defaultDate,
+      minDate: this.minDate,
       onChange: (selectedDates, dateStr, instance) => {
         this.dateChange.emit({ selectedDates, dateStr, instance });
       }

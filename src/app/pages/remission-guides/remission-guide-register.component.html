@@ -1,0 +1,640 @@
+<app-modal [isOpen]="isOpen" [className]="'max-w-5xl p-6 sm:p-8'" (close)="closeModal()">
+
+    <!-- HEADER -->
+    <div class="mb-6 flex items-start justify-between">
+        <div>
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">
+                {{ isViewMode ? ('Guía de Remisión #' + selectedGuide?.id) : 'Registrar Guía de Remisión' }}
+            </h3>
+            <p class="text-sm text-gray-500">
+                {{ isViewMode ? 'Información de la guía registrada.' : 'Completa los datos de traslado, transporte, destinatario y los ítems.' }}
+            </p>
+        </div>
+
+        <!-- Estado SUNAT en vista -->
+        @if (isViewMode && selectedGuide?.status) {
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mt-1 mr-10 md:mr-12"
+            [class.bg-green-100]="selectedGuide!.status === 'ACEPTADO'"
+            [class.text-green-700]="selectedGuide!.status === 'ACEPTADO'"
+            [class.bg-red-100]="selectedGuide!.status === 'RECHAZADO'"
+            [class.text-red-700]="selectedGuide!.status === 'RECHAZADO'"
+            [class.bg-yellow-100]="selectedGuide!.status === 'PENDIENTE'"
+            [class.text-yellow-700]="selectedGuide!.status === 'PENDIENTE'"
+            [class.bg-gray-100]="selectedGuide!.status !== 'ACEPTADO' && selectedGuide!.status !== 'RECHAZADO' && selectedGuide!.status !== 'PENDIENTE'"
+            [class.text-gray-700]="selectedGuide!.status !== 'ACEPTADO' && selectedGuide!.status !== 'RECHAZADO' && selectedGuide!.status !== 'PENDIENTE'">
+            {{ selectedGuide!.status }}
+        </span>
+        }
+    </div>
+
+    <div class="space-y-6">
+
+        <!-- ================================================================ -->
+        <!-- DOCUMENTO EMITIDO (solo en modo vista) -->
+        <!-- ================================================================ -->
+        @if (isViewMode && selectedGuide?.series) {
+        <div
+            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+            <h4 class="text-sm font-semibold text-gray-800 dark:text-white mb-3">Documento emitido</h4>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
+                <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Serie / N°</p>
+                    <p class="font-semibold text-gray-800 dark:text-white font-mono">
+                        {{ selectedGuide!.series }}-{{ selectedGuide!.sequence }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Fecha emisión</p>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        {{ selectedGuide!.issueDate | date:'dd/MM/yyyy HH:mm' }}
+                    </p>
+                </div>
+                @if (selectedGuide!.sunatMessage) {
+                <div class="col-span-2">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                        Respuesta SUNAT (Cód. {{ selectedGuide!.sunatResponseCode }})
+                    </p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ selectedGuide!.sunatMessage }}</p>
+                </div>
+                }
+            </div>
+            @if (selectedGuide!.pdfUrl) {
+            <a [href]="selectedGuide!.pdfUrl" target="_blank"
+                class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Ver PDF
+            </a>
+            }
+        </div>
+        }
+
+        <!-- ================================================================ -->
+        <!-- SECCIÓN 1: DATOS DEL TRASLADO -->
+        <!-- ================================================================ -->
+        <div
+            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+            <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Datos del traslado</h4>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                <!-- Fecha de traslado -->
+                <div>
+                    <app-label>Fecha de traslado *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="transferDate" [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-date-picker
+                        id="transfer-date"
+                        placeholder="Seleccionar fecha de traslado"
+                        [minDate]="todayStr"
+                        [defaultDate]="transferDate || undefined"
+                        (dateChange)="onTransferDateChange($event)">
+                    </app-date-picker>
+                    }
+                </div>
+
+                <!-- Motivo de traslado -->
+                <div>
+                    <app-label>Motivo de traslado *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="getTransferReasonLabel(transferReason)"
+                        [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-select placeholder="Seleccionar motivo" [options]="transferReasonOptions"
+                        [(value)]="transferReason">
+                    </app-select>
+                    }
+                </div>
+
+                <!-- Descripción del motivo (solo si OTROS) -->
+                @if (transferReason === 'OTROS') {
+                <div class="sm:col-span-2">
+                    <app-label>Descripción del motivo *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="transferReasonDescription"
+                        [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-input-field type="text" placeholder="Detalle el motivo" [(value)]="transferReasonDescription">
+                    </app-input-field>
+                    }
+                </div>
+                }
+
+                <!-- Tipo de transporte -->
+                <div>
+                    <app-label>Tipo de transporte *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="getTransportModeLabel(transportMode)"
+                        [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-select placeholder="Seleccionar tipo" [options]="transportModeOptions"
+                        [(value)]="transportMode" (valueChange)="onTransportModeChange()">
+                    </app-select>
+                    }
+                </div>
+
+                <!-- Peso bruto -->
+                <div>
+                    <app-label>Peso bruto (KGM) *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="grossWeight + ' ' + weightUnit"
+                        [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-input-field type="number" [step]="0.001" placeholder="Ej: 250.500"
+                        [(value)]="grossWeight"></app-input-field>
+                    }
+                </div>
+
+                <!-- N° bultos -->
+                <div>
+                    <app-label>Número de bultos</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="packageCount.toString()"
+                        [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-input-field type="number" [step]="1" placeholder="1"
+                        [(value)]="packageCount"></app-input-field>
+                    }
+                </div>
+
+                <!-- Checkbox traslado en vehículo menor -->
+                <div class="sm:col-span-2 flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="minorVehicle" [(ngModel)]="minorVehicleTransfer" [disabled]="isViewMode"
+                        class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
+                    <label for="minorVehicle" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                        Traslado en vehículo menor a 2 toneladas
+                    </label>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="sm:col-span-2">
+                    <app-label>Observaciones</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="observations || '-'" [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-text-area [(value)]="observations" [rows]="2" placeholder="Observaciones adicionales...">
+                    </app-text-area>
+                    }
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- SECCIÓN 2: TRANSPORTE (condicional) -->
+        <!-- ================================================================ -->
+        <div
+            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+
+            @if (transportMode === 'TRANSPORTE_PUBLICO') {
+
+            <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-1">Datos del transportista</h4>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Transportista autorizado (persona jurídica).</p>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <app-label>Tipo de documento *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="carrierDocType" [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-select [options]="docTypeOptions" [(value)]="carrierDocType"></app-select>
+                    }
+                </div>
+                <div>
+                    <app-label>Número de documento *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="carrierDocNumber" [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-input-field type="text" placeholder="Ej: 20123456789"
+                        [(value)]="carrierDocNumber"></app-input-field>
+                    }
+                </div>
+                <div class="sm:col-span-2">
+                    <app-label>Razón social del transportista *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="carrierName" [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-input-field type="text" placeholder="Ej: Transportes SAC"
+                        [(value)]="carrierName"></app-input-field>
+                    }
+                </div>
+            </div>
+
+            } @else {
+
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Conductores</h4>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">Datos del conductor / vehículo.</p>
+                </div>
+                @if (!isViewMode) {
+                <button type="button"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
+                    (click)="addDriver()">
+                    <span class="text-lg leading-none">+</span> Agregar conductor
+                </button>
+                }
+            </div>
+
+            @if (drivers.length === 0) {
+            <p class="text-sm text-gray-400 dark:text-gray-500 italic">
+                {{ isViewMode ? 'Sin conductores registrados.' : 'Agrega al menos un conductor.' }}
+            </p>
+            }
+
+            @for (driver of drivers; track $index; let i = $index) {
+            <div class="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Conductor {{ i + 1 }}
+                    </p>
+                    @if (!isViewMode) {
+                    <button type="button" class="text-red-500 hover:text-red-700 text-xs font-medium transition-colors"
+                        (click)="removeDriver(i)">
+                        Eliminar
+                    </button>
+                    }
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                        <app-label>Tipo documento</app-label>
+                        @if (isViewMode) {
+                        <app-input-field type="text" [value]="driver.docType" [disabled]="true"></app-input-field>
+                        } @else {
+                        <app-select [options]="docTypeOptions" placeholder="Seleccione el tipo de documento:"
+                            [(value)]="driver.docType"></app-select>
+                        }
+                    </div>
+                    <div>
+                        <app-label>N° documento *</app-label>
+                        <app-input-field type="text" placeholder="Ej: 12345678" [(value)]="driver.docNumber"
+                            [disabled]="isViewMode"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>Nombres *</app-label>
+                        <app-input-field type="text" placeholder="Nombres" [(value)]="driver.firstName"
+                            [disabled]="isViewMode"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>Apellidos *</app-label>
+                        <app-input-field type="text" placeholder="Apellidos" [(value)]="driver.lastName"
+                            [disabled]="isViewMode"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>N° licencia *</app-label>
+                        <app-input-field type="text" placeholder="Ej: Q01234567" [(value)]="driver.licenseNumber"
+                            [disabled]="isViewMode"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>Placa del vehículo *</app-label>
+                        <app-input-field type="text" placeholder="Ej: ABC-123" [(value)]="driver.vehiclePlate"
+                            [disabled]="isViewMode"></app-input-field>
+                    </div>
+                </div>
+
+            </div>
+            }
+
+            }
+
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- SECCIÓN 3: DESTINATARIO -->
+        <!-- ================================================================ -->
+        <div
+            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+            <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Destinatario</h4>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <app-label>Tipo de documento *</app-label>
+                    @if (isViewMode) {
+                    <app-input-field type="text" [value]="recipientDocType" [disabled]="true"></app-input-field>
+                    } @else {
+                    <app-select [options]="docTypeOptions" placeholder="Seleccione el tipo de documento:"
+                        [(value)]="recipientDocType"></app-select>
+                    }
+                </div>
+                <div>
+                    <app-label>Número de documento *</app-label>
+                    <app-input-field type="text" placeholder="Ej: 20123456789" [(value)]="recipientDocNumber"
+                        [disabled]="isViewMode"></app-input-field>
+                </div>
+                <div>
+                    <app-label>Nombre / Razón social *</app-label>
+                    <app-input-field type="text" placeholder="Nombre o razón social" [(value)]="recipientName"
+                        [disabled]="isViewMode"></app-input-field>
+                </div>
+                <div>
+                    <app-label>Dirección (opcional)</app-label>
+                    <app-input-field type="text" placeholder="Dirección del destinatario" [(value)]="recipientAddress"
+                        [disabled]="isViewMode"></app-input-field>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- SECCIÓN 4 Y 5: DIRECCIONES -->
+        <!-- ================================================================ -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+
+            <!-- Punto de partida -->
+            <div
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">
+                    Punto de partida
+                </h4>
+                <div class="space-y-4">
+                    <div>
+                        <app-label>Dirección completa *</app-label>
+                        <app-input-field type="text" placeholder="Ej: AV. PETIT THOUARS 4373" [(value)]="originAddress"
+                            [disabled]="isViewMode"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>Ubigeo *</app-label>
+                        <app-input-field type="text" placeholder="Ej: 150101" [(value)]="originUbigeo"
+                            [disabled]="isViewMode"></app-input-field>
+                        <p class="mt-1 text-xs text-gray-400">Código de 6 dígitos (Depa + Prov + Dist)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Punto de llegada -->
+            <div
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">
+                    Punto de llegada
+                </h4>
+                <div class="space-y-4">
+                    <div>
+                        <app-label>Dirección completa *</app-label>
+                        <app-input-field type="text" placeholder="Ej: AV. EL RETABLO 890 COMAS"
+                            [(value)]="destinationAddress" [disabled]="isViewMode"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>Ubigeo *</app-label>
+                        <app-input-field type="text" placeholder="Ej: 150110" [(value)]="destinationUbigeo"
+                            [disabled]="isViewMode"></app-input-field>
+                        <p class="mt-1 text-xs text-gray-400">Código de 6 dígitos (Depa + Prov + Dist)</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- SECCIÓN 6: ÍTEMS -->
+        <!-- ================================================================ -->
+        <div
+            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+
+            <div class="flex items-start justify-between mb-4">
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Ítems a trasladar</h4>
+
+                @if (!isViewMode) {
+                <div class="flex gap-2">
+                    <button type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
+                        (click)="openProductModal()">
+                        <span class="text-lg leading-none">+</span> Agregar producto
+                    </button>
+                    <button type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+                        (click)="openCustomItemModal()">
+                        <span class="text-lg leading-none">+</span> Ítem personalizado
+                    </button>
+                </div>
+                }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg">
+                <table class="min-w-full text-sm">
+                    <thead class="border-b border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-gray-800/50">
+                        <tr class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-3 text-left font-medium">Descripción</th>
+                            <th class="py-3 px-3 text-center font-medium">Cant.</th>
+                            <th class="py-3 px-3 text-center font-medium">Unidad</th>
+                            <th class="py-3 px-3 text-center font-medium">P. Unit.</th>
+                            @if (!isViewMode) {
+                            <th class="py-3 px-3 text-center font-medium">Acción</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        @if (items.length === 0) {
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-gray-400">
+                                Aún no hay ítems agregados.
+                            </td>
+                        </tr>
+                        }
+                        @for (item of items; track $index; let i = $index) {
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                            <td class="py-3 px-3 font-medium text-gray-800 dark:text-white">
+                                {{ item.description }}
+                            </td>
+                            <td class="py-3 px-3 text-center text-gray-600 dark:text-gray-400">
+                                @if (isViewMode) {
+                                {{ item.quantity }}
+                                } @else {
+                                <input type="number" min="0.001" step="0.001" [(ngModel)]="item.quantity"
+                                    class="w-20 rounded-lg border border-gray-300 bg-transparent px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                                }
+                            </td>
+                            <td class="py-3 px-3 text-center text-gray-600 dark:text-gray-400">
+                                {{ item.unitMeasureSunat ?? 'NIU' }}
+                            </td>
+                            <td class="py-3 px-3 text-center text-gray-600 dark:text-gray-400">
+                                S/ {{ item.unitPrice | number:'1.2-2' }}
+                            </td>
+                            @if (!isViewMode) {
+                            <td class="py-3 px-3 text-center">
+                                <button type="button"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
+                                    (click)="removeItem(i)">
+                                    Eliminar
+                                </button>
+                            </td>
+                            }
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="flex items-center justify-end gap-3 mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+        @if (isViewMode) {
+        <button type="button" (click)="closeModal()"
+            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Cerrar
+        </button>
+        } @else {
+        <button type="button" (click)="closeModal()"
+            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Cancelar
+        </button>
+        <button type="button" (click)="submitGuide()" [disabled]="isSubmitting"
+            class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50 transition-colors">
+            {{ isSubmitting ? 'Registrando…' : 'Registrar guía' }}
+        </button>
+        }
+    </div>
+
+</app-modal>
+
+
+<!-- ================================================================ -->
+<!-- MODAL BUSCAR PRODUCTO -->
+<!-- ================================================================ -->
+<app-modal [isOpen]="showProductModal" [className]="'max-w-2xl p-6'" (close)="showProductModal = false">
+
+    <div class="mb-5">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Agregar producto</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Buscar por SKU / nombre</p>
+    </div>
+
+    <div class="mb-4">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" [(ngModel)]="productSearchTerm" (input)="searchProducts()"
+                placeholder="Ej: MM-EST-0001 / Baranda"
+                class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                autofocus>
+        </div>
+    </div>
+
+    <div class="max-h-95 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+        @if (loadingProducts) {
+        <div class="py-10 text-center text-gray-400">
+            <svg class="w-10 h-10 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <p class="text-sm">Cargando productos...</p>
+        </div>
+        } @else if (productResults.length === 0) {
+        <div class="py-10 text-center text-gray-400">
+            <p class="text-sm">{{ productSearchTerm ? 'No se encontraron productos' : 'Sin productos disponibles' }}
+            </p>
+        </div>
+        } @else {
+        <div class="divide-y divide-gray-100 dark:divide-gray-700">
+            @for (product of pagedProductResults; track product.id) {
+            <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                (click)="addProduct(product)">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                        {{ product.sku }} — {{ product.name }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ product.categoryName }}</p>
+                </div>
+                <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    S/ {{ product.salePrice | number:'1.2-2' }}
+                </span>
+            </div>
+            }
+        </div>
+        }
+    </div>
+
+    @if (productResults.length > productPageSize) {
+    <div class="flex items-center justify-between mt-3 px-1">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+            {{ (productCurrentPage - 1) * productPageSize + 1 }}–{{ productPageEnd }} de {{ productResults.length }}
+        </p>
+        <div class="flex gap-1">
+            <button type="button" [disabled]="productCurrentPage === 1" (click)="productPrevPage()"
+                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ productCurrentPage }} /
+                {{ productTotalPages }}</span>
+            <button type="button" [disabled]="productCurrentPage === productTotalPages" (click)="productNextPage()"
+                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    }
+
+    <div class="flex justify-end mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button type="button" (click)="showProductModal = false"
+            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Cancelar
+        </button>
+    </div>
+
+</app-modal>
+
+
+<!-- ================================================================ -->
+<!-- MODAL ÍTEM PERSONALIZADO -->
+<!-- ================================================================ -->
+<app-modal [isOpen]="showCustomItemModal" [className]="'max-w-lg p-6'" (close)="showCustomItemModal = false">
+
+    <div class="mb-5">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Ítem personalizado</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+            Agrega un ítem que no esté en el catálogo de productos.
+        </p>
+    </div>
+
+    <div class="space-y-4">
+        <div>
+            <app-label>Descripción *</app-label>
+            <app-input-field type="text" placeholder="Ej: Baranda metálica" [(value)]="customDescription">
+            </app-input-field>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <app-label>Cantidad *</app-label>
+                <app-input-field type="number" [step]="0.001" placeholder="1" [(value)]="customQuantity">
+                </app-input-field>
+            </div>
+            <div>
+                <app-label>Unidad SUNAT</app-label>
+                <app-input-field type="text" placeholder="NIU" [(value)]="customUnitMeasure">
+                </app-input-field>
+            </div>
+        </div>
+        <div>
+            <app-label>Precio unitario</app-label>
+            <app-input-field type="number" [step]="0.01" placeholder="0.00" [(value)]="customUnitPrice">
+            </app-input-field>
+        </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-gray-200 dark:border-gray-700">
+        <button type="button" (click)="showCustomItemModal = false"
+            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Cancelar
+        </button>
+        <button type="button" (click)="submitCustomItem()"
+            [disabled]="!customDescription.trim() || !customQuantity || customQuantity <= 0"
+            class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Agregar
+        </button>
+    </div>
+
+</app-modal>
