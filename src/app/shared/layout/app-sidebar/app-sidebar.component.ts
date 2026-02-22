@@ -51,6 +51,7 @@ export class AppSidebarComponent {
         { name: "Ventas", path: "/sales", pro: false },
         { name: "Notas de Crédito / Débito", path: "/credit-debit-notes", pro: false },
         { name: "Guías de Remisión", path: "/remission-guides", pro: false },
+        { name: "Adm. Comprobantes", path: "/sunat-documents", pro: false },
       ],
     }
   ];

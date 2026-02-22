@@ -1,0 +1,301 @@
+<div>
+    <app-page-breadcrumb pageTitle="Administración de Comprobantes" />
+
+    <!-- ACCIONES SUPERIORES -->
+    <div
+        class="mb-4 flex justify-end rounded-2xl border border-gray-200 bg-white px-4 py-4 dark:border-gray-800 dark:bg-white/[0.03]">
+        <button type="button"
+            class="inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            (click)="load()" [disabled]="loading">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                [class.animate-spin]="loading">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {{ loading ? 'Actualizando…' : 'Actualizar' }}
+        </button>
+    </div>
+
+    <!-- TABLA -->
+    <div
+        class="min-h-[60vh] rounded-2xl border border-gray-200 bg-white px-3 py-5 dark:border-gray-800 dark:bg-white/[0.03] xl:px-4 xl:py-5">
+
+        <div class="w-full">
+            <div
+                class="rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+
+                <!-- HEADER TABLA -->
+                <div
+                    class="flex flex-col gap-2 px-5 mb-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Listado de comprobantes SUNAT
+                    </h3>
+
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <!-- Filtro de estado -->
+                        <select [(ngModel)]="statusFilter" (change)="onStatusChange()"
+                            class="dark:bg-dark-900 h-[42px] rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+                            <option value="">Todos los estados</option>
+                            <option value="PENDIENTE">Pendiente</option>
+                            <option value="ACEPTADO">Aceptado</option>
+                            <option value="RECHAZADO">Rechazado</option>
+                            <option value="ERROR">Error</option>
+                        </select>
+
+                        <!-- Buscador -->
+                        <input type="text" placeholder="Buscar por documento o tipo..."
+                            (input)="setSearchTerm($any($event.target).value)"
+                            class="dark:bg-dark-900 h-[42px] w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[280px]" />
+                    </div>
+                </div>
+
+                <!-- TABLA -->
+                <div class="overflow-hidden">
+                    <div class="max-w-full px-5 overflow-x-auto sm:px-6">
+
+                        <table class="min-w-full">
+                            <thead class="border-y border-gray-100 dark:border-white/5">
+                                <tr>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Tipo</th>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Documento</th>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Fecha emisión</th>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Estado SUNAT</th>
+                                    <th
+                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+
+                                <!-- LOADING -->
+                                @if (loading) {
+                                <tr>
+                                    <td colspan="5" class="py-6 text-center text-sm text-gray-500">
+                                        Cargando comprobantes…
+                                    </td>
+                                </tr>
+                                }
+
+                                <!-- VACÍO -->
+                                @else if (filteredDocuments.length === 0) {
+                                <tr>
+                                    <td colspan="5" class="py-6 text-center text-sm text-gray-500">
+                                        No hay comprobantes para mostrar.
+                                    </td>
+                                </tr>
+                                }
+
+                                <!-- DATA -->
+                                @else {
+                                @for (doc of currentItems; track doc.id) {
+                                <tr>
+
+                                    <!-- TIPO -->
+                                    <td class="py-3 text-sm">
+                                        <app-badge size="sm" [color]="getDocTypeBadgeColor(doc)">
+                                            {{ getDocTypeLabel(doc) }}
+                                        </app-badge>
+                                    </td>
+
+                                    <!-- DOCUMENTO -->
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                        <span class="font-mono font-semibold">
+                                            {{ doc.voucherNumber ?? (doc.series + '-' + doc.sequence) }}
+                                        </span>
+                                        @if (doc.originalVoucher) {
+                                        <span
+                                            class="block text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                            Afecta: {{ doc.originalVoucher }}
+                                        </span>
+                                        }
+                                        @if (doc.category === 'GUIA' && doc.transferReason) {
+                                        <span
+                                            class="block text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                            {{ doc.transferReason }}
+                                        </span>
+                                        }
+                                    </td>
+
+                                    <!-- FECHA EMISIÓN -->
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                        @if (doc.issueDate) {
+                                        {{ doc.issueDate | date:'dd/MM/yyyy' }}
+                                        } @else {
+                                        —
+                                        }
+                                    </td>
+
+                                    <!-- ESTADO SUNAT -->
+                                    <td class="py-3 text-sm">
+                                        <div class="relative inline-block group">
+                                            <app-badge size="sm" [color]="getStatusBadgeColor(doc.status)">
+                                                {{ doc.status }}
+                                            </app-badge>
+                                            @if (doc.sunatMessage) {
+                                            <div
+                                                class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-72 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block">
+                                                <span class="font-semibold">{{ doc.sunatResponseCode }}</span>
+                                                - {{ doc.sunatMessage }}
+                                                <div
+                                                    class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900">
+                                                </div>
+                                            </div>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <!-- ACCIONES -->
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                        <div class="inline-flex items-center gap-2">
+
+                                            @if (doc.hasPdf) {
+                                            <button type="button" (click)="download(doc, 'pdf')"
+                                                [disabled]="isDownloading(doc, 'pdf')"
+                                                class="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
+                                                @if (isDownloading(doc, 'pdf')) {
+                                                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                } @else {
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                </svg>
+                                                }
+                                                PDF
+                                            </button>
+                                            }
+
+                                            @if (doc.hasXml) {
+                                            <button type="button" (click)="download(doc, 'xml')"
+                                                [disabled]="isDownloading(doc, 'xml')"
+                                                class="inline-flex items-center gap-1 bg-blue-light-500 hover:bg-blue-light-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
+                                                @if (isDownloading(doc, 'xml')) {
+                                                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                } @else {
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                                </svg>
+                                                }
+                                                XML
+                                            </button>
+                                            }
+
+                                            @if (doc.hasCdr) {
+                                            <button type="button" (click)="download(doc, 'cdr')"
+                                                [disabled]="isDownloading(doc, 'cdr')"
+                                                class="inline-flex items-center gap-1 bg-success-500 hover:bg-success-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
+                                                @if (isDownloading(doc, 'cdr')) {
+                                                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                } @else {
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                }
+                                                CDR
+                                            </button>
+                                            }
+
+                                            @if (canResend(doc)) {
+                                            <button type="button" (click)="resend(doc)"
+                                                [disabled]="resendingId === doc.id"
+                                                class="inline-flex items-center gap-1 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2"
+                                                    [class.animate-spin]="resendingId === doc.id">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                                {{ resendingId === doc.id ? 'Enviando…' : (doc.status === 'PENDIENTE' ? 'Enviar' : 'Reenviar') }}
+                                            </button>
+                                            }
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+                                }
+                                }
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div class="px-6 py-4 border-t border-gray-200 dark:border-white/[0.05]">
+                    <div class="flex items-center justify-between">
+                        <app-button size="sm" variant="outline" (btnClick)="goToPage(currentPage - 1)"
+                            [disabled]="currentPage === 1">
+                            <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M2.58301 9.99868C2.58272 10.1909 2.65588 10.3833 2.80249 10.53L7.79915 15.5301C8.09194 15.8231 8.56682 15.8233 8.85981 15.5305C9.15281 15.2377 9.15297 14.7629 8.86018 14.4699L5.14009 10.7472L16.6675 10.7472C17.0817 10.7472 17.4175 10.4114 17.4175 9.99715C17.4175 9.58294 17.0817 9.24715 16.6675 9.24715L5.14554 9.24715L8.86017 5.53016C9.15297 5.23717 9.15282 4.7623 8.85983 4.4695C8.56684 4.1767 8.09197 4.17685 7.79917 4.46984L2.84167 9.43049C2.68321 9.568 2.58301 9.77087 2.58301 9.99715C2.58301 9.99766 2.58301 9.99817 2.58301 9.99868Z"
+                                    fill=""></path>
+                            </svg>
+                            <span class="hidden sm:inline">Anterior</span>
+                        </app-button>
+
+                        <span class="block text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
+                            Página {{ currentPage }} de {{ totalPages }}
+                        </span>
+
+                        <ul class="hidden items-center gap-0.5 sm:flex">
+                            @for (page of [].constructor(totalPages); track $index; let idx = $index) {
+                            <li>
+                                <button (click)="goToPage(idx + 1)"
+                                    class="flex h-10 w-10 items-center justify-center rounded-lg text-theme-sm font-medium"
+                                    [ngClass]="{
+                                        'bg-brand-500 text-white': currentPage === idx + 1,
+                                        'text-gray-700 hover:bg-brand-500/[0.08] dark:hover:bg-brand-500 dark:hover:text-white hover:text-brand-500 dark:text-gray-400': currentPage !== idx + 1
+                                    }">
+                                    {{ idx + 1 }}
+                                </button>
+                            </li>
+                            }
+                        </ul>
+
+                        <app-button size="sm" variant="outline" (btnClick)="goToPage(currentPage + 1)"
+                            [disabled]="currentPage === totalPages">
+                            <span class="hidden sm:inline">Siguiente</span>
+                            <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M17.4175 9.9986C17.4178 10.1909 17.3446 10.3832 17.198 10.53L12.2013 15.5301C11.9085 15.8231 11.4337 15.8233 11.1407 15.5305C10.8477 15.2377 10.8475 14.7629 11.1403 14.4699L14.8604 10.7472L3.33301 10.7472C2.91879 10.7472 2.58301 10.4114 2.58301 9.99715C2.58301 9.58294 2.91879 9.24715 3.33301 9.24715L14.8549 9.24715L11.1403 5.53016C10.8475 5.23717 10.8477 4.7623 11.1407 4.4695C11.4336 4.1767 11.9085 4.17685 12.2013 4.46984L17.1588 9.43049C17.3173 9.568 17.4175 9.77087 17.4175 9.99715C17.4175 9.99763 17.4175 9.99812 17.4175 9.9986Z"
+                                    fill=""></path>
+                            </svg>
+                        </app-button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>

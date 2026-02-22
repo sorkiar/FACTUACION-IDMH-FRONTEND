@@ -2,6 +2,7 @@
 layer(base);
 
 @import "tailwindcss";
+@import "flatpickr/dist/flatpickr.css";
 @import "swiper/css/bundle";
 
 @custom-variant dark (&:is(.dark *));
@@ -564,6 +565,11 @@ span.flatpickr-weekday,
   box-shadow: -10px 0 0 #465fff;
 }
 
+.flatpickr-prev-month svg,
+.flatpickr-next-month svg {
+  width: 14px !important;
+  height: 14px !important;
+}
 .flatpickr-months .flatpickr-prev-month svg,
 .flatpickr-months .flatpickr-next-month svg,
 .flatpickr-months .flatpickr-prev-month,
