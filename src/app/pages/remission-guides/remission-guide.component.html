@@ -18,12 +18,10 @@
     <div
         class="min-h-[60vh] rounded-2xl border border-gray-200 bg-white px-3 py-5 dark:border-gray-800 dark:bg-white/[0.03] xl:px-4 xl:py-5">
 
-        <div
-            class="rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/5 dark:bg-white/[0.03]">
+        <div class="rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/5 dark:bg-white/[0.03]">
 
             <!-- HEADER: título + buscador -->
-            <div
-                class="flex flex-col gap-2 px-5 mb-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div class="flex flex-col gap-2 px-5 mb-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
                     Listado de guías de remisión
                 </h3>
@@ -43,17 +41,17 @@
             <!-- TABLA -->
             <div class="overflow-hidden">
                 <div class="max-w-full px-5 overflow-x-auto sm:px-6">
-                    <table class="min-w-full text-sm">
+                    <table class="w-full min-w-215">
 
                         <thead class="border-y border-gray-100 dark:border-white/5">
                             <tr class="text-gray-500 dark:text-gray-400 text-left text-xs uppercase tracking-wider">
-                                <th class="py-3 font-medium">Serie / N°</th>
-                                <th class="py-3 font-medium">Destinatario</th>
-                                <th class="py-3 font-medium">Motivo</th>
-                                <th class="py-3 font-medium">Transporte</th>
-                                <th class="py-3 font-medium">Fecha traslado</th>
-                                <th class="py-3 font-medium">Estado SUNAT</th>
-                                <th class="py-3 font-medium">Acciones</th>
+                                <th class="w-[10%] py-3 font-medium">Serie / N°</th>
+                                <th class="w-[38%] py-3 font-medium">Destinatario</th>
+                                <th class="w-[10%] py-3 font-medium">Motivo</th>
+                                <th class="w-[10%] py-3 font-medium">Transporte</th>
+                                <th class="w-[10%] py-3 font-medium">Fecha traslado</th>
+                                <th class="w-[10%] py-3 font-medium">Estado SUNAT</th>
+                                <th class="w-[12%] py-3 font-medium">Acciones</th>
                             </tr>
                         </thead>
 
@@ -146,8 +144,10 @@
                                         <button type="button"
                                             class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
                                             (click)="onViewGuide(guide)">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
@@ -157,10 +157,12 @@
                                         <button type="button"
                                             class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white rounded-md bg-red-500 hover:bg-red-600 transition-colors"
                                             (click)="openPdf(guide.pdfUrl!)">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6M9 9h3" />
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M9 13h6M9 17h6M9 9h3" />
                                             </svg>
                                             PDF
                                         </button>

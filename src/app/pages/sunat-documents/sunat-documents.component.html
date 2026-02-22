@@ -53,23 +53,23 @@
                 <div class="overflow-hidden">
                     <div class="max-w-full px-5 overflow-x-auto sm:px-6">
 
-                        <table class="min-w-full">
+                        <table class="w-full min-w-215">
                             <thead class="border-y border-gray-100 dark:border-white/5">
                                 <tr>
                                     <th
-                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        class="w-[25%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Tipo</th>
                                     <th
-                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        class="w-[20%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Documento</th>
                                     <th
-                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        class="w-[15%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Fecha emisión</th>
                                     <th
-                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        class="w-[15%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Estado SUNAT</th>
                                     <th
-                                        class="py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        class="w-[15%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Acciones</th>
                                 </tr>
                             </thead>
@@ -100,14 +100,14 @@
                                 <tr>
 
                                     <!-- TIPO -->
-                                    <td class="py-3 text-sm">
+                                    <td class="py-3 text-sm whitespace-nowrap">
                                         <app-badge size="sm" [color]="getDocTypeBadgeColor(doc)">
                                             {{ getDocTypeLabel(doc) }}
                                         </app-badge>
                                     </td>
 
                                     <!-- DOCUMENTO -->
-                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400 whitespace-nowrap">
                                         <span class="font-mono font-semibold">
                                             {{ doc.voucherNumber ?? (doc.series + '-' + doc.sequence) }}
                                         </span>
@@ -126,7 +126,7 @@
                                     </td>
 
                                     <!-- FECHA EMISIÓN -->
-                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400 whitespace-nowrap">
                                         @if (doc.issueDate) {
                                         {{ doc.issueDate | date:'dd/MM/yyyy' }}
                                         } @else {
@@ -135,7 +135,7 @@
                                     </td>
 
                                     <!-- ESTADO SUNAT -->
-                                    <td class="py-3 text-sm">
+                                    <td class="py-3 text-sm whitespace-nowrap">
                                         <div class="relative inline-block group">
                                             <app-badge size="sm" [color]="getStatusBadgeColor(doc.status)">
                                                 {{ doc.status }}
@@ -154,7 +154,7 @@
                                     </td>
 
                                     <!-- ACCIONES -->
-                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400 whitespace-nowrap">
                                         <div class="inline-flex items-center gap-2">
 
                                             @if (doc.hasPdf) {
