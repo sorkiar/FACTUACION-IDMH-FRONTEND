@@ -292,7 +292,7 @@
 
                     <div class="mb-3">
                         <app-label>Monto pagado</app-label>
-                        <app-input-field type="number" [step]="0.01" placeholder="0.00" [(value)]="p.amountPaid">
+                        <app-input-field type="number" [step]="0.01" min="0" placeholder="0.00" [(value)]="p.amountPaid">
                         </app-input-field>
                     </div>
 
@@ -922,7 +922,7 @@
 
         <div>
             <app-label>Precio <span class="text-red-500">*</span></app-label>
-            <app-input-field type="number" [step]="0.01" placeholder="Ej: 250.00" [(value)]="quickServicePrice">
+            <app-input-field type="number" [step]="0.01" min="0" placeholder="Ej: 250.00" [(value)]="quickServicePrice">
             </app-input-field>
         </div>
 

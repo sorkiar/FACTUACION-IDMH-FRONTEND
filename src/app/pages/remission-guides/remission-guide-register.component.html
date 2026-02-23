@@ -143,7 +143,7 @@
                     <app-input-field type="text" [value]="grossWeight + ' ' + weightUnit"
                         [disabled]="true"></app-input-field>
                     } @else {
-                    <app-input-field type="number" [step]="0.001" placeholder="Ej: 250.500"
+                    <app-input-field type="number" [step]="0.01" min="0" placeholder="Ej: 250.50"
                         [(value)]="grossWeight"></app-input-field>
                     }
                 </div>
@@ -155,7 +155,7 @@
                     <app-input-field type="text" [value]="packageCount.toString()"
                         [disabled]="true"></app-input-field>
                     } @else {
-                    <app-input-field type="number" [step]="1" placeholder="1"
+                    <app-input-field type="number" [step]="1" min="0" placeholder="1"
                         [(value)]="packageCount"></app-input-field>
                     }
                 </div>
@@ -358,9 +358,17 @@
                     </div>
                     <div>
                         <app-label>Ubigeo *</app-label>
-                        <app-input-field type="text" placeholder="Ej: 150101" [(value)]="originUbigeo"
-                            [disabled]="isViewMode"></app-input-field>
-                        <p class="mt-1 text-xs text-gray-400">Código de 6 dígitos (Depa + Prov + Dist)</p>
+                        @if (isViewMode) {
+                        <app-input-field type="text" [value]="getUbigeoLabel(originUbigeo)"
+                            [disabled]="true"></app-input-field>
+                        } @else {
+                        <app-ubigeo-picker
+                            [(value)]="originUbigeo"
+                            [ubigeos]="allUbigeos"
+                            [loading]="loadingUbigeos"
+                            placeholder="Seleccionar ubigeo de partida...">
+                        </app-ubigeo-picker>
+                        }
                     </div>
                 </div>
             </div>
@@ -379,9 +387,17 @@
                     </div>
                     <div>
                         <app-label>Ubigeo *</app-label>
-                        <app-input-field type="text" placeholder="Ej: 150110" [(value)]="destinationUbigeo"
-                            [disabled]="isViewMode"></app-input-field>
-                        <p class="mt-1 text-xs text-gray-400">Código de 6 dígitos (Depa + Prov + Dist)</p>
+                        @if (isViewMode) {
+                        <app-input-field type="text" [value]="getUbigeoLabel(destinationUbigeo)"
+                            [disabled]="true"></app-input-field>
+                        } @else {
+                        <app-ubigeo-picker
+                            [(value)]="destinationUbigeo"
+                            [ubigeos]="allUbigeos"
+                            [loading]="loadingUbigeos"
+                            placeholder="Seleccionar ubigeo de llegada...">
+                        </app-ubigeo-picker>
+                        }
                     </div>
                 </div>
             </div>

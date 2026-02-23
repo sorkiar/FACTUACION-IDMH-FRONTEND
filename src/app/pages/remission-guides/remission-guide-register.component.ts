@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -8,16 +8,19 @@ import { InputFieldComponent } from '../../shared/components/form/input/input-fi
 import { SelectComponent } from '../../shared/components/form/select/select.component';
 import { TextAreaComponent } from '../../shared/components/form/input/text-area.component';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+import { UbigeoPickerComponent } from '../../shared/components/form/ubigeo-picker/ubigeo-picker.component';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 
 import { ProductService } from '../../services/product.service';
 import { RemissionGuideService } from '../../services/remission-guide.service';
+import { UbigeoService } from '../../services/ubigeo.service';
 
 import { ProductResponse } from '../../dto/product.response';
 import { RemissionGuideResponse } from '../../dto/remission-guide.response';
 import { RemissionGuideItemRequest } from '../../dto/remission-guide-item.request';
 import { RemissionGuideDriverRequest } from '../../dto/remission-guide-driver.request';
 import { RemissionGuideRequest } from '../../dto/remission-guide.request';
+import { UbigeoResponse } from '../../dto/ubigeo.response';
 
 @Component({
     selector: 'app-remission-guide-register',
@@ -33,10 +36,11 @@ import { RemissionGuideRequest } from '../../dto/remission-guide.request';
         SelectComponent,
         TextAreaComponent,
         DatePickerComponent,
+        UbigeoPickerComponent,
     ],
     templateUrl: './remission-guide-register.component.html',
 })
-export class RemissionGuideRegisterComponent implements OnChanges {
+export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
 
     @Input() isOpen = false;
     @Input() selectedGuide?: RemissionGuideResponse;
@@ -47,6 +51,12 @@ export class RemissionGuideRegisterComponent implements OnChanges {
     isSubmitting = false;
 
     readonly todayStr: string = new Date().toISOString().split('T')[0];
+
+    // ============================
+    // UBIGEOS
+    // ============================
+    allUbigeos: UbigeoResponse[] = [];
+    loadingUbigeos = false;
 
     // ============================
     // OPCIONES DE SELECT
@@ -105,8 +115,11 @@ export class RemissionGuideRegisterComponent implements OnChanges {
     // ============================
     // PUNTO DE PARTIDA
     // ============================
-    originAddress = 'CAL.ACUARIO NRO. 860 DPTO. 301 URB. MERCURIO LIMA - LIMA - LOS OLIVOS';
-    originUbigeo = '150117';
+    private readonly defaultOriginAddress = 'CAL.ACUARIO NRO. 860 DPTO. 301 URB. MERCURIO LIMA - LIMA - LOS OLIVOS';
+    private readonly defaultOriginUbigeo = '150117';
+
+    originAddress = this.defaultOriginAddress;
+    originUbigeo = this.defaultOriginUbigeo;
 
     // ============================
     // PUNTO DE LLEGADA
@@ -153,8 +166,31 @@ export class RemissionGuideRegisterComponent implements OnChanges {
     constructor(
         private guideService: RemissionGuideService,
         private productService: ProductService,
+        private ubigeoService: UbigeoService,
         private notify: NotificationService
     ) { }
+
+    ngOnInit(): void {
+        this.loadUbigeos();
+    }
+
+    private loadUbigeos(): void {
+        this.loadingUbigeos = true;
+        this.ubigeoService.listActive().subscribe({
+            next: res => {
+                this.allUbigeos = res.data ?? [];
+                this.loadingUbigeos = false;
+            },
+            error: () => { this.loadingUbigeos = false; }
+        });
+    }
+
+    getUbigeoLabel(code: string): string {
+        if (!code) return '';
+        const u = this.allUbigeos.find(u => u.ubigeo === code);
+        if (u) return `${u.ubigeo} — ${u.department} / ${u.province} / ${u.distrit}`;
+        return code;
+    }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['selectedGuide']) {
@@ -451,8 +487,8 @@ export class RemissionGuideRegisterComponent implements OnChanges {
         this.recipientDocNumber = '';
         this.recipientName = '';
         this.recipientAddress = '';
-        this.originAddress = '';
-        this.originUbigeo = '';
+        this.originAddress = this.defaultOriginAddress;
+        this.originUbigeo = this.defaultOriginUbigeo;
         this.destinationAddress = '';
         this.destinationUbigeo = '';
         this.items = [];
