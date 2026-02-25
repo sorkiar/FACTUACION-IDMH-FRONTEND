@@ -56,7 +56,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
   // Pagination
   currentPage = 1;
-  itemsPerPage = 10;
+  itemsPerPage = 5;
+  readonly pageSizeOptions = [5, 10, 15, 20, 50];
+
+  // Sort
+  sortColumn = '';
+  sortDir: 'asc' | 'desc' = 'asc';
 
   // Subscriptions
   private sub = new Subscription();
@@ -102,12 +107,19 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
   // Pagination
   get filteredServices(): ServiceResponse[] {
-    if (!this.searchTerm) return this.services;
-
-    return this.services.filter(p =>
-      p.sku.toLowerCase().includes(this.searchTerm) ||
-      p.name.toLowerCase().includes(this.searchTerm)
-    );
+    let list = this.services;
+    if (this.searchTerm) {
+      list = list.filter(p =>
+        p.sku.toLowerCase().includes(this.searchTerm) ||
+        p.name.toLowerCase().includes(this.searchTerm)
+      );
+    }
+    if (this.sortColumn === 'nombre') {
+      list = [...list].sort((a, b) =>
+        this.sortDir === 'asc' ? a.name.localeCompare(b.name, 'es') : b.name.localeCompare(a.name, 'es')
+      );
+    }
+    return list;
   }
 
   get totalPages(): number {
@@ -287,6 +299,20 @@ export class ServiceComponent implements OnInit, OnDestroy {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
+  }
+
+  toggleSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDir = 'asc';
+    }
+  }
+
+  onPageSizeChange(size: number): void {
+    this.itemsPerPage = size;
+    this.currentPage = 1;
   }
 
   onSubmitService(): void {

@@ -12,4 +12,10 @@ export const environment = {
   apiUrl: 'https://api-test.facturacion-idmhperu.website/api',
 };
 
+export const environment = {
+  production: true,
+  frontUrl: 'https://api.facturacion-idmhperu.website/',
+  apiUrl: 'https://api.facturacion-idmhperu.website/api',
+};
+
  */

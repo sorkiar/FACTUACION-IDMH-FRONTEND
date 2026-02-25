@@ -40,7 +40,14 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
     // PAGINATION
     // =========================
     currentPage = 1;
-    itemsPerPage = 10;
+    itemsPerPage = 5;
+    readonly pageSizeOptions = [5, 10, 15, 20, 50];
+
+    // =========================
+    // SORT
+    // =========================
+    sortColumn = '';
+    sortDir: 'asc' | 'desc' = 'asc';
 
     // =========================
     // SEARCH
@@ -112,14 +119,24 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
     // COMPUTED
     // =========================
     get filteredGuides(): RemissionGuideResponse[] {
-        if (!this.searchTerm) return this.guides;
-        return this.guides.filter(g =>
-            g.series?.toLowerCase().includes(this.searchTerm) ||
-            g.sequence?.toLowerCase().includes(this.searchTerm) ||
-            g.recipientName?.toLowerCase().includes(this.searchTerm) ||
-            g.transferReason?.toLowerCase().includes(this.searchTerm) ||
-            g.status?.toLowerCase().includes(this.searchTerm)
-        );
+        let list = this.guides;
+        if (this.searchTerm) {
+            list = list.filter(g =>
+                g.series?.toLowerCase().includes(this.searchTerm) ||
+                g.sequence?.toLowerCase().includes(this.searchTerm) ||
+                g.recipientName?.toLowerCase().includes(this.searchTerm) ||
+                g.transferReason?.toLowerCase().includes(this.searchTerm) ||
+                g.status?.toLowerCase().includes(this.searchTerm)
+            );
+        }
+        if (this.sortColumn === 'destinatario') {
+            list = [...list].sort((a, b) => {
+                const va = a.recipientName ?? '';
+                const vb = b.recipientName ?? '';
+                return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
+            });
+        }
+        return list;
     }
 
     get totalPages(): number {
@@ -133,6 +150,20 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
 
     goToPage(page: number): void {
         if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+    }
+
+    toggleSort(column: string): void {
+        if (this.sortColumn === column) {
+            this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = column;
+            this.sortDir = 'asc';
+        }
+    }
+
+    onPageSizeChange(size: number): void {
+        this.itemsPerPage = size;
+        this.currentPage = 1;
     }
 
     // =========================

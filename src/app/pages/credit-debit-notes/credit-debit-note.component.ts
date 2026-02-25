@@ -44,6 +44,13 @@ export class CreditDebitNoteComponent implements OnInit, OnDestroy {
     // =========================
     currentPage = 1;
     itemsPerPage = 5;
+    readonly pageSizeOptions = [5, 10, 15, 20, 50];
+
+    // =========================
+    // SORT
+    // =========================
+    sortColumn = '';
+    sortDir: 'asc' | 'desc' = 'asc';
 
     // =========================
     // SEARCH
@@ -138,17 +145,27 @@ export class CreditDebitNoteComponent implements OnInit, OnDestroy {
     }
 
     get filteredNotes(): CreditDebitNoteResponse[] {
-        if (!this.searchTerm) return this.notes;
-        return this.notes.filter(n =>
-            n.creditDebitNoteType?.name?.toLowerCase().includes(this.searchTerm) ||
-            n.originalDocument?.series?.toLowerCase().includes(this.searchTerm) ||
-            n.originalDocument?.sequence?.toLowerCase().includes(this.searchTerm) ||
-            n.series?.toLowerCase().includes(this.searchTerm) ||
-            n.sequence?.toLowerCase().includes(this.searchTerm) ||
-            n.sale?.client?.businessName?.toLowerCase().includes(this.searchTerm) ||
-            n.sale?.client?.firstName?.toLowerCase().includes(this.searchTerm) ||
-            n.sale?.client?.lastName?.toLowerCase().includes(this.searchTerm)
-        );
+        let list = this.notes;
+        if (this.searchTerm) {
+            list = list.filter(n =>
+                n.creditDebitNoteType?.name?.toLowerCase().includes(this.searchTerm) ||
+                n.originalDocument?.series?.toLowerCase().includes(this.searchTerm) ||
+                n.originalDocument?.sequence?.toLowerCase().includes(this.searchTerm) ||
+                n.series?.toLowerCase().includes(this.searchTerm) ||
+                n.sequence?.toLowerCase().includes(this.searchTerm) ||
+                n.sale?.client?.businessName?.toLowerCase().includes(this.searchTerm) ||
+                n.sale?.client?.firstName?.toLowerCase().includes(this.searchTerm) ||
+                n.sale?.client?.lastName?.toLowerCase().includes(this.searchTerm)
+            );
+        }
+        if (this.sortColumn === 'cliente') {
+            list = [...list].sort((a, b) => {
+                const va = a.sale?.client?.businessName || `${a.sale?.client?.firstName ?? ''} ${a.sale?.client?.lastName ?? ''}`.trim();
+                const vb = b.sale?.client?.businessName || `${b.sale?.client?.firstName ?? ''} ${b.sale?.client?.lastName ?? ''}`.trim();
+                return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
+            });
+        }
+        return list;
     }
 
     get totalPages(): number {
@@ -164,6 +181,20 @@ export class CreditDebitNoteComponent implements OnInit, OnDestroy {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
         }
+    }
+
+    toggleSort(column: string): void {
+        if (this.sortColumn === column) {
+            this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = column;
+            this.sortDir = 'asc';
+        }
+    }
+
+    onPageSizeChange(size: number): void {
+        this.itemsPerPage = size;
+        this.currentPage = 1;
     }
 
     // =========================

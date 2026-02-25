@@ -24,7 +24,11 @@ export class SunatDocumentsComponent implements OnInit {
     statusFilter = '';
 
     currentPage = 1;
-    readonly pageSize = 5;
+    pageSize = 5;
+    readonly pageSizeOptions = [5, 10, 15, 20, 50];
+
+    sortColumn = '';
+    sortDir: 'asc' | 'desc' = 'asc';
 
     resendingId: number | null = null;
     downloadingKey: string | null = null;
@@ -55,11 +59,18 @@ export class SunatDocumentsComponent implements OnInit {
 
     get filteredDocuments(): SunatDocumentSummaryResponse[] {
         const term = this.searchTerm.trim().toLowerCase();
-        if (!term) return this.documents;
-        return this.documents.filter(d =>
+        let list = term ? this.documents.filter(d =>
             (d.voucherNumber ?? '').toLowerCase().includes(term) ||
             this.getDocTypeLabel(d).toLowerCase().includes(term)
-        );
+        ) : this.documents;
+        if (this.sortColumn === 'documento') {
+            list = [...list].sort((a, b) => {
+                const va = a.voucherNumber ?? '';
+                const vb = b.voucherNumber ?? '';
+                return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
+            });
+        }
+        return list;
     }
 
     get currentItems(): SunatDocumentSummaryResponse[] {
@@ -74,6 +85,20 @@ export class SunatDocumentsComponent implements OnInit {
     goToPage(page: number): void {
         if (page < 1 || page > this.totalPages) return;
         this.currentPage = page;
+    }
+
+    toggleSort(column: string): void {
+        if (this.sortColumn === column) {
+            this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.sortColumn = column;
+            this.sortDir = 'asc';
+        }
+    }
+
+    onPageSizeChange(size: number): void {
+        this.pageSize = size;
+        this.currentPage = 1;
     }
 
     setSearchTerm(value: string): void {
@@ -106,7 +131,7 @@ export class SunatDocumentsComponent implements OnInit {
         this.downloadingKey = key;
         this.service.downloadFile(doc, type).subscribe({
             next: blob => {
-                const ext = type === 'cdr' ? 'zip' : type;
+                const ext = type === 'cdr' ? 'xml' : type;
                 const filename = `${doc.voucherNumber ?? doc.id}.${ext}`;
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');

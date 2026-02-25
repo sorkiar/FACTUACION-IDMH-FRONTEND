@@ -25,7 +25,7 @@ export const routes: Routes = [
         component: EcommerceComponent,
         pathMatch: 'full',
         title:
-          'Dashboard | IDMH Perú',
+          'Inicio | IDMH Perú',
       },
       {
         path: 'clients',

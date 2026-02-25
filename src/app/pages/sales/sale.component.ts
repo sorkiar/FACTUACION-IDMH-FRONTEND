@@ -43,6 +43,13 @@ export class SaleComponent implements OnInit, OnDestroy {
   // =========================
   currentPage = 1;
   itemsPerPage = 5;
+  readonly pageSizeOptions = [5, 10, 15, 20, 50];
+
+  // =========================
+  // SORT
+  // =========================
+  sortColumn = '';
+  sortDir: 'asc' | 'desc' = 'asc';
 
   // =========================
   // SEARCH
@@ -124,15 +131,24 @@ export class SaleComponent implements OnInit, OnDestroy {
   }
 
   get filteredSales(): SaleResponse[] {
-    if (!this.searchTerm) return this.sales;
-
-    return this.sales.filter(s =>
-      s.client.businessName?.toLowerCase().includes(this.searchTerm) ||
-      s.client.firstName?.toLowerCase().includes(this.searchTerm) ||
-      s.client.lastName?.toLowerCase().includes(this.searchTerm) ||
-      s.documentSeries?.toLowerCase().includes(this.searchTerm) ||
-      s.documentSequence?.toLowerCase().includes(this.searchTerm)
-    );
+    let list = this.sales;
+    if (this.searchTerm) {
+      list = list.filter(s =>
+        s.client.businessName?.toLowerCase().includes(this.searchTerm) ||
+        s.client.firstName?.toLowerCase().includes(this.searchTerm) ||
+        s.client.lastName?.toLowerCase().includes(this.searchTerm) ||
+        s.documentSeries?.toLowerCase().includes(this.searchTerm) ||
+        s.documentSequence?.toLowerCase().includes(this.searchTerm)
+      );
+    }
+    if (this.sortColumn === 'cliente') {
+      list = [...list].sort((a, b) => {
+        const va = a.client.businessName || `${a.client.firstName ?? ''} ${a.client.lastName ?? ''}`.trim();
+        const vb = b.client.businessName || `${b.client.firstName ?? ''} ${b.client.lastName ?? ''}`.trim();
+        return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
+      });
+    }
+    return list;
   }
 
   get totalPages(): number {
@@ -148,6 +164,20 @@ export class SaleComponent implements OnInit, OnDestroy {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
+  }
+
+  toggleSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDir = 'asc';
+    }
+  }
+
+  onPageSizeChange(size: number): void {
+    this.itemsPerPage = size;
+    this.currentPage = 1;
   }
 
   // =========================

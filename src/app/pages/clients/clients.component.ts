@@ -38,6 +38,11 @@ export class ClientsComponent implements OnInit, OnDestroy {
   // Pagination
   currentPage = 1;
   itemsPerPage = 5;
+  readonly pageSizeOptions = [5, 10, 15, 20, 50];
+
+  // Sort
+  sortColumn = '';
+  sortDir: 'asc' | 'desc' = 'asc';
 
   // UI states
   loading = false;
@@ -128,7 +133,15 @@ export class ClientsComponent implements OnInit, OnDestroy {
   // Pagination computed
   // -----------------------------
   get filteredClients(): ClientResponse[] {
-    return (this.clients ?? []).filter((c) => this.matchesSearch(c));
+    let list = (this.clients ?? []).filter((c) => this.matchesSearch(c));
+    if (this.sortColumn === 'nombre') {
+      list = [...list].sort((a, b) => {
+        const va = a.businessName || `${a.firstName ?? ''} ${a.lastName ?? ''}`.trim();
+        const vb = b.businessName || `${b.firstName ?? ''} ${b.lastName ?? ''}`.trim();
+        return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
+      });
+    }
+    return list;
   }
 
   get totalPages(): number {
@@ -144,6 +157,20 @@ export class ClientsComponent implements OnInit, OnDestroy {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
+  }
+
+  toggleSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDir = 'asc';
+    }
+  }
+
+  onPageSizeChange(size: number): void {
+    this.itemsPerPage = size;
+    this.currentPage = 1;
   }
 
   // -----------------------------
@@ -404,7 +431,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
       if (!this.businessName) return false;
     }
 
-    if (!this.phone1 || !this.email1 || !this.address) return false;
+    if (!this.phone1 || !this.email1) return false;
 
     return true;
   }
