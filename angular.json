@@ -21,7 +21,9 @@
             ],
             "allowedCommonJsDependencies": [
                "prismjs",
-               "polylabel"
+               "polylabel",
+               "exceljs",
+               "file-saver"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [

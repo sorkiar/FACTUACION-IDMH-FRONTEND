@@ -162,6 +162,7 @@ export class SaleRegisterComponent implements OnChanges {
     loadingDetail = false;
 
     isSubmitting = false;
+    isGeneratingQuotation = false;
 
     constructor(
         private clientService: ClientService,
@@ -616,6 +617,44 @@ export class SaleRegisterComponent implements OnChanges {
         }
 
         return null;
+    }
+
+    // =========================================================
+    // GENERATE QUOTATION
+    // =========================================================
+
+    onGenerateQuotation(): void {
+        const error = this.validateBeforeSubmit(false);
+        if (error) {
+            this.notify.warning(error, 'Validación');
+            return;
+        }
+
+        this.isGeneratingQuotation = true;
+
+        const request: SaleRequest = {
+            clientId: this.selectedClient!.id,
+            items: this.items,
+        };
+
+        this.saleService.generateQuotation(request).subscribe({
+            next: blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const client = this.selectedClient!;
+                const clientName = client.businessName?.trim()
+                    || `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim();
+                a.download = `Cotización - ${clientName}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+                this.isGeneratingQuotation = false;
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'Error al generar cotización');
+                this.isGeneratingQuotation = false;
+            }
+        });
     }
 
     // =========================================================

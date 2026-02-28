@@ -70,6 +70,14 @@ export class ServiceService {
         return this.http.patch<ApiResponse<void>>(`${this.baseUrl}/${id}/status`, { status });
     }
 
+    /**
+     * GET /api/services/{id}/pdf
+     * Retorna el PDF como Blob
+     */
+    getPdf(id: number): Observable<Blob> {
+        return this.http.get(`${this.baseUrl}/${id}/pdf`, { responseType: 'blob' });
+    }
+
     // ============================================================
     // Helpers
     // ============================================================

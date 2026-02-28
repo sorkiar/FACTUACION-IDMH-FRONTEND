@@ -96,6 +96,9 @@ export class ServiceComponent implements OnInit, OnDestroy {
   toggleTarget?: ServiceResponse;
   isToggleStatus = false;
 
+  // PDF
+  downloadingPdfId: number | null = null;
+
   // Search
   searchTerm = '';
 
@@ -435,6 +438,25 @@ export class ServiceComponent implements OnInit, OnDestroy {
     if (file) {
       this.technicalSheet = file;
     }
+  }
+
+  downloadPdf(service: ServiceResponse): void {
+    this.downloadingPdfId = service.id;
+    this.serviceService.getPdf(service.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${service.sku} - ${service.name}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingPdfId = null;
+      },
+      error: err => {
+        this.notify.error(err?.error?.message ?? 'Error al generar el PDF');
+        this.downloadingPdfId = null;
+      }
+    });
   }
 
   onCloseForm(): void { this.showForm = false; }

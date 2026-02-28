@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, HostListener, ElementRef } from '@angular/core';
 
 export interface Option {
   value: string;
@@ -14,7 +14,7 @@ export interface Option {
   templateUrl: './multi-select.component.html',
   styles: ``
 })
-export class MultiSelectComponent {
+export class MultiSelectComponent implements OnInit {
 
   @Input() label: string = '';
   @Input() options: Option[] = [];
@@ -25,8 +25,17 @@ export class MultiSelectComponent {
   selectedOptions: string[] = [];
   isOpen = false;
 
+  constructor(private elRef: ElementRef) {}
+
   ngOnInit() {
     this.selectedOptions = [...this.defaultSelected];
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.elRef.nativeElement.contains(event.target)) {
+      this.isOpen = false;
+    }
   }
 
   toggleDropdown() {
@@ -44,6 +53,11 @@ export class MultiSelectComponent {
 
   removeOption(value: string) {
     this.selectedOptions = this.selectedOptions.filter(opt => opt !== value);
+    this.selectionChange.emit(this.selectedOptions);
+  }
+
+  clearAll() {
+    this.selectedOptions = [];
     this.selectionChange.emit(this.selectedOptions);
   }
 

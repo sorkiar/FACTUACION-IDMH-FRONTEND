@@ -73,6 +73,13 @@ export class SaleService {
     }
 
     // ============================================================
+    // GENERATE QUOTATION PDF
+    // ============================================================
+    generateQuotation(request: SaleRequest): Observable<Blob> {
+        return this.http.post(`${this.baseUrl}/quotation`, request, { responseType: 'blob' });
+    }
+
+    // ============================================================
     // PRIVATE: BUILD FORM DATA
     // ============================================================
     private buildFormData(

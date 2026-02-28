@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"sidebar\\\\|Sidebar\\\\|nav-item\\\\|navItem\")",
+      "Bash(xargs grep -l \"Ventas\\\\|ventas\\\\|sunat\\\\|Clientes\")",
+      "Bash(npm install exceljs file-saver buffer --save)",
+      "Bash(npm install @types/file-saver --save-dev)",
+      "Bash(npx tsc --noEmit)"
+    ]
+  }
+}
