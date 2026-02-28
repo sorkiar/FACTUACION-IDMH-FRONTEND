@@ -1,4 +1,4 @@
-<app-modal [isOpen]="isOpen" [className]="'max-w-7xl p-6 sm:p-8'" (close)="closeModal()">
+<app-modal [isOpen]="isOpen" [className]="'max-w-370 p-6 sm:p-8'" (close)="closeModal()">
 
     <!-- HEADER -->
     <div class="mb-6 flex items-start justify-between">
@@ -12,16 +12,16 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
 
         <!-- ========================================================= -->
-        <!-- IZQUIERDA -->
+        <!-- IZQUIERDA (form) -->
         <!-- ========================================================= -->
         <div class="lg:col-span-3 space-y-6">
 
             <!-- ================= VENTA REFERENCIA ================= -->
             <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/3">
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">
                         Venta / Comprobante de referencia
@@ -32,8 +32,7 @@
                         <button type="button"
                             class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
                             (click)="openSaleModal()">
-                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                                 <path fill-rule="evenodd" clip-rule="evenodd"
                                     d="M3.04199 9.37381C3.04199 5.87712 5.87735 3.04218 9.37533 3.04218C12.8733 3.04218 15.7087 5.87712 15.7087 9.37381C15.7087 12.8705 12.8733 15.7055 9.37533 15.7055C5.87735 15.7055 3.04199 12.8705 3.04199 9.37381ZM9.37533 1.54218C5.04926 1.54218 1.54199 5.04835 1.54199 9.37381C1.54199 13.6993 5.04926 17.2055 9.37533 17.2055C11.2676 17.2055 13.0032 16.5346 14.3572 15.4178L17.1773 18.2381C17.4702 18.531 17.945 18.5311 18.2379 18.2382C18.5308 17.9453 18.5309 17.4704 18.238 17.1775L15.4182 14.3575C16.5367 13.0035 17.2087 11.2671 17.2087 9.37381C17.2087 5.04835 13.7014 1.54218 9.37533 1.54218Z"
                                     fill="white" />
@@ -62,9 +61,14 @@
                     } @else if (!selectedSale) {
                     <span>Sin venta seleccionada</span>
                     } @else {
-                    <div>
-                        <p class="font-medium text-gray-800 dark:text-white">{{ getSaleDoc(selectedSale) }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ getClientName(selectedSale) }}</p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-800 dark:text-white">{{ getSaleDoc(selectedSale) }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ getClientName(selectedSale) }}</p>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            S/ {{ selectedSale.totalAmount | number:'1.2-2' }}
+                        </span>
                     </div>
                     }
                 </div>
@@ -72,7 +76,7 @@
 
             <!-- ================= TIPO Y MOTIVO ================= -->
             <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/3">
                 <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Tipo de nota y motivo</h4>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -126,14 +130,15 @@
 
             <!-- ================= DETALLE ITEMS ================= -->
             <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/3">
 
                 <div class="flex items-start justify-between mb-1">
                     <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">
                         Detalle de la nota
                     </h4>
 
-                    @if (!isViewMode) {
+                    <!-- Botones solo para tipos de adición manual -->
+                    @if (!isViewMode && !isAutoLoadType) {
                     <div class="flex gap-2 flex-wrap justify-end">
                         <button type="button"
                             class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
@@ -159,7 +164,32 @@
                     }
                 </div>
 
-                @if (!isViewMode) {
+                <!-- Banner informativo para C01 / D02 -->
+                @if (!isViewMode && isAutoLoadType) {
+                <div class="mt-3 mb-4 flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm"
+                    [class.bg-amber-50]="isItemsLocked"
+                    [class.text-amber-700]="isItemsLocked"
+                    [class.dark:bg-amber-900\/20]="isItemsLocked"
+                    [class.dark:text-amber-300]="isItemsLocked"
+                    [class.bg-blue-50]="!isItemsLocked"
+                    [class.text-blue-700]="!isItemsLocked"
+                    [class.dark:bg-blue-900\/20]="!isItemsLocked"
+                    [class.dark:text-blue-300]="!isItemsLocked">
+                    <svg class="shrink-0 mt-0.5 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path stroke-linecap="round" d="M12 8v4M12 16h.01" />
+                    </svg>
+                    <span>
+                        @if (isItemsLocked) {
+                        Los ítems se cargaron del comprobante y <strong class="font-semibold">no pueden modificarse</strong> (anulación total C01).
+                        } @else {
+                        Los ítems se cargaron del comprobante. Puedes ajustar la <strong class="font-semibold">cantidad</strong> y el <strong class="font-semibold">descuento</strong> de cada ítem.
+                        }
+                    </span>
+                </div>
+                }
+
+                @if (!isViewMode && !isAutoLoadType) {
                 <p class="text-xs text-gray-400 mb-4 dark:text-gray-500">
                     Agrega los productos o servicios afectados por esta nota.
                 </p>
@@ -173,17 +203,12 @@
                             <tr class="text-gray-500 dark:text-gray-400">
                                 <th class="py-3 px-3 text-left font-medium text-xs uppercase tracking-wider">Tipo</th>
                                 <th class="py-3 px-3 text-left font-medium text-xs uppercase tracking-wider">Ítem</th>
-                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Precio
-                                </th>
-                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Cant.
-                                </th>
-                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Dscto %
-                                </th>
-                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Subtotal
-                                </th>
-                                @if (!isViewMode) {
-                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Acción
-                                </th>
+                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Precio</th>
+                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Cant.</th>
+                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Dscto %</th>
+                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Subtotal</th>
+                                @if (!isViewMode && !isAutoLoadType) {
+                                <th class="py-3 px-3 text-center font-medium text-xs uppercase tracking-wider">Acción</th>
                                 }
                             </tr>
                         </thead>
@@ -193,7 +218,11 @@
                             @if (items.length === 0) {
                             <tr>
                                 <td colspan="7" class="py-8 text-center text-gray-400">
+                                    @if (isAutoLoadType && !selectedSale) {
+                                    Selecciona una venta para cargar los ítems automáticamente.
+                                    } @else {
                                     Aún no hay ítems agregados.
+                                    }
                                 </td>
                             </tr>
                             }
@@ -227,8 +256,9 @@
                                     S/ {{ item.unitPrice | number:'1.2-2' }}
                                 </td>
 
+                                <!-- Cantidad -->
                                 <td class="py-3 px-3 text-center">
-                                    @if (item.itemType === 'PRODUCTO' && !isViewMode) {
+                                    @if (!isViewMode && !isItemsLocked && (isAutoLoadType || item.itemType === 'PRODUCTO')) {
                                     <input type="number" min="1" step="1" [(ngModel)]="item.quantity"
                                         class="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                                     } @else {
@@ -236,14 +266,14 @@
                                     }
                                 </td>
 
+                                <!-- Descuento -->
                                 <td class="py-3 px-3 text-center">
-                                    @if (item.itemType === 'PRODUCTO' && !isViewMode) {
+                                    @if (!isViewMode && !isItemsLocked && (isAutoLoadType || item.itemType === 'PRODUCTO')) {
                                     <input type="number" min="0" max="100" step="1"
                                         [(ngModel)]="item.discountPercentage"
                                         class="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                                     } @else {
-                                    <span
-                                        class="text-gray-600 dark:text-gray-400">{{ item.discountPercentage || 0 }}%</span>
+                                    <span class="text-gray-600 dark:text-gray-400">{{ item.discountPercentage || 0 }}%</span>
                                     }
                                 </td>
 
@@ -252,13 +282,12 @@
                                     {{ item.quantity * item.unitPrice * (1 - (item.discountPercentage || 0) / 100) | number:'1.2-2' }}
                                 </td>
 
-                                @if (!isViewMode) {
+                                @if (!isViewMode && !isAutoLoadType) {
                                 <td class="py-3 text-center">
                                     <button type="button"
                                         class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
                                         (click)="removeItem(i)">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                             <path
                                                 d="M14.7223 12.7585C14.7426 12.3448 14.4237 11.9929 14.01 11.9726C13.5963 11.9522 13.2444 12.2711 13.2241 12.6848L12.9999 17.2415C12.9796 17.6552 13.2985 18.0071 13.7122 18.0274C14.1259 18.0478 14.4778 17.7289 14.4981 17.3152L14.7223 12.7585Z"
                                                 fill="white" />
@@ -286,13 +315,39 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- DERECHA (SIDEBAR) -->
+        <!-- DERECHA (sidebar) -->
         <!-- ========================================================= -->
-        <div class="space-y-6">
+        <div class="lg:col-span-2 space-y-4">
 
-            <!-- TOTALES -->
+            <!-- ══ PDF PREVIEW ══ -->
+            @if (safePdfUrl) {
             <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-white/3">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-semibold text-gray-700 dark:text-white/80">
+                        {{ isViewMode ? 'Documento NC/ND' : 'Comprobante de referencia' }}
+                    </h4>
+                    <a [href]="pdfPreviewUrl" target="_blank"
+                        class="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Abrir
+                    </a>
+                </div>
+                <iframe
+                    [src]="safePdfUrl"
+                    class="w-full rounded-lg border border-gray-200 dark:border-gray-700"
+                    style="height: 420px;"
+                    title="Vista previa del comprobante">
+                </iframe>
+            </div>
+            }
+
+            <!-- ══ TOTALES ══ -->
+            <div
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/3">
 
                 <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Totales</h4>
 
@@ -313,10 +368,10 @@
                 </div>
             </div>
 
-            <!-- COMPROBANTE (modo vista) -->
+            <!-- ══ COMPROBANTE EMITIDO (modo vista) ══ -->
             @if (isViewMode && selectedNote?.series) {
             <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/3">
                 <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Documento emitido</h4>
 
                 <div class="space-y-3 text-sm">
@@ -351,19 +406,6 @@
                         </span>
                         {{ selectedNote!.sunatMessage }}
                     </div>
-                    }
-
-                    @if (selectedNote!.pdfUrl) {
-                    <a [href]="selectedNote!.pdfUrl" target="_blank"
-                        class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-500 hover:bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6M9 9h3" />
-                        </svg>
-                        Ver PDF
-                    </a>
                     }
                 </div>
             </div>
@@ -505,10 +547,8 @@
 
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Agregar producto</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Buscar producto por SKU / nombre</p>
     </div>
 
-    <!-- BUSCADOR -->
     <div class="mb-4">
         <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -518,14 +558,13 @@
                 </svg>
             </div>
             <input type="text" [(ngModel)]="productSearchTerm" (input)="searchProducts()"
-                placeholder="Ej: MM-EST-0001 / Baranda / Tolva"
+                placeholder="Buscar por SKU, nombre o categoría..."
                 class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
                 autofocus>
         </div>
     </div>
 
-    <!-- RESULTADOS -->
-    <div class="max-h-95 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+    <div class="max-h-100 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
 
         @if (loadingProducts) {
         <div class="py-10 text-center text-gray-400">
@@ -538,11 +577,7 @@
         </div>
         } @else if (productResults.length === 0) {
         <div class="py-10 text-center text-gray-400">
-            <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            <p class="text-sm">{{ productSearchTerm ? 'No se encontraron productos' : 'Sin productos disponibles' }}</p>
+            <p class="text-sm">{{ productSearchTerm ? 'No se encontraron resultados' : 'Sin productos disponibles' }}</p>
         </div>
         } @else {
         <div class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -550,10 +585,8 @@
             <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
                 (click)="addProduct(product)">
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                        {{ product.sku }} — {{ product.name }}
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ product.categoryName }}</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ product.name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ product.sku }} · {{ product.categoryName }}</p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     S/ {{ product.salePrice | number:'1.2-2' }}
@@ -565,7 +598,6 @@
 
     </div>
 
-    <!-- PAGINACIÓN -->
     @if (productResults.length > productPageSize) {
     <div class="flex items-center justify-between mt-3 px-1">
         <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -578,8 +610,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ productCurrentPage }} /
-                {{ productTotalPages }}</span>
+            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ productCurrentPage }} / {{ productTotalPages }}</span>
             <button type="button" [disabled]="productCurrentPage === productTotalPages" (click)="productNextPage()"
                 class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -590,7 +621,6 @@
     </div>
     }
 
-    <!-- FOOTER -->
     <div class="flex justify-end mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button type="button" (click)="showProductModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
@@ -608,10 +638,8 @@
 
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Agregar servicio</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Buscar servicio por SKU / nombre</p>
     </div>
 
-    <!-- BUSCADOR -->
     <div class="mb-4">
         <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -621,14 +649,13 @@
                 </svg>
             </div>
             <input type="text" [(ngModel)]="serviceSearchTerm" (input)="searchServices()"
-                placeholder="Ej: SRV-FAB-0001 / Soldadura / Instalación"
+                placeholder="Buscar por SKU, nombre o categoría..."
                 class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
                 autofocus>
         </div>
     </div>
 
-    <!-- RESULTADOS -->
-    <div class="max-h-85 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+    <div class="max-h-100 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
 
         @if (loadingServices) {
         <div class="py-10 text-center text-gray-400">
@@ -641,13 +668,7 @@
         </div>
         } @else if (serviceResults.length === 0) {
         <div class="py-10 text-center text-gray-400">
-            <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <p class="text-sm">{{ serviceSearchTerm ? 'No se encontraron servicios' : 'Sin servicios disponibles' }}</p>
+            <p class="text-sm">{{ serviceSearchTerm ? 'No se encontraron resultados' : 'Sin servicios disponibles' }}</p>
         </div>
         } @else {
         <div class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -655,10 +676,8 @@
             <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
                 (click)="addService(service)">
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                        {{ service.sku }} — {{ service.name }}
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ service.serviceCategoryName }}</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ service.name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ service.sku }} · {{ service.serviceCategoryName }}</p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     S/ {{ service.price | number:'1.2-2' }}
@@ -670,7 +689,6 @@
 
     </div>
 
-    <!-- PAGINACIÓN -->
     @if (serviceResults.length > servicePageSize) {
     <div class="flex items-center justify-between mt-3 px-1">
         <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -683,8 +701,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ serviceCurrentPage }} /
-                {{ serviceTotalPages }}</span>
+            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ serviceCurrentPage }} / {{ serviceTotalPages }}</span>
             <button type="button" [disabled]="serviceCurrentPage === serviceTotalPages" (click)="serviceNextPage()"
                 class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -695,22 +712,7 @@
     </div>
     }
 
-    <!-- LINK A SERVICIO RÁPIDO -->
-    <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        ¿No existe el servicio? Usa
-        <button type="button"
-            class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400 font-medium hover:underline"
-            (click)="showServiceModal = false; openQuickServiceModal()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13 3L4 14h8l-1 7 9-11h-8l1-7z" />
-            </svg>
-            Servicio rápido
-        </button>
-        para crearlo y agregarlo al instante.
-    </p>
-
-    <!-- FOOTER -->
-    <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div class="flex justify-end mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button type="button" (click)="showServiceModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
@@ -723,40 +725,34 @@
 <!-- ================================================================ -->
 <!-- MODAL SERVICIO RÁPIDO -->
 <!-- ================================================================ -->
-<app-modal [isOpen]="showQuickServiceModal" [className]="'max-w-lg p-6'" (close)="showQuickServiceModal = false">
+<app-modal [isOpen]="showQuickServiceModal" [className]="'max-w-md p-6'" (close)="showQuickServiceModal = false">
 
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Servicio rápido</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            Agrega un servicio personalizado directo a esta nota.
-        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Agrega un ítem personalizado sin registrar en el catálogo.</p>
     </div>
 
     <div class="space-y-4">
-
         <div>
-            <app-label>Nombre del servicio <span class="text-red-500">*</span></app-label>
-            <app-input-field type="text" placeholder="Ej: Consultoría técnica" [(value)]="quickServiceName">
+            <app-label>Nombre del servicio *</app-label>
+            <app-input-field type="text" [(value)]="quickServiceName" placeholder="Ej: Instalación eléctrica">
             </app-input-field>
         </div>
-
         <div>
-            <app-label>Precio <span class="text-red-500">*</span></app-label>
-            <app-input-field type="number" [step]="0.01" min="0" placeholder="Ej: 250.00" [(value)]="quickServicePrice">
+            <app-label>Precio unitario *</app-label>
+            <app-input-field type="number" [(value)]="quickServicePrice" placeholder="0.00">
             </app-input-field>
         </div>
-
     </div>
 
-    <!-- FOOTER -->
-    <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-gray-200 dark:border-gray-700">
+    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button type="button" (click)="showQuickServiceModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
         </button>
-        <button type="button" (click)="submitQuickService()" [disabled]="!quickServiceName.trim() || !quickServicePrice"
-            class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-            Crear y agregar
+        <button type="button" (click)="submitQuickService()"
+            class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-yellow-500 hover:bg-yellow-600">
+            Agregar
         </button>
     </div>
 

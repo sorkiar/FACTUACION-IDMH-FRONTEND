@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
 import { LabelComponent } from '../../shared/components/form/label/label.component';
@@ -180,8 +181,38 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         private noteService: CreditDebitNoteService,
         private noteTypeService: CreditDebitNoteTypeService,
         private documentSeriesService: DocumentSeriesService,
-        private notify: NotificationService
+        private notify: NotificationService,
+        private sanitizer: DomSanitizer
     ) { }
+
+    // =========================================================
+    // GETTERS — tipo de nota
+    // =========================================================
+    /** C01 y D02 cargan automáticamente los ítems del comprobante */
+    get isAutoLoadType(): boolean {
+        return this.selectedNoteTypeCode === 'C01' || this.selectedNoteTypeCode === 'D02';
+    }
+
+    /** C01 = anulación → ítems bloqueados; D02 → editables */
+    get isItemsLocked(): boolean {
+        return this.selectedNoteTypeCode === 'C01';
+    }
+
+    /** URL del PDF a previsualizar (comprobante original en creación, PDF de la NC/ND en vista) */
+    get pdfPreviewUrl(): string | undefined {
+        if (this.isViewMode) return this.selectedNote?.pdfUrl;
+        return this.selectedSale?.document?.pdfUrl;
+    }
+
+    get safePdfUrl(): SafeResourceUrl | null {
+        let url = this.pdfPreviewUrl;
+        if (!url) return null;
+        // Google Drive: /view → /preview para permitir embed en iframe
+        if (url.includes('drive.google.com')) {
+            url = url.replace(/\/view(\?.*)?$/, '/preview');
+        }
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    }
 
     // =========================================================
     // LIFECYCLE
@@ -241,6 +272,12 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
 
         if (found && this.selectedSale) {
             this.previewCorrelativeById(this.getSeriesIdForNote());
+        }
+
+        if (this.isAutoLoadType && this.selectedSale) {
+            this.loadItemsFromSale();
+        } else if (!this.isAutoLoadType) {
+            this.items = [];
         }
     }
 
@@ -327,6 +364,9 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         if (this.selectedNoteType) {
             this.previewCorrelativeById(this.getSeriesIdForNote());
         }
+        if (this.isAutoLoadType) {
+            this.loadItemsFromSale();
+        }
     }
 
     clearSale(): void {
@@ -334,6 +374,22 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         this.documentSeriesId = 0;
         this.documentSeries = undefined;
         this.documentSequence = undefined;
+        if (this.isAutoLoadType) {
+            this.items = [];
+        }
+    }
+
+    private loadItemsFromSale(): void {
+        if (!this.selectedSale) return;
+        this.items = this.selectedSale.items.map(i => ({
+            itemType: i.itemType as 'PRODUCTO' | 'SERVICIO' | 'PERSONALIZADO',
+            productId:  i.productId  || undefined,
+            serviceId:  i.serviceId  || undefined,
+            description: i.description,
+            quantity:    i.quantity,
+            unitPrice:   i.unitPrice,
+            discountPercentage: i.discountPercentage,
+        }));
     }
 
     getSaleDoc(sale: SaleResponse): string {
