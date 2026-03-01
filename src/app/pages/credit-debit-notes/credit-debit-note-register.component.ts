@@ -198,20 +198,34 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         return this.selectedNoteTypeCode === 'C01';
     }
 
-    /** URL del PDF a previsualizar (comprobante original en creación, PDF de la NC/ND en vista) */
+    /** URL raw del PDF para el enlace "Abrir" */
     get pdfPreviewUrl(): string | undefined {
         if (this.isViewMode) return this.selectedNote?.pdfUrl;
         return this.selectedSale?.document?.pdfUrl;
     }
 
-    get safePdfUrl(): SafeResourceUrl | null {
-        let url = this.pdfPreviewUrl;
-        if (!url) return null;
-        // Google Drive: /view → /preview para permitir embed en iframe
+    /**
+     * SafeResourceUrl cacheada para el iframe.
+     * Es una propiedad (no getter) para evitar que Angular la recree en cada
+     * ciclo de change detection y recargue el iframe continuamente.
+     */
+    safePdfUrl: SafeResourceUrl | null = null;
+
+    private refreshSafePdfUrl(): void {
+        const rawUrl = this.isViewMode
+            ? this.selectedNote?.pdfUrl
+            : this.selectedSale?.document?.pdfUrl;
+
+        if (!rawUrl) {
+            this.safePdfUrl = null;
+            return;
+        }
+
+        let url = rawUrl;
         if (url.includes('drive.google.com')) {
             url = url.replace(/\/view(\?.*)?$/, '/preview');
         }
-        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+        this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     }
 
     // =========================================================
@@ -247,6 +261,8 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
             unitPrice: i.unitPrice,
             discountPercentage: i.discountPercentage
         }));
+
+        this.refreshSafePdfUrl();
     }
 
     // =========================================================
@@ -323,7 +339,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
 
     loadAllSales(): void {
         this.loadingSales = true;
-        this.saleService.getAll().subscribe({
+        this.saleService.getAll({ excludeAnnulled: true }).subscribe({
             next: res => {
                 // Solo ventas emitidas (que tienen documento)
                 this.allSales = (res.data ?? []).filter(s => !!s.document);
@@ -361,6 +377,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         this.documentSeriesId = 0;
         this.documentSeries = undefined;
         this.documentSequence = undefined;
+        this.refreshSafePdfUrl();
         if (this.selectedNoteType) {
             this.previewCorrelativeById(this.getSeriesIdForNote());
         }
@@ -374,6 +391,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         this.documentSeriesId = 0;
         this.documentSeries = undefined;
         this.documentSequence = undefined;
+        this.refreshSafePdfUrl();
         if (this.isAutoLoadType) {
             this.items = [];
         }
@@ -641,6 +659,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         this.documentSeries = undefined;
         this.documentSequence = undefined;
         this.isViewMode = false;
+        this.safePdfUrl = null;
     }
 
     closeModal(): void {

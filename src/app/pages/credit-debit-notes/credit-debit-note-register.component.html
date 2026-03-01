@@ -253,7 +253,13 @@
                                 </td>
 
                                 <td class="py-3 px-3 text-center text-gray-600 dark:text-gray-400">
+                                    @if (!isViewMode && !isItemsLocked && isAutoLoadType) {
+                                    <input type="number" min="0" step="0.01"
+                                        class="w-24 rounded-lg border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                                        [(ngModel)]="item.unitPrice" />
+                                    } @else {
                                     S/ {{ item.unitPrice | number:'1.2-2' }}
+                                    }
                                 </td>
 
                                 <!-- Cantidad -->

@@ -31,6 +31,7 @@ export class SaleService {
             if (filter.paymentStatus) params = params.set('paymentStatus', filter.paymentStatus);
             if (filter.startDate) params = params.set('startDate', filter.startDate);
             if (filter.endDate) params = params.set('endDate', filter.endDate);
+            if (filter.excludeAnnulled != null) params = params.set('excludeAnnulled', filter.excludeAnnulled);
         }
 
         return this.http.get<ApiResponse<SaleResponse[]>>(
