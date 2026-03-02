@@ -106,7 +106,11 @@ export class ProductComponent implements OnInit, OnDestroy {
         p.name.toLowerCase().includes(this.searchTerm)
       );
     }
-    if (this.sortColumn === 'nombre') {
+    if (this.sortColumn === 'sku') {
+      list = [...list].sort((a, b) =>
+        this.sortDir === 'asc' ? a.sku.localeCompare(b.sku, 'es') : b.sku.localeCompare(a.sku, 'es')
+      );
+    } else if (this.sortColumn === 'nombre') {
       list = [...list].sort((a, b) =>
         this.sortDir === 'asc' ? a.name.localeCompare(b.name, 'es') : b.name.localeCompare(a.name, 'es')
       );
@@ -345,9 +349,6 @@ export class ProductComponent implements OnInit, OnDestroy {
     if (!this.salePrice || this.salePrice <= 0) return false;
     if (!this.shortDescription) return false;
     if (!this.technicalSpec) return false;
-
-    // Imagen obligatoria solo en create
-    if (!this.isEditMode && !this.mainImage) return false;
 
     return true;
   }

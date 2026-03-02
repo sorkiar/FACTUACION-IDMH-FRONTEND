@@ -53,7 +53,19 @@
                                 <tr>
                                     <th
                                         class="w-[8%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        SKU</th>
+                                        <button class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200" (click)="toggleSort('sku')">
+                                            SKU
+                                            <svg class="w-3.5 h-3.5" [class.text-brand-500]="sortColumn === 'sku'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                @if (sortColumn === 'sku' && sortDir === 'asc') {
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                                                } @else if (sortColumn === 'sku' && sortDir === 'desc') {
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                                } @else {
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                                                }
+                                            </svg>
+                                        </button>
+                                    </th>
                                     <th
                                         class="w-[20%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         <button class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200" (click)="toggleSort('nombre')">
@@ -394,15 +406,9 @@
 
             <!-- Imagen -->
             <div class="sm:col-span-6">
-                <app-label>Imagen principal *</app-label>
+                <app-label>Imagen principal</app-label>
                 <app-file-input accept="image/*" (change)="onMainImageChange($event)"
                     className="custom-class"></app-file-input>
-
-                @if (submitted && !isEditMode && !mainImage) {
-                <p class="mt-1 text-sm text-red-500">
-                    La imagen principal es obligatoria
-                </p>
-                }
 
                 @if (isEditMode && selectedService?.imageUrl) {
                 <a [href]="selectedService?.imageUrl" target="_blank" class="mt-2 block text-brand-500 hover:underline">

@@ -117,7 +117,11 @@ export class ServiceComponent implements OnInit, OnDestroy {
         p.name.toLowerCase().includes(this.searchTerm)
       );
     }
-    if (this.sortColumn === 'nombre') {
+    if (this.sortColumn === 'sku') {
+      list = [...list].sort((a, b) =>
+        this.sortDir === 'asc' ? a.sku.localeCompare(b.sku, 'es') : b.sku.localeCompare(a.sku, 'es')
+      );
+    } else if (this.sortColumn === 'nombre') {
       list = [...list].sort((a, b) =>
         this.sortDir === 'asc' ? a.name.localeCompare(b.name, 'es') : b.name.localeCompare(a.name, 'es')
       );
