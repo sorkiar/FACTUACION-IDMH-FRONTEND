@@ -1,11 +1,12 @@
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-file-input',
   imports: [],
   template: `
     <input
+      #fileInput
       type="file"
       [accept]="accept"
       [class]="
@@ -22,7 +23,15 @@ export class FileInputComponent {
   @Input() accept: string = '';
   @Output() change = new EventEmitter<Event>();
 
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   onChange(event: Event) {
     this.change.emit(event);
+  }
+
+  reset(): void {
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 }

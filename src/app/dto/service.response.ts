@@ -19,4 +19,5 @@ export interface ServiceResponse {
     imageUrl: string;
     technicalSheetUrl: string;
     status: number;
+    registrationDate?: string;
 }

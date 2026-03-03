@@ -1,5 +1,5 @@
 import { SkuSequenceService } from './../../services/sku-sequence.service';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { PageBreadcrumbComponent } from "../../shared/components/common/page-breadcrumb/page-breadcrumb.component";
 import { ProductResponse } from '../../dto/product.response';
 import { Subscription } from 'rxjs';
@@ -79,6 +79,8 @@ export class ProductComponent implements OnInit, OnDestroy {
   // Files
   mainImage?: File;
   technicalSheet?: File;
+
+  @ViewChildren(FileInputComponent) fileInputs!: QueryList<FileInputComponent>;
 
   // UI flags
   submitted = false;
@@ -265,6 +267,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.mainImage = undefined;
     this.technicalSheet = undefined;
     this.status = 1;
+    this.fileInputs?.forEach(fi => fi.reset());
   }
 
   private patchForm(p: ProductResponse): void {

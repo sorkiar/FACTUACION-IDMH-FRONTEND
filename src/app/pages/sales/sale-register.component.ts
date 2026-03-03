@@ -703,8 +703,11 @@ export class SaleRegisterComponent implements OnChanges {
             request.payments?.push(payment);
         });
 
-        this.saleService.create(request, paymentFiles)
-            .subscribe({
+        const request$ = this.selectedSale?.saleStatus === 'BORRADOR'
+            ? this.saleService.updateDraft(this.selectedSale.id, request, paymentFiles)
+            : this.saleService.create(request, paymentFiles);
+
+        request$.subscribe({
                 next: () => {
                     this.notify.success(
                         finalize ? 'Venta emitida correctamente' : 'Borrador guardado correctamente',

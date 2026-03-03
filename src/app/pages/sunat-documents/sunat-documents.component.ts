@@ -69,6 +69,12 @@ export class SunatDocumentsComponent implements OnInit {
                 const vb = b.voucherNumber ?? '';
                 return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
             });
+        } else if (this.sortColumn === 'fecha') {
+            list = [...list].sort((a, b) => {
+                const da = a.issueDate ?? '';
+                const db = b.issueDate ?? '';
+                return this.sortDir === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
+            });
         }
         return list;
     }

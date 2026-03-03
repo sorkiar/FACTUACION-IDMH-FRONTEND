@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { PageBreadcrumbComponent } from "../../shared/components/common/page-breadcrumb/page-breadcrumb.component";
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
@@ -8,7 +8,7 @@ import { ServiceService } from './../../services/service.service';
 import { ModalComponent } from "../../shared/components/ui/modal/modal.component";
 import { BadgeComponent } from "../../shared/components/ui/badge/badge.component";
 import { ButtonComponent } from "../../shared/components/ui/button/button.component";
-import { DecimalPipe, NgClass } from '@angular/common';
+import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { LabelComponent } from "../../shared/components/form/label/label.component";
 import { InputFieldComponent } from "../../shared/components/form/input/input-field.component";
 import { Option, SelectComponent } from "../../shared/components/form/select/select.component";
@@ -35,6 +35,7 @@ import { SkuSequenceService } from '../../services/sku-sequence.service';
     InputFieldComponent,
     SelectComponent,
     DecimalPipe,
+    DatePipe,
     FormsModule,
     FileInputComponent,
     TextAreaComponent,
@@ -87,6 +88,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
   mainImage?: File;
   technicalSheet?: File;
 
+  @ViewChildren(FileInputComponent) fileInputs!: QueryList<FileInputComponent>;
+
   // UI flags
   submitted = false;
   isSubmitting = false;
@@ -125,6 +128,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
       list = [...list].sort((a, b) =>
         this.sortDir === 'asc' ? a.name.localeCompare(b.name, 'es') : b.name.localeCompare(a.name, 'es')
       );
+    } else if (this.sortColumn === 'fecha') {
+      list = [...list].sort((a, b) => {
+        const da = a.registrationDate ?? '';
+        const db = b.registrationDate ?? '';
+        return this.sortDir === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
+      });
     }
     return list;
   }
@@ -280,6 +289,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.mainImage = undefined;
     this.technicalSheet = undefined;
     this.status = 1;
+    this.fileInputs?.forEach(fi => fi.reset());
   }
 
   private patchForm(s: ServiceResponse): void {

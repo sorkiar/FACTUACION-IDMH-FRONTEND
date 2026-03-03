@@ -97,6 +97,21 @@
                                         class="w-[10%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Ficha técnica</th>
                                     <th
+                                        class="w-[10%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        <button class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200" (click)="toggleSort('fecha')">
+                                            Fecha registro
+                                            <svg class="w-3.5 h-3.5" [class.text-brand-500]="sortColumn === 'fecha'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                @if (sortColumn === 'fecha' && sortDir === 'asc') {
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                                                } @else if (sortColumn === 'fecha' && sortDir === 'desc') {
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                                } @else {
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                                                }
+                                            </svg>
+                                        </button>
+                                    </th>
+                                    <th
                                         class="w-[8%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Estado</th>
                                     <th
@@ -108,13 +123,13 @@
                             <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
                                 @if (loadingTable) {
                                 <tr>
-                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
+                                    <td colspan="10" class="py-6 text-center text-sm text-gray-500">
                                         Cargando servicios…
                                     </td>
                                 </tr>
                                 } @else if (services.length === 0) {
                                 <tr>
-                                    <td colspan="9" class="py-6 text-center text-sm text-gray-500">
+                                    <td colspan="10" class="py-6 text-center text-sm text-gray-500">
                                         No hay servicios registrados.
                                     </td>
                                 </tr>
@@ -167,6 +182,11 @@
                                         } @else {
                                         <span class="text-gray-400">—</span>
                                         }
+                                    </td>
+
+                                    <!-- Fecha registro -->
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                        {{ item.registrationDate | date:'dd/MM/yyyy' }}
                                     </td>
 
                                     <!-- Estado -->
