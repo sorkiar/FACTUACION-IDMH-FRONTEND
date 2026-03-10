@@ -58,6 +58,29 @@ export class CreditDebitNoteComponent implements OnInit, OnDestroy {
     searchTerm = '';
 
     // =========================
+    // TOOLTIP
+    // =========================
+    tooltipVisible = false;
+    tooltipCode = '';
+    tooltipText = '';
+    tooltipX = 0;
+    tooltipY = 0;
+
+    showTooltip(event: MouseEvent, code: number | undefined, message: string | undefined): void {
+        if (!message) return;
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        this.tooltipCode = code != null ? String(code) : '';
+        this.tooltipText = message;
+        this.tooltipX = rect.left;
+        this.tooltipY = rect.top;
+        this.tooltipVisible = true;
+    }
+
+    hideTooltip(): void {
+        this.tooltipVisible = false;
+    }
+
+    // =========================
     // SUBSCRIPTIONS
     // =========================
     private sub = new Subscription();

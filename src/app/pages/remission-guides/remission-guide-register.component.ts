@@ -216,7 +216,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         this.packageCount = guide.packageCount ?? 1;
         this.minorVehicleTransfer = guide.minorVehicleTransfer ?? false;
         this.observations = guide.observations ?? '';
-        this.carrierDocType = guide.carrierDocType ?? 'RUC';
+        this.carrierDocType = 'RUC';
         this.carrierDocNumber = guide.carrierDocNumber ?? '';
         this.carrierName = guide.carrierName ?? '';
         this.recipientDocType = guide.recipientDocType;
@@ -404,6 +404,11 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             this.notify.warning('Debe ingresar el número de documento del destinatario', 'Validación');
             return;
         }
+        const expectedRecipientLength = this.recipientDocType === 'RUC' ? 11 : 8;
+        if (this.recipientDocNumber.trim().length !== expectedRecipientLength) {
+            this.notify.warning(`El ${this.recipientDocType} del destinatario debe tener exactamente ${expectedRecipientLength} dígitos`, 'Validación');
+            return;
+        }
         if (!this.recipientName.trim()) {
             this.notify.warning('Debe ingresar el nombre del destinatario', 'Validación');
             return;
@@ -412,12 +417,24 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             this.notify.warning('Debe ingresar el documento del transportista', 'Validación');
             return;
         }
+        if (this.transportMode === 'TRANSPORTE_PUBLICO' && this.carrierDocNumber.trim().length !== 11) {
+            this.notify.warning('El RUC del transportista debe tener exactamente 11 dígitos', 'Validación');
+            return;
+        }
         if (this.transportMode === 'TRANSPORTE_PUBLICO' && !this.carrierName.trim()) {
             this.notify.warning('Debe ingresar la razón social del transportista', 'Validación');
             return;
         }
         if (this.transportMode === 'TRANSPORTE_PRIVADO' && this.drivers.length === 0) {
             this.notify.warning('Debe agregar al menos un conductor', 'Validación');
+            return;
+        }
+        if (this.transportMode === 'TRANSPORTE_PRIVADO' && this.drivers.some(d => !/[a-zA-Z]/.test(d.licenseNumber) || !/[0-9]/.test(d.licenseNumber))) {
+            this.notify.warning('El número de licencia de conducir debe contener al menos una letra y un número', 'Validación');
+            return;
+        }
+        if (this.transportMode === 'TRANSPORTE_PRIVADO' && this.drivers.some(d => d.licenseNumber.trim().length > 10)) {
+            this.notify.warning('El número de licencia de conducir no puede exceder los 10 caracteres', 'Validación');
             return;
         }
         if (this.items.length === 0) {

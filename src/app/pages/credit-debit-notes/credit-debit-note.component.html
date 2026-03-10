@@ -148,20 +148,12 @@
                                         @if (!note.series) {
                                         <span class="text-gray-400">Sin emitir</span>
                                         } @else {
-                                        <div class="relative inline-block group">
+                                        <div class="inline-block"
+                                            (mouseenter)="showTooltip($event, note.sunatResponseCode, note.sunatMessage)"
+                                            (mouseleave)="hideTooltip()">
                                             <app-badge size="sm" [color]="getStatusBadgeColor(note.status)">
                                                 {{ note.status }}
                                             </app-badge>
-                                            @if (note.sunatMessage) {
-                                            <div
-                                                class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-72 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:block">
-                                                <span class="font-semibold">{{ note.sunatResponseCode }}</span>
-                                                - {{ note.sunatMessage }}
-                                                <div
-                                                    class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900">
-                                                </div>
-                                            </div>
-                                            }
                                         </div>
                                         }
                                     </td>
@@ -288,3 +280,12 @@
         (onSaved)="handleNoteSaved()">
     </app-credit-debit-note-register>
 </div>
+
+@if (tooltipVisible) {
+<div class="fixed z-9999 w-80 rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg dark:bg-gray-700 pointer-events-none"
+    [style.left.px]="tooltipX"
+    [style.top.px]="tooltipY - 8"
+    [style.transform]="'translateY(-100%)'">
+    <span class="font-semibold">{{ tooltipCode }}:</span> {{ tooltipText }}
+</div>
+}

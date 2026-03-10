@@ -197,11 +197,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <app-label>Tipo de documento *</app-label>
-                    @if (isViewMode) {
-                    <app-input-field type="text" [value]="carrierDocType" [disabled]="true"></app-input-field>
-                    } @else {
-                    <app-select [options]="docTypeOptions" [(value)]="carrierDocType"></app-select>
-                    }
+                    <app-input-field type="text" value="RUC" [disabled]="true"></app-input-field>
                 </div>
                 <div>
                     <app-label>Número de documento *</app-label>
@@ -210,6 +206,9 @@
                     } @else {
                     <app-input-field type="text" placeholder="Ej: 20123456789"
                         [(value)]="carrierDocNumber"></app-input-field>
+                    @if (carrierDocNumber.trim().length > 0 && carrierDocNumber.trim().length !== 11) {
+                        <p class="mt-1 text-xs text-red-500">El RUC debe tener exactamente 11 dígitos</p>
+                    }
                     }
                 </div>
                 <div class="sm:col-span-2">
@@ -287,12 +286,19 @@
                     </div>
                     <div>
                         <app-label>N° licencia *</app-label>
-                        <app-input-field type="text" placeholder="Ej: Q01234567" [(value)]="driver.licenseNumber"
+                        <app-input-field type="text" placeholder="Ej: Q01234567" [value]="driver.licenseNumber"
+                            (valueChange)="driver.licenseNumber = $event.toString().toUpperCase()"
                             [disabled]="isViewMode"></app-input-field>
+                        @if (driver.licenseNumber.length > 0 && (!/[a-zA-Z]/.test(driver.licenseNumber) || !/[0-9]/.test(driver.licenseNumber))) {
+                            <p class="mt-1 text-xs text-red-500">Debe contener al menos una letra y un número</p>
+                        } @else if (driver.licenseNumber.trim().length > 10) {
+                            <p class="mt-1 text-xs text-red-500">Máximo 10 caracteres</p>
+                        }
                     </div>
                     <div>
                         <app-label>Placa del vehículo *</app-label>
-                        <app-input-field type="text" placeholder="Ej: ABC-123" [(value)]="driver.vehiclePlate"
+                        <app-input-field type="text" placeholder="Ej: ABC-123" [value]="driver.vehiclePlate"
+                            (valueChange)="driver.vehiclePlate = $event.toString().toUpperCase()"
                             [disabled]="isViewMode"></app-input-field>
                     </div>
                 </div>
@@ -325,6 +331,13 @@
                     <app-label>Número de documento *</app-label>
                     <app-input-field type="text" placeholder="Ej: 20123456789" [(value)]="recipientDocNumber"
                         [disabled]="isViewMode"></app-input-field>
+                    @if (!isViewMode && recipientDocNumber.trim().length > 0) {
+                        @if (recipientDocType === 'RUC' && recipientDocNumber.trim().length !== 11) {
+                            <p class="mt-1 text-xs text-red-500">El RUC debe tener exactamente 11 dígitos</p>
+                        } @else if (recipientDocType === 'DNI' && recipientDocNumber.trim().length !== 8) {
+                            <p class="mt-1 text-xs text-red-500">El DNI debe tener exactamente 8 dígitos</p>
+                        }
+                    }
                 </div>
                 <div>
                     <app-label>Nombre / Razón social *</app-label>

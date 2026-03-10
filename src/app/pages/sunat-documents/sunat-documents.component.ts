@@ -33,6 +33,26 @@ export class SunatDocumentsComponent implements OnInit {
     resendingId: number | null = null;
     downloadingKey: string | null = null;
 
+    tooltipVisible = false;
+    tooltipCode = '';
+    tooltipText = '';
+    tooltipX = 0;
+    tooltipY = 0;
+
+    showTooltip(event: MouseEvent, doc: SunatDocumentSummaryResponse): void {
+        if (!doc.sunatMessage) return;
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        this.tooltipCode = doc.sunatResponseCode != null ? String(doc.sunatResponseCode) : '';
+        this.tooltipText = doc.sunatMessage;
+        this.tooltipX = rect.left;
+        this.tooltipY = rect.top;
+        this.tooltipVisible = true;
+    }
+
+    hideTooltip(): void {
+        this.tooltipVisible = false;
+    }
+
     constructor(
         private service: SunatDocumentService,
         private notify: NotificationService

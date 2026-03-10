@@ -54,6 +54,29 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
     // =========================
     searchTerm = '';
 
+    // =========================
+    // TOOLTIP
+    // =========================
+    tooltipVisible = false;
+    tooltipCode = '';
+    tooltipText = '';
+    tooltipX = 0;
+    tooltipY = 0;
+
+    showTooltip(event: MouseEvent, code: number | undefined, message: string | undefined): void {
+        if (!message) return;
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        this.tooltipCode = code != null ? String(code) : '';
+        this.tooltipText = message;
+        this.tooltipX = rect.left;
+        this.tooltipY = rect.top;
+        this.tooltipVisible = true;
+    }
+
+    hideTooltip(): void {
+        this.tooltipVisible = false;
+    }
+
     private sub = new Subscription();
 
     constructor(
@@ -200,7 +223,7 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
 
     formatDate(date?: string): string {
         if (!date) return '-';
-        return new Date(date).toLocaleDateString('es-PE', {
+        return new Date(date + 'T00:00:00').toLocaleDateString('es-PE', {
             day: '2-digit', month: '2-digit', year: 'numeric'
         });
     }
