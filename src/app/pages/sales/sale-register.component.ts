@@ -9,6 +9,7 @@ import { SaleService } from '../../services/sale.service';
 
 import { SaleRequest } from '../../dto/sale.request';
 import { SaleItemRequest } from '../../dto/sale-item.request';
+import { SaleInstallmentRequest } from '../../dto/sale-installment.request';
 import { ClientResponse } from '../../dto/client.response';
 import { ProductResponse } from '../../dto/product.response';
 import { ServiceResponse } from '../../dto/service.response';
@@ -20,6 +21,7 @@ import { InputFieldComponent } from "../../shared/components/form/input/input-fi
 import { SelectComponent } from "../../shared/components/form/select/select.component";
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { DocumentSeriesService } from '../../services/document-series.service';
+import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 
 @Component({
     selector: 'app-sale-register',
@@ -33,6 +35,7 @@ import { DocumentSeriesService } from '../../services/document-series.service';
         LabelComponent,
         InputFieldComponent,
         SelectComponent,
+        DatePickerComponent,
     ],
     templateUrl: './sale-register.component.html',
 })
@@ -123,6 +126,29 @@ export class SaleRegisterComponent implements OnChanges {
     quickServicePrice: number = 0;
 
     // =============================
+    // MONEDA / TIPO DE PAGO
+    // =============================
+    readonly tomorrowStr: string = (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    })();
+    currencyCode: 'PEN' | 'USD' = 'PEN';
+    paymentType: 'CONTADO' | 'CREDITO' = 'CONTADO';
+
+    get currencySymbol(): string {
+        const code = this.isViewMode
+            ? (this.selectedSale?.currencyCode ?? 'PEN')
+            : this.currencyCode;
+        return code === 'USD' ? '$' : 'S/';
+    }
+
+    // =============================
     // ITEMS
     // =============================
     items: SaleItemRequest[] = [];
@@ -136,6 +162,21 @@ export class SaleRegisterComponent implements OnChanges {
         paymentReference: string;
         file?: File;
     }[] = [];
+
+    // =============================
+    // CUOTAS (crédito)
+    // =============================
+    installments: SaleInstallmentRequest[] = [];
+
+    // =============================
+    // DATOS ADICIONALES
+    // =============================
+    purchaseOrder = '';
+    observations = '';
+    relatedGuides: string[] = [];
+
+    addRelatedGuide() { this.relatedGuides.push(''); }
+    removeRelatedGuide(i: number) { this.relatedGuides.splice(i, 1); }
 
     paymentMethodOptions: { value: string; label: string }[] = [
         { value: '6', label: 'Efectivo' },
@@ -258,6 +299,11 @@ export class SaleRegisterComponent implements OnChanges {
     private loadSaleForEdit(sale: SaleResponse): void {
         this.resetSale();
         this.isViewMode = sale.saleStatus !== 'BORRADOR';
+
+        // Datos adicionales
+        this.purchaseOrder = sale.purchaseOrder ?? '';
+        this.observations = sale.observations ?? '';
+        this.relatedGuides = [...(sale.relatedGuides ?? [])];
 
         // Mapear items
         this.items = sale.items.map(i => ({
@@ -391,7 +437,7 @@ export class SaleRegisterComponent implements OnChanges {
 
     loadAllProducts() {
         this.loadingProducts = true;
-        this.productService.getAll({ status: 1 }).subscribe({
+        this.productService.getAll({ status: 1, currency: this.currencyCode }).subscribe({
             next: res => {
                 this.allProducts = res.data ?? [];
                 this.productResults = this.allProducts;
@@ -403,6 +449,12 @@ export class SaleRegisterComponent implements OnChanges {
                 this.loadingProducts = false;
             }
         });
+    }
+
+    onCurrencyChange() {
+        this.items = [];
+        this.allProducts = [];
+        this.allServices = [];
     }
 
     searchProducts() {
@@ -420,12 +472,15 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     addProduct(product: ProductResponse) {
+        const price = this.currencyCode === 'USD'
+            ? (product.salePriceUsd ?? 0)
+            : (product.salePricePen ?? 0);
         this.items.push({
             itemType: 'PRODUCTO',
             productId: product.id,
             description: product.name,
             quantity: 1,
-            unitPrice: product.salePrice
+            unitPrice: price
         });
         this.showProductModal = false;
         this.notify.success(`"${product.name}" agregado`, 'Producto agregado', 2500);
@@ -451,7 +506,7 @@ export class SaleRegisterComponent implements OnChanges {
 
     loadAllServices() {
         this.loadingServices = true;
-        this.serviceService.getAll({ status: 1 }).subscribe({
+        this.serviceService.getAll({ status: 1, currencyCode: this.currencyCode }).subscribe({
             next: res => {
                 this.allServices = res.data ?? [];
                 this.serviceResults = this.allServices;
@@ -480,12 +535,15 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     addService(service: ServiceResponse) {
+        const price = this.currencyCode === 'USD'
+            ? (service.priceUsd ?? 0)
+            : (service.pricePen ?? 0);
         this.items.push({
             itemType: 'SERVICIO',
             serviceId: service.id,
             description: service.name,
             quantity: 1,
-            unitPrice: service.price
+            unitPrice: price
         });
         this.showServiceModal = false;
         this.notify.success(`"${service.name}" agregado`, 'Servicio agregado', 2500);
@@ -553,6 +611,36 @@ export class SaleRegisterComponent implements OnChanges {
         this.payments.splice(index, 1);
     }
 
+    // =========================================================
+    // CUOTAS
+    // =========================================================
+
+    addInstallment() {
+        const n = this.installments.length + 1;
+        this.installments.push({
+            installmentNumber: n,
+            dueDate: '',
+            amount: 0
+        });
+    }
+
+    removeInstallment(index: number) {
+        this.installments.splice(index, 1);
+        this.installments.forEach((inst, i) => inst.installmentNumber = i + 1);
+    }
+
+    get installmentsTotal(): number {
+        return this.installments.reduce((sum, i) => sum + Number(i.amount || 0), 0);
+    }
+
+    get installmentsDiff(): number {
+        return this.installmentsTotal - this.total;
+    }
+
+    get installmentsBalanced(): boolean {
+        return Math.abs(this.installmentsDiff) <= 0.01;
+    }
+
     onPaymentFileChange(index: number, event: Event) {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
@@ -609,11 +697,21 @@ export class SaleRegisterComponent implements OnChanges {
             if (!this.documentSeriesId)
                 return 'Debe seleccionar serie del comprobante';
 
-            if (this.payments.length === 0)
-                return 'Debe registrar al menos un pago';
-
-            if (this.totalPaid < this.total)
-                return 'El total pagado es menor al total de la venta';
+            if (this.paymentType === 'CREDITO') {
+                if (this.installments.length === 0)
+                    return 'Debe registrar al menos una cuota';
+                if (this.installments.some(i => !i.dueDate))
+                    return 'Todas las cuotas deben tener fecha de vencimiento';
+                if (this.installments.some(i => !(i.amount > 0)))
+                    return 'El monto de cada cuota debe ser mayor a 0';
+                if (!this.installmentsBalanced)
+                    return `La suma de cuotas (${this.currencySymbol} ${this.installmentsTotal.toFixed(2)}) debe ser igual al total`;
+            } else {
+                if (this.payments.length === 0)
+                    return 'Debe registrar al menos un pago';
+                if (this.totalPaid < this.total)
+                    return 'El total pagado es menor al total de la venta';
+            }
         }
 
         return null;
@@ -674,54 +772,68 @@ export class SaleRegisterComponent implements OnChanges {
         const request: SaleRequest = {
             clientId: this.selectedClient!.id,
             items: this.items,
+            currencyCode: this.currencyCode,
+            paymentType: this.paymentType,
+            purchaseOrder: this.purchaseOrder.trim() || undefined,
+            observations: this.observations.trim() || undefined,
+            relatedGuides: this.relatedGuides.filter(g => g.trim()).map(g => g.trim()),
             payments: [],
+            installments: this.paymentType === 'CREDITO'
+                ? this.installments.map(i => ({
+                    installmentNumber: i.installmentNumber,
+                    dueDate: String(i.dueDate),
+                    amount: Number(i.amount)
+                }))
+                : undefined,
             draft: !finalize,
             documentSeriesId: finalize && this.documentSeriesId > 0 ? this.documentSeriesId : undefined
         };
 
         const paymentFiles: { proofKey: string; file: File }[] = [];
 
-        this.payments.forEach((p, index) => {
+        if (this.paymentType === 'CONTADO') {
+            this.payments.forEach((p, index) => {
 
-            const payment: any = {
-                paymentMethodId: Number(p.paymentMethodId),
-                amountPaid: p.amountPaid,
-                paymentReference: p.paymentReference
-            };
+                const payment: any = {
+                    paymentMethodId: Number(p.paymentMethodId),
+                    amountPaid: p.amountPaid,
+                    paymentReference: p.paymentReference
+                };
 
-            // Solo si no es efectivo y tiene archivo
-            if (p.paymentMethodId !== '6' && p.file) {
-                const proofKey = `proof_${index}_${Date.now()}`;
-                payment.proofKey = proofKey;
+                // Solo si no es efectivo y tiene archivo
+                if (p.paymentMethodId !== '6' && p.file) {
+                    const proofKey = `proof_${index}_${Date.now()}`;
+                    payment.proofKey = proofKey;
 
-                paymentFiles.push({
-                    proofKey,
-                    file: p.file
-                });
-            }
+                    paymentFiles.push({
+                        proofKey,
+                        file: p.file
+                    });
+                }
 
-            request.payments?.push(payment);
-        });
+                request.payments?.push(payment);
+            });
+        }
 
         const request$ = this.selectedSale?.saleStatus === 'BORRADOR'
             ? this.saleService.updateDraft(this.selectedSale.id, request, paymentFiles)
             : this.saleService.create(request, paymentFiles);
 
         request$.subscribe({
-                next: () => {
-                    this.notify.success(
-                        finalize ? 'Venta emitida correctamente' : 'Borrador guardado correctamente',
-                        'Éxito'
-                    );
-                    this.resetSale();
-                    this.isSubmitting = false;
-                    this.onSaved.emit();
-                },
-                error: err => {
-                    this.notify.error(err?.error?.message ?? 'Error al registrar venta');
-                    this.isSubmitting = false;
-                }
-            });
+            next: () => {
+                this.notify.success(
+                    finalize ? 'Venta emitida correctamente' : 'Borrador guardado correctamente',
+                    'Éxito'
+                );
+                this.resetSale();
+                this.isSubmitting = false;
+                this.onSaved.emit();
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'Error al registrar venta');
+                this.isSubmitting = false;
+            }
+        });
     }
 
     // =========================================================
@@ -732,15 +844,27 @@ export class SaleRegisterComponent implements OnChanges {
         this.selectedClient = undefined;
         this.items = [];
         this.payments = [];
+        this.installments = [];
+        this.purchaseOrder = '';
+        this.observations = '';
+        this.relatedGuides = [];
+        this.currencyCode = 'PEN';
+        this.paymentType = 'CONTADO';
         this.documentSeriesId = 0;
         this.isViewMode = false;
         this.loadingDetail = false;
         this.documentTypeLocked = false;
         this.documentTypeCode = '03';
+        this.allProducts = [];
+        this.allServices = [];
     }
 
     getViewPaymentTotal(): number {
         return (this.selectedSale?.payments ?? []).reduce((sum, p) => sum + p.amountPaid, 0);
+    }
+
+    getViewInstallmentTotal(): number {
+        return (this.selectedSale?.installments ?? []).reduce((sum, i) => sum + i.amount, 0);
     }
 
     closeModal() {

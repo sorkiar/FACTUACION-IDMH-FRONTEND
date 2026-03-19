@@ -145,7 +145,7 @@
                                             (mouseenter)="showTooltip($event, sale.document.sunatResponseCode, sale.document.sunatMessage)"
                                             (mouseleave)="hideTooltip()">
                                             <app-badge size="sm"
-                                                [color]="sale.document.status === 'PENDIENTE' ? 'warning' : sale.document.status === 'RECHAZADO' ? 'error' : 'success'">
+                                                [color]="sale.document.status === 'PENDIENTE' ? 'warning' : (sale.document.status === 'RECHAZADO' || sale.document.status === 'ERROR') ? 'error' : 'success'">
                                                 {{ sale.document.status }}
                                             </app-badge>
                                         </div>
@@ -153,15 +153,15 @@
                                     </td>
 
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ sale.subtotalAmount | number:'1.2-2' }}
+                                        {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.subtotalAmount | number:'1.2-2' }}
                                     </td>
 
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ sale.taxAmount | number:'1.2-2' }}
+                                        {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.taxAmount | number:'1.2-2' }}
                                     </td>
 
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ sale.totalAmount | number:'1.2-2' }}
+                                        {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.totalAmount | number:'1.2-2' }}
                                     </td>
 
                                     <!-- ACCIONES -->

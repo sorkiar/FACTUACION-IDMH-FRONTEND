@@ -93,13 +93,16 @@
                                         </button>
                                     </th>
                                     <th
-                                        class="w-[10%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        Precio</th>
+                                        class="w-[7%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Precio (S/.)</th>
+                                    <th
+                                        class="w-[7%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        Precio ($)</th>
                                     <th
                                         class="w-[12%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Categoría</th>
                                     <th
-                                        class="w-[10%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                        class="w-[6%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Unidad M.</th>
                                     <th
                                         class="w-[10%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -142,9 +145,20 @@
                                         {{ item.name }}
                                     </td>
 
-                                    <!-- Precio -->
+                                    <!-- Precio S/. -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ item.salePrice | number:'1.2-2' }}
+                                        <span class="block">S/ {{ item.salePricePen | number:'1.2-2' }}</span>
+                                    </td>
+
+                                    <!-- Precio $ -->
+                                    <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
+                                        <!-- @if (item.salePricePen) {
+                                        <span class="block">S/ {{ item.salePricePen | number:'1.2-2' }}</span>
+                                        }
+                                        @if (item.salePriceUsd) {
+                                        <span class="block">$ {{ item.salePriceUsd | number:'1.2-2' }}</span>
+                                        } -->
+                                        <span class="block">$ {{ item.salePriceUsd ?? 0.00 | number:'1.2-2' }}</span>
                                     </td>
 
                                     <!-- Categoría -->
@@ -345,7 +359,7 @@
                 }
             </div>
 
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-6">
                 <app-label>Categoría *</app-label>
                 <app-select placeholder="Seleccione una categoría" [options]="categoryOptions" [(value)]="categoryId"
                     [loading]="loadingCategories">
@@ -358,7 +372,7 @@
                 }
             </div>
 
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-6">
                 <app-label>Unidad de medida *</app-label>
                 <app-select placeholder="Seleccione una unidad de medida" [options]="unitMeasureOptions"
                     [(value)]="unitMeasureId" [loading]="loadingUnitMeasures">
@@ -371,23 +385,26 @@
                 }
             </div>
 
-            <div class="sm:col-span-2">
-                <app-label>Costo estimado</app-label>
-                <app-input-field type="number" [step]="0.01" [(value)]="estimatedCost" />
-
-                @if (submitted && estimatedCost < 0) { <p class="mt-1 text-sm text-red-500">
-                    El costo no puede ser negativo
-                    </p>
-                    }
+            <div class="sm:col-span-3">
+                <app-label>Costo estimado (S/)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="estimatedCostPen" />
             </div>
 
-            <div class="sm:col-span-2">
-                <app-label>Precio de venta *</app-label>
-                <app-input-field type="number" [step]="0.01" [(value)]="salePrice" />
+            <div class="sm:col-span-3">
+                <app-label>Precio de venta (S/)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="salePricePen" />
+            </div>
 
-                @if (submitted && (!salePrice || salePrice <= 0)) { <p class="mt-1 text-sm text-red-500">
-                    El precio debe ser mayor a 0
-                    </p>
+            <div class="sm:col-span-3">
+                <app-label>Costo estimado ($)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="estimatedCostUsd" />
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Precio de venta ($)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="salePriceUsd" />
+                @if (submitted && salePricePen <= 0 && salePriceUsd <=0) { <p class="mt-1 text-sm text-red-500">Debe
+                    ingresar al menos un precio mayor a 0</p>
                     }
             </div>
 

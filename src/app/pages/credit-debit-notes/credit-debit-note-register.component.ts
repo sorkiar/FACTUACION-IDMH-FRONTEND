@@ -474,7 +474,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
             productId: product.id,
             description: product.name,
             quantity: 1,
-            unitPrice: product.salePrice
+            unitPrice: product.salePricePen ?? 0
         });
         this.showProductModal = false;
         this.notify.success(`"${product.name}" agregado`, 'Producto agregado', 2500);
@@ -533,7 +533,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
             serviceId: service.id,
             description: service.name,
             quantity: 1,
-            unitPrice: service.price
+            unitPrice: service.pricePen ?? 0
         });
         this.showServiceModal = false;
         this.notify.success(`"${service.name}" agregado`, 'Servicio agregado', 2500);

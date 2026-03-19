@@ -321,7 +321,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             description: product.name,
             quantity: 1,
             unitMeasureSunat: product.unitMeasureCode ?? 'NIU',
-            unitPrice: product.salePrice,
+            unitPrice: product.salePricePen ?? 0,
         });
         this.showProductModal = false;
         this.notify.success(`"${product.name}" agregado`, 'Producto agregado', 2500);

@@ -68,8 +68,10 @@ export class ProductComponent implements OnInit, OnDestroy {
   name = '';
   categoryId = '';
   unitMeasureId = '';
-  salePrice: number = 0;
-  estimatedCost: number = 0;
+  salePricePen: number = 0;
+  estimatedCostPen: number = 0;
+  salePriceUsd: number = 0;
+  estimatedCostUsd: number = 0;
   brand = '';
   model = '';
   shortDescription = '';
@@ -258,8 +260,10 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.name = '';
     this.categoryId = '';
     this.unitMeasureId = '';
-    this.salePrice = 0;
-    this.estimatedCost = 0;
+    this.salePricePen = 0;
+    this.estimatedCostPen = 0;
+    this.salePriceUsd = 0;
+    this.estimatedCostUsd = 0;
     this.brand = '';
     this.model = '';
     this.shortDescription = '';
@@ -275,8 +279,10 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.name = p.name;
     this.categoryId = String(p.categoryId);
     this.unitMeasureId = String(p.unitMeasureId);
-    this.salePrice = p.salePrice;
-    this.estimatedCost = p.estimatedCost ?? 0;
+    this.salePricePen = p.salePricePen ?? 0;
+    this.estimatedCostPen = p.estimatedCostPen ?? 0;
+    this.salePriceUsd = p.salePriceUsd ?? 0;
+    this.estimatedCostUsd = p.estimatedCostUsd ?? 0;
     this.brand = p.brand ?? '';
     this.model = p.model ?? '';
     this.shortDescription = p.shortDescription;
@@ -315,8 +321,10 @@ export class ProductComponent implements OnInit, OnDestroy {
       name: this.name.trim(),
       categoryId: Number(this.categoryId),
       unitMeasureId: Number(this.unitMeasureId),
-      salePrice: this.salePrice!,
-      estimatedCost: this.estimatedCost,
+      salePricePen: this.salePricePen || undefined,
+      estimatedCostPen: this.estimatedCostPen || undefined,
+      salePriceUsd: this.salePriceUsd || undefined,
+      estimatedCostUsd: this.estimatedCostUsd || undefined,
       brand: this.brand || undefined,
       model: this.model || undefined,
       shortDescription: this.shortDescription.trim(),
@@ -349,7 +357,9 @@ export class ProductComponent implements OnInit, OnDestroy {
     if (!this.name) return false;
     if (!this.categoryId) return false;
     if (!this.unitMeasureId) return false;
-    if (!this.salePrice || this.salePrice <= 0) return false;
+    const penOk = this.salePricePen > 0;
+    const usdOk = this.salePriceUsd > 0;
+    if (!penOk && !usdOk) return false;
     if (!this.shortDescription) return false;
     if (!this.technicalSpec) return false;
 

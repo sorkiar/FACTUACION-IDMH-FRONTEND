@@ -6,7 +6,8 @@ export interface ServiceResponse {
     serviceCategoryName: string;
     chargeUnitId: number;
     chargeUnitName: string;
-    price: number;
+    pricePen?: number;
+    priceUsd?: number;
     estimatedTime: string;
     expectedDelivery: string;
     requiresMaterials: boolean;

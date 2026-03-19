@@ -72,7 +72,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
   name = '';
   serviceCategoryId = '';
   chargeUnitId = '';
-  price = 0;
+  pricePen = 0;
+  priceUsd = 0;
   estimatedTime = '';
   expectedDelivery = '';
   requiresMaterials = false;
@@ -276,7 +277,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.name = '';
     this.serviceCategoryId = '';
     this.chargeUnitId = '';
-    this.price = 0;
+    this.pricePen = 0;
+    this.priceUsd = 0;
     this.estimatedTime = '';
     this.expectedDelivery = '';
     this.requiresMaterials = false;
@@ -297,7 +299,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.name = s.name;
     this.serviceCategoryId = String(s.serviceCategoryId);
     this.chargeUnitId = String(s.chargeUnitId);
-    this.price = s.price;
+    this.pricePen = s.pricePen ?? 0;
+    this.priceUsd = s.priceUsd ?? 0;
     this.estimatedTime = s.estimatedTime;
     this.expectedDelivery = s.expectedDelivery;
     this.requiresMaterials = s.requiresMaterials;
@@ -342,7 +345,8 @@ export class ServiceComponent implements OnInit, OnDestroy {
       name: this.name.trim(),
       serviceCategoryId: Number(this.serviceCategoryId),
       chargeUnitId: Number(this.chargeUnitId),
-      price: this.price,
+      pricePen: this.pricePen || undefined,
+      priceUsd: this.priceUsd || undefined,
       estimatedTime: this.estimatedTime || undefined,
       expectedDelivery: this.expectedDelivery || undefined,
       requiresMaterials: this.requiresMaterials,
@@ -380,6 +384,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     if (!this.name) return false;
     if (!this.serviceCategoryId) return false;
     if (!this.chargeUnitId) return false;
+    if (!(this.pricePen > 0) && !(this.priceUsd > 0)) return false;
     if (!this.shortDescription) return false;
     if (!this.detailedDescription) return false;
     return true;

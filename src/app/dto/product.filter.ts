@@ -3,4 +3,5 @@ export type ProductFilter = {
     status?: number;      // 1 activo, 0 inactivo
     categoryId?: number;
     sku?: string;
+    currency?: string;
 };

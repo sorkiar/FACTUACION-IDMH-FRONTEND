@@ -26,6 +26,7 @@ export class ProductService {
         if (filters?.status !== undefined) params = params.set('status', filters.status);
         if (filters?.categoryId !== undefined) params = params.set('categoryId', filters.categoryId);
         if (filters?.sku) params = params.set('sku', filters.sku);
+        if (filters?.currency) params = params.set('currency', filters.currency);
 
         return this.http.get<ApiResponse<ProductResponse[]>>(this.baseUrl, { params });
     }

@@ -4,4 +4,5 @@ export type ServiceFilter = {
     serviceCategoryId?: number;
     sku?: string;
     name?: string;
+    currencyCode?: string;
 };

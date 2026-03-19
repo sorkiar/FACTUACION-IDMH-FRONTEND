@@ -27,6 +27,7 @@ export class ServiceService {
         if (filters?.serviceCategoryId !== undefined) params = params.set('serviceCategoryId', filters.serviceCategoryId);
         if (filters?.sku) params = params.set('sku', filters.sku);
         if (filters?.name) params = params.set('name', filters.name);
+        if (filters?.currencyCode) params = params.set('currency', filters.currencyCode);
 
         return this.http.get<ApiResponse<ServiceResponse[]>>(this.baseUrl, { params });
     }

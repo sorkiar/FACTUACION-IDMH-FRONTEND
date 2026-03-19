@@ -2,8 +2,10 @@ export interface ProductRequest {
     name: string;
     categoryId: number;
     unitMeasureId: number;
-    salePrice: number;        // BigDecimal -> number
-    estimatedCost?: number;   // opcional
+    salePricePen?: number;
+    estimatedCostPen?: number;
+    salePriceUsd?: number;
+    estimatedCostUsd?: number;
     brand?: string;
     model?: string;
     shortDescription: string;
