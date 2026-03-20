@@ -1,5 +1,6 @@
 import { RemissionGuideItemResponse } from './remission-guide-item.response';
 import { RemissionGuideDriverResponse } from './remission-guide-driver.response';
+import { RecipientResponse } from './recipient.response';
 
 export interface RemissionGuideResponse {
     id: number;
@@ -21,10 +22,7 @@ export interface RemissionGuideResponse {
     destinationUbigeo: string;
     destinationLocalCode?: string;
     minorVehicleTransfer?: boolean;
-    recipientDocType: string;
-    recipientDocNumber: string;
-    recipientName: string;
-    recipientAddress?: string;
+    recipient?: RecipientResponse;
     carrierDocType?: string;
     carrierDocNumber?: string;
     carrierName?: string;

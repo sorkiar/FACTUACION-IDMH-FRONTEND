@@ -317,39 +317,36 @@
             class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
             <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Destinatario</h4>
 
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                    <app-label>Tipo de documento *</app-label>
-                    @if (isViewMode) {
-                    <app-input-field type="text" [value]="recipientDocType" [disabled]="true"></app-input-field>
-                    } @else {
-                    <app-select [options]="docTypeOptions" placeholder="Seleccione el tipo de documento:"
-                        [(value)]="recipientDocType"></app-select>
-                    }
+            @if (selectedRecipient) {
+            <!-- Destinatario seleccionado -->
+            <div class="flex items-start justify-between gap-4 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                        {{ selectedRecipient.name }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {{ selectedRecipient.docType }} {{ selectedRecipient.docNumber }}
+                        @if (selectedRecipient.address) { · {{ selectedRecipient.address }} }
+                    </p>
                 </div>
-                <div>
-                    <app-label>Número de documento *</app-label>
-                    <app-input-field type="text" placeholder="Ej: 20123456789" [(value)]="recipientDocNumber"
-                        [disabled]="isViewMode"></app-input-field>
-                    @if (!isViewMode && recipientDocNumber.trim().length > 0) {
-                        @if (recipientDocType === 'RUC' && recipientDocNumber.trim().length !== 11) {
-                            <p class="mt-1 text-xs text-red-500">El RUC debe tener exactamente 11 dígitos</p>
-                        } @else if (recipientDocType === 'DNI' && recipientDocNumber.trim().length !== 8) {
-                            <p class="mt-1 text-xs text-red-500">El DNI debe tener exactamente 8 dígitos</p>
-                        }
-                    }
-                </div>
-                <div>
-                    <app-label>Nombre / Razón social *</app-label>
-                    <app-input-field type="text" placeholder="Nombre o razón social" [(value)]="recipientName"
-                        [disabled]="isViewMode"></app-input-field>
-                </div>
-                <div>
-                    <app-label>Dirección (opcional)</app-label>
-                    <app-input-field type="text" placeholder="Dirección del destinatario" [(value)]="recipientAddress"
-                        [disabled]="isViewMode"></app-input-field>
-                </div>
+                @if (!isViewMode) {
+                <button type="button" (click)="openRecipientModal()"
+                    class="shrink-0 text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                    Cambiar
+                </button>
+                }
             </div>
+            } @else {
+            <!-- Sin destinatario -->
+            @if (isViewMode) {
+            <p class="text-sm text-gray-500 dark:text-gray-400">Sin destinatario registrado.</p>
+            } @else {
+            <button type="button" (click)="openRecipientModal()"
+                class="w-full rounded-xl border-2 border-dashed border-gray-300 py-6 text-sm font-medium text-gray-500 hover:border-brand-400 hover:text-brand-500 dark:border-gray-700 dark:text-gray-400 dark:hover:border-brand-600 transition-colors">
+                + Seleccionar destinatario
+            </button>
+            }
+            }
         </div>
 
         <!-- ================================================================ -->
@@ -665,5 +662,70 @@
             Agregar
         </button>
     </div>
+
+</app-modal>
+
+<!-- ================================================================ -->
+<!-- MODAL BUSCAR DESTINATARIO -->
+<!-- ================================================================ -->
+<app-modal [isOpen]="showRecipientModal" [className]="'max-w-xl p-6'" (close)="showRecipientModal = false">
+
+    <div class="mb-4">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Buscar destinatario</h3>
+    </div>
+
+    <!-- Buscador -->
+    <div class="relative mb-4">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" width="16" height="16"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" />
+        </svg>
+        <input type="text" placeholder="Buscar por nombre o documento..."
+            [(ngModel)]="recipientSearchTerm"
+            (input)="searchRecipients()"
+            class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500" />
+    </div>
+
+    <!-- Lista -->
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        @if (loadingRecipients) {
+        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Cargando...</div>
+        } @else if (recipientResults.length === 0) {
+        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No se encontraron destinatarios activos.</div>
+        } @else {
+        @for (r of pagedRecipientResults; track r.id) {
+        <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-b-0"
+            (click)="selectRecipient(r)">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ r.name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ r.docType }} {{ r.docNumber }}
+                    @if (r.address) { · {{ r.address }} }
+                </p>
+            </div>
+        </div>
+        }
+        }
+    </div>
+
+    <!-- Paginación -->
+    @if (recipientResults.length > recipientPageSize) {
+    <div class="flex items-center justify-between mt-3 px-1">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+            {{ (recipientCurrentPage - 1) * recipientPageSize + 1 }}–{{ recipientPageEnd }} de {{ recipientResults.length }}
+        </p>
+        <div class="flex gap-1">
+            <button type="button" [disabled]="recipientCurrentPage === 1" (click)="recipientPrevPage()"
+                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
+                ‹
+            </button>
+            <button type="button" [disabled]="recipientCurrentPage === recipientTotalPages" (click)="recipientNextPage()"
+                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
+                ›
+            </button>
+        </div>
+    </div>
+    }
 
 </app-modal>

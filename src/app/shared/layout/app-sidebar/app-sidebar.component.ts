@@ -42,6 +42,7 @@ export class AppSidebarComponent {
       name: "General",
       subItems: [
         { name: "Clientes", path: "/clients", pro: false },
+        { name: "Destinatarios", path: "/recipients", pro: false },
       ],
     },
     {

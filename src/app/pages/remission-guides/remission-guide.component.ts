@@ -147,15 +147,15 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
             list = list.filter(g =>
                 g.series?.toLowerCase().includes(this.searchTerm) ||
                 g.sequence?.toLowerCase().includes(this.searchTerm) ||
-                g.recipientName?.toLowerCase().includes(this.searchTerm) ||
+                g.recipient?.name?.toLowerCase().includes(this.searchTerm) ||
                 g.transferReason?.toLowerCase().includes(this.searchTerm) ||
                 g.status?.toLowerCase().includes(this.searchTerm)
             );
         }
         if (this.sortColumn === 'destinatario') {
             list = [...list].sort((a, b) => {
-                const va = a.recipientName ?? '';
-                const vb = b.recipientName ?? '';
+                const va = a.recipient?.name ?? '';
+                const vb = b.recipient?.name ?? '';
                 return this.sortDir === 'asc' ? va.localeCompare(vb, 'es') : vb.localeCompare(va, 'es');
             });
         }

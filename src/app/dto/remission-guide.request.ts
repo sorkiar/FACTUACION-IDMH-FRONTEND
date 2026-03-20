@@ -16,10 +16,7 @@ export interface RemissionGuideRequest {
     destinationUbigeo: string;
     destinationLocalCode?: string;
     minorVehicleTransfer?: boolean;
-    recipientDocType: string;
-    recipientDocNumber: string;
-    recipientName: string;
-    recipientAddress?: string;
+    recipientId: number;
     carrierDocType?: string;
     carrierDocNumber?: string;
     carrierName?: string;

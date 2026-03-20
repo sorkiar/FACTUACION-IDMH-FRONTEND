@@ -14,8 +14,10 @@ import { NotificationService } from '../../shared/components/ui/notification/not
 import { ProductService } from '../../services/product.service';
 import { RemissionGuideService } from '../../services/remission-guide.service';
 import { UbigeoService } from '../../services/ubigeo.service';
+import { RecipientService } from '../../services/recipient.service';
 
 import { ProductResponse } from '../../dto/product.response';
+import { RecipientResponse } from '../../dto/recipient.response';
 import { RemissionGuideResponse } from '../../dto/remission-guide.response';
 import { RemissionGuideItemRequest } from '../../dto/remission-guide-item.request';
 import { RemissionGuideDriverRequest } from '../../dto/remission-guide-driver.request';
@@ -105,12 +107,28 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     drivers: RemissionGuideDriverRequest[] = [];
 
     // ============================
-    // DESTINATARIO
+    // DESTINATARIO (maestro)
     // ============================
-    recipientDocType = 'RUC';
-    recipientDocNumber = '';
-    recipientName = '';
-    recipientAddress = '';
+    selectedRecipient?: RecipientResponse;
+
+    showRecipientModal = false;
+    recipientSearchTerm = '';
+    allRecipients: RecipientResponse[] = [];
+    recipientResults: RecipientResponse[] = [];
+    loadingRecipients = false;
+    recipientCurrentPage = 1;
+    readonly recipientPageSize = 5;
+
+    get pagedRecipientResults(): RecipientResponse[] {
+        const start = (this.recipientCurrentPage - 1) * this.recipientPageSize;
+        return this.recipientResults.slice(start, start + this.recipientPageSize);
+    }
+    get recipientTotalPages(): number {
+        return Math.max(1, Math.ceil(this.recipientResults.length / this.recipientPageSize));
+    }
+    get recipientPageEnd(): number {
+        return Math.min(this.recipientCurrentPage * this.recipientPageSize, this.recipientResults.length);
+    }
 
     // ============================
     // PUNTO DE PARTIDA
@@ -167,6 +185,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         private guideService: RemissionGuideService,
         private productService: ProductService,
         private ubigeoService: UbigeoService,
+        private recipientService: RecipientService,
         private notify: NotificationService
     ) { }
 
@@ -219,15 +238,11 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         this.carrierDocType = 'RUC';
         this.carrierDocNumber = guide.carrierDocNumber ?? '';
         this.carrierName = guide.carrierName ?? '';
-        this.recipientDocType = guide.recipientDocType;
-        this.recipientDocNumber = guide.recipientDocNumber;
-        this.recipientName = guide.recipientName;
-        this.recipientAddress = guide.recipientAddress ?? '';
+        this.selectedRecipient = guide.recipient ?? undefined;
         this.originAddress = guide.originAddress;
         this.originUbigeo = guide.originUbigeo;
         this.destinationAddress = guide.destinationAddress;
         this.destinationUbigeo = guide.destinationUbigeo;
-        this.observations = guide.observations ?? '';
         this.items = guide.items.map(i => ({
             productId: i.productId,
             description: i.description,
@@ -257,6 +272,60 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             this.carrierName = '';
         }
     }
+
+    // ============================
+    // DESTINATARIO MODAL
+    // ============================
+    openRecipientModal(): void {
+        this.showRecipientModal = true;
+        this.recipientSearchTerm = '';
+        this.recipientCurrentPage = 1;
+        if (this.allRecipients.length === 0) {
+            this.loadAllRecipients();
+        } else {
+            this.recipientResults = this.allRecipients;
+        }
+    }
+
+    loadAllRecipients(): void {
+        this.loadingRecipients = true;
+        this.recipientService.getAll({ status: 1 }).subscribe({
+            next: res => {
+                this.allRecipients = res.data ?? [];
+                this.recipientResults = this.allRecipients;
+                this.loadingRecipients = false;
+            },
+            error: () => {
+                this.allRecipients = [];
+                this.recipientResults = [];
+                this.loadingRecipients = false;
+            }
+        });
+    }
+
+    searchRecipients(): void {
+        const term = this.recipientSearchTerm.trim().toLowerCase();
+        this.recipientResults = term
+            ? this.allRecipients.filter(r =>
+                r.name.toLowerCase().includes(term) ||
+                r.docNumber.toLowerCase().includes(term) ||
+                r.docType.toLowerCase().includes(term)
+            )
+            : this.allRecipients;
+        this.recipientCurrentPage = 1;
+    }
+
+    selectRecipient(r: RecipientResponse): void {
+        this.selectedRecipient = r;
+        this.showRecipientModal = false;
+    }
+
+    clearRecipient(): void {
+        this.selectedRecipient = undefined;
+    }
+
+    recipientPrevPage(): void { if (this.recipientCurrentPage > 1) this.recipientCurrentPage--; }
+    recipientNextPage(): void { if (this.recipientCurrentPage < this.recipientTotalPages) this.recipientCurrentPage++; }
 
     // ============================
     // CONDUCTORES
@@ -400,17 +469,8 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             this.notify.warning('Debe ingresar el ubigeo de llegada', 'Validación');
             return;
         }
-        if (!this.recipientDocNumber.trim()) {
-            this.notify.warning('Debe ingresar el número de documento del destinatario', 'Validación');
-            return;
-        }
-        const expectedRecipientLength = this.recipientDocType === 'RUC' ? 11 : 8;
-        if (this.recipientDocNumber.trim().length !== expectedRecipientLength) {
-            this.notify.warning(`El ${this.recipientDocType} del destinatario debe tener exactamente ${expectedRecipientLength} dígitos`, 'Validación');
-            return;
-        }
-        if (!this.recipientName.trim()) {
-            this.notify.warning('Debe ingresar el nombre del destinatario', 'Validación');
+        if (!this.selectedRecipient) {
+            this.notify.warning('Debe seleccionar un destinatario', 'Validación');
             return;
         }
         if (this.transportMode === 'TRANSPORTE_PUBLICO' && !this.carrierDocNumber.trim()) {
@@ -458,10 +518,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             originUbigeo: this.originUbigeo.trim(),
             destinationAddress: this.destinationAddress.trim(),
             destinationUbigeo: this.destinationUbigeo.trim(),
-            recipientDocType: this.recipientDocType,
-            recipientDocNumber: this.recipientDocNumber.trim(),
-            recipientName: this.recipientName.trim(),
-            recipientAddress: this.recipientAddress.trim() || undefined,
+            recipientId: this.selectedRecipient.id,
             carrierDocType: this.transportMode === 'TRANSPORTE_PUBLICO' ? this.carrierDocType : undefined,
             carrierDocNumber: this.transportMode === 'TRANSPORTE_PUBLICO' ? this.carrierDocNumber.trim() : undefined,
             carrierName: this.transportMode === 'TRANSPORTE_PUBLICO' ? this.carrierName.trim() : undefined,
@@ -500,10 +557,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         this.carrierDocNumber = '';
         this.carrierName = '';
         this.drivers = [];
-        this.recipientDocType = 'RUC';
-        this.recipientDocNumber = '';
-        this.recipientName = '';
-        this.recipientAddress = '';
+        this.selectedRecipient = undefined;
         this.originAddress = this.defaultOriginAddress;
         this.originUbigeo = this.defaultOriginUbigeo;
         this.destinationAddress = '';

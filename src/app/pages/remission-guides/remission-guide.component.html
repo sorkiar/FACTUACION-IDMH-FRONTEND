@@ -104,10 +104,10 @@
                                 <!-- Destinatario -->
                                 <td class="py-3 pr-4">
                                     <p class="font-medium text-gray-800 dark:text-white text-sm">
-                                        {{ guide.recipientName }}
+                                        {{ guide.recipient?.name ?? '—' }}
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        {{ guide.recipientDocType }}: {{ guide.recipientDocNumber }}
+                                        {{ guide.recipient?.docType }}: {{ guide.recipient?.docNumber }}
                                     </p>
                                 </td>
 
