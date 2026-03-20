@@ -67,7 +67,7 @@
                             <p class="text-xs text-gray-500 mt-1">{{ getClientName(selectedSale) }}</p>
                         </div>
                         <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            S/ {{ selectedSale.totalAmount | number:'1.2-2' }}
+                            {{ currencySymbol }} {{ selectedSale.totalAmount | number:'1.2-2' }}
                         </span>
                     </div>
                     }
@@ -258,7 +258,7 @@
                                         class="w-24 rounded-lg border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                                         [(ngModel)]="item.unitPrice" />
                                     } @else {
-                                    S/ {{ item.unitPrice | number:'1.2-2' }}
+                                    {{ currencySymbol }} {{ item.unitPrice | number:'1.2-2' }}
                                     }
                                 </td>
 
@@ -284,7 +284,7 @@
                                 </td>
 
                                 <td class="py-3 px-3 text-center font-semibold text-gray-800 dark:text-white">
-                                    S/
+                                    {{ currencySymbol }}
                                     {{ item.quantity * item.unitPrice * (1 - (item.discountPercentage || 0) / 100) | number:'1.2-2' }}
                                 </td>
 
@@ -360,16 +360,16 @@
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between dark:text-white/90">
                         <span>Subtotal</span>
-                        <span>S/
+                        <span>{{ currencySymbol }}
                             {{ (isViewMode ? (selectedNote?.subtotalAmount ?? 0) : subtotal) | number:'1.2-2' }}</span>
                     </div>
                     <div class="flex justify-between dark:text-white/90">
                         <span>IGV (18%)</span>
-                        <span>S/ {{ (isViewMode ? (selectedNote?.taxAmount ?? 0) : igv) | number:'1.2-2' }}</span>
+                        <span>{{ currencySymbol }} {{ (isViewMode ? (selectedNote?.taxAmount ?? 0) : igv) | number:'1.2-2' }}</span>
                     </div>
                     <div class="flex justify-between border-t pt-3 text-base font-semibold dark:text-white/90">
                         <span>Total</span>
-                        <span>S/ {{ (isViewMode ? (selectedNote?.totalAmount ?? 0) : total) | number:'1.2-2' }}</span>
+                        <span>{{ currencySymbol }} {{ (isViewMode ? (selectedNote?.totalAmount ?? 0) : total) | number:'1.2-2' }}</span>
                     </div>
                 </div>
             </div>
@@ -501,7 +501,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ getClientName(sale) }}</p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    S/ {{ sale.totalAmount | number:'1.2-2' }}
+                    {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.totalAmount | number:'1.2-2' }}
                 </span>
             </div>
             }
@@ -595,7 +595,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ product.sku }} · {{ product.categoryName }}</p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    S/ {{ (product.salePricePen ?? 0) | number:'1.2-2' }}
+                    {{ currencySymbol }} {{ (isUsd ? (product.salePriceUsd ?? 0) : (product.salePricePen ?? 0)) | number:'1.2-2' }}
                 </span>
             </div>
             }
@@ -686,7 +686,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ service.sku }} · {{ service.serviceCategoryName }}</p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    S/ {{ (service.pricePen ?? 0) | number:'1.2-2' }}
+                    {{ currencySymbol }} {{ (isUsd ? (service.priceUsd ?? 0) : (service.pricePen ?? 0)) | number:'1.2-2' }}
                 </span>
             </div>
             }

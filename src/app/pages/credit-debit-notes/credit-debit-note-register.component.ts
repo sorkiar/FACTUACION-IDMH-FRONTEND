@@ -186,6 +186,20 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
     ) { }
 
     // =========================================================
+    // GETTERS — moneda
+    // =========================================================
+    get currencySymbol(): string {
+        const code = this.isViewMode
+            ? (this.selectedNote?.currencyCode ?? this.selectedNote?.sale?.currencyCode)
+            : this.selectedSale?.currencyCode;
+        return code === 'USD' ? '$' : 'S/';
+    }
+
+    get isUsd(): boolean {
+        return this.currencySymbol === '$';
+    }
+
+    // =========================================================
     // GETTERS — tipo de nota
     // =========================================================
     /** C01 y D02 cargan automáticamente los ítems del comprobante */
@@ -474,7 +488,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
             productId: product.id,
             description: product.name,
             quantity: 1,
-            unitPrice: product.salePricePen ?? 0
+            unitPrice: this.isUsd ? (product.salePriceUsd ?? 0) : (product.salePricePen ?? 0)
         });
         this.showProductModal = false;
         this.notify.success(`"${product.name}" agregado`, 'Producto agregado', 2500);
@@ -533,7 +547,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
             serviceId: service.id,
             description: service.name,
             quantity: 1,
-            unitPrice: service.pricePen ?? 0
+            unitPrice: this.isUsd ? (service.priceUsd ?? 0) : (service.pricePen ?? 0)
         });
         this.showServiceModal = false;
         this.notify.success(`"${service.name}" agregado`, 'Servicio agregado', 2500);

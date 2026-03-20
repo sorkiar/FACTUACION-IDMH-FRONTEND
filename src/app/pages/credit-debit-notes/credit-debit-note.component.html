@@ -160,17 +160,17 @@
 
                                     <!-- SUBTOTAL -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ note.subtotalAmount | number:'1.2-2' }}
+                                        {{ note.currencyCode === 'USD' ? '$' : 'S/' }} {{ note.subtotalAmount | number:'1.2-2' }}
                                     </td>
 
                                     <!-- IGV -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ note.taxAmount | number:'1.2-2' }}
+                                        {{ note.currencyCode === 'USD' ? '$' : 'S/' }} {{ note.taxAmount | number:'1.2-2' }}
                                     </td>
 
                                     <!-- TOTAL -->
                                     <td class="py-2 text-gray-700 text-theme-sm dark:text-gray-400">
-                                        S/ {{ note.totalAmount | number:'1.2-2' }}
+                                        {{ note.currencyCode === 'USD' ? '$' : 'S/' }} {{ note.totalAmount | number:'1.2-2' }}
                                     </td>
 
                                     <!-- ACCIONES -->
