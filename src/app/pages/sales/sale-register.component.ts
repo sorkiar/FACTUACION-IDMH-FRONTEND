@@ -124,6 +124,7 @@ export class SaleRegisterComponent implements OnChanges {
     showQuickServiceModal = false;
     quickServiceName = '';
     quickServicePrice: number = 0;
+    quickServiceDiscount: number = 0;
 
     // =============================
     // MONEDA / TIPO DE PAGO
@@ -560,6 +561,7 @@ export class SaleRegisterComponent implements OnChanges {
         this.showQuickServiceModal = true;
         this.quickServiceName = '';
         this.quickServicePrice = 0;
+        this.quickServiceDiscount = 0;
     }
 
     submitQuickService() {
@@ -575,7 +577,8 @@ export class SaleRegisterComponent implements OnChanges {
             itemType: 'PERSONALIZADO',
             description: this.quickServiceName.trim(),
             quantity: 1,
-            unitPrice: this.quickServicePrice
+            unitPrice: this.quickServicePrice,
+            discountPercentage: this.quickServiceDiscount || undefined
         });
         this.showQuickServiceModal = false;
         this.notify.success(`"${this.quickServiceName.trim()}" agregado`, 'Servicio rápido agregado', 2500);
@@ -634,7 +637,7 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     get installmentsDiff(): number {
-        return this.installmentsTotal - this.total;
+        return this.installmentsTotal - this.paymentTarget;
     }
 
     get installmentsBalanced(): boolean {
@@ -670,6 +673,36 @@ export class SaleRegisterComponent implements OnChanges {
         return this.total - this.subtotal;
     }
 
+    // =============================
+    // RETENCIÓN IGV
+    // =============================
+    readonly RETENTION_RATE = 0.03;
+
+    get clientIsRetentionAgent(): boolean {
+        return this.selectedClient?.retentionAgent === true;
+    }
+
+    get isFactura(): boolean {
+        return this.documentTypeCode === '01';
+    }
+
+    get retentionApplies(): boolean {
+        return this.clientIsRetentionAgent && this.isFactura && this.total > 700;
+    }
+
+    get retentionAmount(): number {
+        return this.retentionApplies ? Math.round(this.total * this.RETENTION_RATE * 100) / 100 : 0;
+    }
+
+    get netAmount(): number {
+        return this.total - this.retentionAmount;
+    }
+
+    // target amount for payments/installments
+    get paymentTarget(): number {
+        return this.retentionApplies ? this.netAmount : this.total;
+    }
+
     get totalPaid(): number {
         return this.payments.reduce((sum, p) =>
             sum + Number(p.amountPaid || 0), 0
@@ -677,7 +710,7 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     get change(): number {
-        return this.totalPaid - this.total;
+        return this.totalPaid - this.paymentTarget;
     }
 
     // =========================================================
@@ -704,13 +737,15 @@ export class SaleRegisterComponent implements OnChanges {
                     return 'Todas las cuotas deben tener fecha de vencimiento';
                 if (this.installments.some(i => !(i.amount > 0)))
                     return 'El monto de cada cuota debe ser mayor a 0';
-                if (!this.installmentsBalanced)
-                    return `La suma de cuotas (${this.currencySymbol} ${this.installmentsTotal.toFixed(2)}) debe ser igual al total`;
+                if (!this.installmentsBalanced) {
+                    const target = this.retentionApplies ? 'monto neto' : 'total';
+                    return `La suma de cuotas (${this.currencySymbol} ${this.installmentsTotal.toFixed(2)}) debe ser igual al ${target}`;
+                }
             } else {
                 if (this.payments.length === 0)
                     return 'Debe registrar al menos un pago';
-                if (this.totalPaid < this.total)
-                    return 'El total pagado es menor al total de la venta';
+                if (this.totalPaid < this.paymentTarget)
+                    return `El total pagado es menor al ${this.retentionApplies ? 'monto neto' : 'total'} de la venta`;
             }
         }
 

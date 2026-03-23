@@ -6,6 +6,10 @@ export interface ProductResponse {
     categoryName: string;
     unitMeasureId: number;
     unitMeasureCode: string;
+    detractionId?: number;
+    detractionCode?: string;
+    detractionDescription?: string;
+    detractionPercentage?: number;
     salePricePen?: number;
     estimatedCostPen?: number;
     salePriceUsd?: number;

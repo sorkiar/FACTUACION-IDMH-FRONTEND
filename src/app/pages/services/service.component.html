@@ -406,17 +406,24 @@
                 }
             </div>
 
-            <div class="sm:col-span-3">
+            <div class="sm:col-span-6">
                 <app-label>Categoría de servicio *</app-label>
                 <app-select placeholder="Seleccione categoría" [options]="serviceCategoryOptions"
                     [(value)]="serviceCategoryId" [loading]="loadingServiceCategories">
                 </app-select>
             </div>
 
-            <div class="sm:col-span-3">
+            <div class="sm:col-span-6">
                 <app-label>Unidad de cobro *</app-label>
                 <app-select placeholder="Seleccione unidad" [options]="chargeUnitOptions" [(value)]="chargeUnitId"
                     [loading]="loadingChargeUnits">
+                </app-select>
+            </div>
+
+            <div class="sm:col-span-6">
+                <app-label>Código de servicio sujeto a detracción</app-label>
+                <app-select placeholder="Sin detracción" [options]="detractionOptions" [(value)]="detractionCodeId"
+                    [loading]="loadingDetractions">
                 </app-select>
             </div>
 

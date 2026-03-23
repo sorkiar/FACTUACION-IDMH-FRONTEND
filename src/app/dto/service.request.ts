@@ -2,6 +2,7 @@ export interface ServiceRequest {
     name: string;
     serviceCategoryId: number;
     chargeUnitId: number;
+    detractionCodeId?: number;
     pricePen?: number;
     priceUsd?: number;
     estimatedTime?: string;

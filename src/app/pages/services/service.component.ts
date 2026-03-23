@@ -19,6 +19,7 @@ import { FileInputComponent } from "../../shared/components/form/input/file-inpu
 import { TextAreaComponent } from "../../shared/components/form/input/text-area.component";
 import { ServiceCategoryService } from '../../services/service-category.service';
 import { ChargeUnitService } from '../../services/charge-unit.service';
+import { DetractionCodeService } from '../../services/detraction-code.service';
 import { SwitchComponent } from "../../shared/components/form/input/switch.component";
 import { SkuSequenceService } from '../../services/sku-sequence.service';
 
@@ -108,9 +109,12 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
   serviceCategoryOptions: Option[] = [];
   chargeUnitOptions: Option[] = [];
+  detractionOptions: Option[] = [];
+  detractionCodeId = '';
 
   loadingServiceCategories = false;
   loadingChargeUnits = false;
+  loadingDetractions = false;
 
   // Pagination
   get filteredServices(): ServiceResponse[] {
@@ -152,6 +156,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     private serviceService: ServiceService,
     private serviceCategoryService: ServiceCategoryService,
     private chargeUnitService: ChargeUnitService,
+    private detractionCodeService: DetractionCodeService,
     private skuSequenceService: SkuSequenceService,
     private notify: NotificationService
   ) { }
@@ -208,6 +213,29 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.sub.add(s);
   }
 
+  private loadDetractionCodes(selectedId?: string): void {
+    this.loadingDetractions = true;
+    const s = this.detractionCodeService.getAll({ category: 'SERVICIO', status: 1 }).subscribe({
+      next: res => {
+        this.detractionOptions = [
+          { value: '', label: 'Sin detracción' },
+          ...(res?.data ?? []).map(d => ({
+            value: String(d.id),
+            label: `${d.code} - ${d.description} (${d.percentage}%)`
+          }))
+        ];
+        this.detractionCodeId = selectedId && this.detractionOptions.some(o => o.value === selectedId)
+          ? selectedId : '';
+        this.loadingDetractions = false;
+      },
+      error: () => {
+        this.detractionOptions = [{ value: '', label: 'Sin detracción' }];
+        this.loadingDetractions = false;
+      }
+    });
+    this.sub.add(s);
+  }
+
   private loadChargeUnits(selectedId?: string): void {
     this.loadingChargeUnits = true;
 
@@ -255,6 +283,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.loadSkuPreview();
     this.loadServiceCategories();
     this.loadChargeUnits();
+    this.loadDetractionCodes();
   }
 
   onEditService(service: ServiceResponse): void {
@@ -266,6 +295,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
 
     this.loadServiceCategories(String(service.serviceCategoryId));
     this.loadChargeUnits(String(service.chargeUnitId));
+    this.loadDetractionCodes(service.detractionId ? String(service.detractionId) : '');
   }
 
   handleSwitchChange(checked: boolean) {
@@ -288,6 +318,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.conditions = '';
     this.shortDescription = '';
     this.detailedDescription = '';
+    this.detractionCodeId = '';
     this.mainImage = undefined;
     this.technicalSheet = undefined;
     this.status = 1;
@@ -310,6 +341,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
     this.conditions = s.conditions;
     this.shortDescription = s.shortDescription;
     this.detailedDescription = s.detailedDescription;
+    this.detractionCodeId = s.detractionId ? String(s.detractionId) : '';
     this.mainImage = undefined;
     this.technicalSheet = undefined;
     this.status = s.status;
@@ -345,6 +377,7 @@ export class ServiceComponent implements OnInit, OnDestroy {
       name: this.name.trim(),
       serviceCategoryId: Number(this.serviceCategoryId),
       chargeUnitId: Number(this.chargeUnitId),
+      detractionCodeId: this.detractionCodeId ? Number(this.detractionCodeId) : undefined,
       pricePen: this.pricePen || undefined,
       priceUsd: this.priceUsd || undefined,
       estimatedTime: this.estimatedTime || undefined,

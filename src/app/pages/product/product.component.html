@@ -359,7 +359,7 @@
                 }
             </div>
 
-            <div class="sm:col-span-6">
+            <div class="sm:col-span-3">
                 <app-label>Categoría *</app-label>
                 <app-select placeholder="Seleccione una categoría" [options]="categoryOptions" [(value)]="categoryId"
                     [loading]="loadingCategories">
@@ -372,7 +372,7 @@
                 }
             </div>
 
-            <div class="sm:col-span-6">
+            <div class="sm:col-span-3">
                 <app-label>Unidad de medida *</app-label>
                 <app-select placeholder="Seleccione una unidad de medida" [options]="unitMeasureOptions"
                     [(value)]="unitMeasureId" [loading]="loadingUnitMeasures">
@@ -383,6 +383,13 @@
                     Debe seleccionar una unidad de medida
                 </p>
                 }
+            </div>
+
+            <div class="sm:col-span-6">
+                <app-label>Código de bien sujeto a detracción</app-label>
+                <app-select placeholder="Sin detracción" [options]="detractionOptions" [(value)]="detractionCodeId"
+                    [loading]="loadingDetractions">
+                </app-select>
             </div>
 
             <div class="sm:col-span-3">

@@ -12,4 +12,5 @@ export interface ClientRequest {
     email1: string
     email2: string
     address: string
+    retentionAgent?: boolean
 }

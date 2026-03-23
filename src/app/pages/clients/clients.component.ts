@@ -15,6 +15,7 @@ import { DocumentTypeService } from '../../services/document-type.service';
 import { ClientRequest } from '../../dto/client.request';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
+import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 
 @Component({
   selector: 'app-clients',
@@ -29,7 +30,8 @@ import { NotificationService } from '../../shared/components/ui/notification/not
     ModalComponent,
     LabelComponent,
     InputFieldComponent,
-    SelectComponent
+    SelectComponent,
+    CheckboxComponent
   ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.css',
@@ -296,6 +298,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
       email2: this.email2?.trim() || '',
 
       address: this.address?.trim() || '',
+      retentionAgent: this.retentionAgent,
     };
 
     const request$ =
@@ -345,6 +348,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
   email1 = '';
   email2 = '';
   address = '';
+  retentionAgent = false;
 
   loadingDocumentTypes = false;
 
@@ -401,6 +405,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.email1 = '';
     this.email2 = '';
     this.address = '';
+    this.retentionAgent = false;
   }
 
   private patchClientToForm(c: ClientResponse): void {
@@ -417,6 +422,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.email1 = c.email1 ?? '';
     this.email2 = c.email2 ?? '';
     this.address = c.address ?? '';
+    this.retentionAgent = c.retentionAgent ?? false;
   }
 
   // Validación mínima para crear/editar
@@ -447,6 +453,10 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
     this.disabledDocumentType = this.isLegalPersonSelected;
     this.documentTypeId = ''; // se recalcula cuando llegue la lista
+
+    if (!this.isLegalPersonSelected) {
+      this.retentionAgent = false;
+    }
 
     this.loadDocumentTypes(Number(this.personTypeId));
   }

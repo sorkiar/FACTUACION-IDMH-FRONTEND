@@ -222,7 +222,7 @@
                                 </td>
 
                                 <td class="py-3 px-3 text-center">
-                                    @if (item.itemType !== 'PERSONALIZADO' && !isViewMode) {
+                                    @if (!isViewMode) {
                                     <input type="number" min="0" max="100" step="1"
                                         [(ngModel)]="item.discountPercentage"
                                         class="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
@@ -354,6 +354,76 @@
                 </div>
 
             </div>
+
+            <!-- ================= RETENCIÓN IGV ================= -->
+            @if (!isViewMode && clientIsRetentionAgent) {
+            <div
+                class="rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm dark:border-blue-900 dark:bg-blue-950/30">
+                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Retención IGV</h4>
+                <p class="text-xs text-blue-600 dark:text-blue-400 mb-4 leading-relaxed">
+                    La retención se evalúa al cobro. Se activa automáticamente cuando el cliente es agente de
+                    retención, el comprobante es factura y el total supera S/ 700.
+                </p>
+
+                <div class="space-y-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Cliente agente de retención</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">Sí</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">¿Aplica retención?</p>
+                            <p class="font-semibold" [class.text-green-600]="retentionApplies" [class.text-gray-500]="!retentionApplies">
+                                {{ retentionApplies ? 'Sí' : 'No' }}
+                            </p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Porcentaje</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">
+                                {{ retentionApplies ? (RETENTION_RATE * 100 | number:'1.2-2') : '0.00' }} %
+                            </p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto de retención</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ retentionAmount | number:'1.2-2' }}</p>
+                        </div>
+                    </div>
+                    <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a recibir</p>
+                        <p class="text-base font-bold text-gray-800 dark:text-white">{{ currencySymbol }} {{ netAmount | number:'1.2-2' }}</p>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-xs text-blue-500 dark:text-blue-400">La retención solo aplica a facturas.</p>
+            </div>
+            }
+
+            @if (isViewMode && selectedSale?.hasRetention) {
+            <div
+                class="rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm dark:border-blue-900 dark:bg-blue-950/30">
+                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Retención IGV</h4>
+                <div class="space-y-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">¿Aplica retención?</p>
+                            <p class="font-semibold text-green-600">Sí</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Porcentaje</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ ((selectedSale?.retentionRate ?? 0) * 100) | number:'1.2-2' }} %</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto de retención</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ selectedSale?.retentionAmount ?? 0 | number:'1.2-2' }}</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a recibir</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ selectedSale?.netAmount ?? 0 | number:'1.2-2' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
 
             <!-- ================= FORMA DE PAGO (solo en modo edición) ================= -->
             @if (!isViewMode) {
@@ -490,7 +560,7 @@
                         </span>
                     </div>
                     @if (!installmentsBalanced) {
-                    <p class="text-xs text-red-500">Diferencia con el total: {{ currencySymbol }} {{ installmentsDiff | number:'1.2-2' }}</p>
+                    <p class="text-xs text-red-500">Diferencia con el {{ retentionApplies ? 'monto neto' : 'total' }}: {{ currencySymbol }} {{ installmentsDiff | number:'1.2-2' }}</p>
                     }
                 </div>
 

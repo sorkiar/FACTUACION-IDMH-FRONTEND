@@ -15,5 +15,6 @@ export interface ClientResponse {
     phone2: string
     email2: string
     address: string
+    retentionAgent?: boolean
     status: number
 }

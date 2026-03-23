@@ -6,6 +6,10 @@ export interface ServiceResponse {
     serviceCategoryName: string;
     chargeUnitId: number;
     chargeUnitName: string;
+    detractionId?: number;
+    detractionCode?: string;
+    detractionDescription?: string;
+    detractionPercentage?: number;
     pricePen?: number;
     priceUsd?: number;
     estimatedTime: string;

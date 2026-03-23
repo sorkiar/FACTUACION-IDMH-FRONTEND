@@ -15,6 +15,11 @@ export interface SaleResponse {
     subtotalAmount: number;
     taxAmount: number;
     totalAmount: number;
+    hasRetention?: boolean;
+    retentionAmount?: number;
+    retentionRate?: number;
+    netAmount?: number;
+    hasDetraction?: boolean;
     documentSeries?: string;
     documentSequence?: string;
     client: ClientResponse;

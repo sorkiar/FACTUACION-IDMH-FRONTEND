@@ -16,6 +16,7 @@ import { Option, SelectComponent } from "../../shared/components/form/select/sel
 import { FormsModule } from '@angular/forms';
 import { CategoryService } from '../../services/category.service';
 import { UnitMeasureService } from '../../services/unit-measure.service';
+import { DetractionCodeService } from '../../services/detraction-code.service';
 import { FileInputComponent } from "../../shared/components/form/input/file-input.component";
 import { TextAreaComponent } from "../../shared/components/form/input/text-area.component";
 
@@ -98,8 +99,11 @@ export class ProductComponent implements OnInit, OnDestroy {
 
   categoryOptions: Option[] = [];
   unitMeasureOptions: Option[] = [];
+  detractionOptions: Option[] = [];
+  detractionCodeId = '';
   loadingCategories = false;
   loadingUnitMeasures = false;
+  loadingDetractions = false;
 
   // Pagination
   get filteredProducts(): ProductResponse[] {
@@ -135,6 +139,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private categoryService: CategoryService,
     private unitMeasureService: UnitMeasureService,
+    private detractionCodeService: DetractionCodeService,
     private skuSequenceService: SkuSequenceService,
     private notify: NotificationService
   ) { }
@@ -193,6 +198,32 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.sub.add(s);
   }
 
+  private loadDetractionCodes(selectedId?: string): void {
+    this.loadingDetractions = true;
+    const s = this.detractionCodeService.getAll({ category: 'BIEN', status: 1 }).subscribe({
+      next: res => {
+        this.detractionOptions = [
+          { value: '', label: 'Sin detracción' },
+          ...(res?.data ?? []).map(d => ({
+            value: String(d.id),
+            label: `${d.code} - ${d.description} (${d.percentage}%)`
+          }))
+        ];
+        if (selectedId && this.detractionOptions.some(o => o.value === selectedId)) {
+          this.detractionCodeId = selectedId;
+        } else {
+          this.detractionCodeId = '';
+        }
+        this.loadingDetractions = false;
+      },
+      error: () => {
+        this.detractionOptions = [{ value: '', label: 'Sin detracción' }];
+        this.loadingDetractions = false;
+      }
+    });
+    this.sub.add(s);
+  }
+
   private loadUnitMeasures(selectedId?: string): void {
     this.loadingUnitMeasures = true;
 
@@ -242,6 +273,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.loadSkuPreview();
     this.loadCategories();
     this.loadUnitMeasures();
+    this.loadDetractionCodes();
   }
 
   onEditProduct(product: ProductResponse): void {
@@ -253,6 +285,7 @@ export class ProductComponent implements OnInit, OnDestroy {
 
     this.loadCategories(String(product.categoryId));
     this.loadUnitMeasures(String(product.unitMeasureId));
+    this.loadDetractionCodes(product.detractionId ? String(product.detractionId) : '');
   }
 
   private resetForm(): void {
@@ -268,6 +301,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.model = '';
     this.shortDescription = '';
     this.technicalSpec = '';
+    this.detractionCodeId = '';
     this.mainImage = undefined;
     this.technicalSheet = undefined;
     this.status = 1;
@@ -287,6 +321,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.model = p.model ?? '';
     this.shortDescription = p.shortDescription;
     this.technicalSpec = p.technicalSpec;
+    this.detractionCodeId = p.detractionId ? String(p.detractionId) : '';
     this.status = p.status;
   }
 
@@ -321,6 +356,7 @@ export class ProductComponent implements OnInit, OnDestroy {
       name: this.name.trim(),
       categoryId: Number(this.categoryId),
       unitMeasureId: Number(this.unitMeasureId),
+      detractionCodeId: this.detractionCodeId ? Number(this.detractionCodeId) : undefined,
       salePricePen: this.salePricePen || undefined,
       estimatedCostPen: this.estimatedCostPen || undefined,
       salePriceUsd: this.salePriceUsd || undefined,
