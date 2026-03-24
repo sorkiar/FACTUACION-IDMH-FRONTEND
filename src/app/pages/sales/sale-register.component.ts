@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { ExchangeRateService } from '../../services/exchange-rate.service';
 
 import { ClientService } from '../../services/client.service';
 import { ProductService } from '../../services/product.service';
@@ -21,7 +22,17 @@ import { InputFieldComponent } from "../../shared/components/form/input/input-fi
 import { SelectComponent } from "../../shared/components/form/select/select.component";
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { DocumentSeriesService } from '../../services/document-series.service';
+import { DetractionCodeService } from '../../services/detraction-code.service';
+import { DetractionCodeResponse } from '../../dto/detraction-code.response';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+import { Option } from '../../shared/components/form/select/select.component';
+
+interface SaleItemForm extends SaleItemRequest {
+    _detractionId?: number;
+    _detractionCode?: string;
+    _detractionDescription?: string;
+    _detractionPercentage?: number;
+}
 
 @Component({
     selector: 'app-sale-register',
@@ -125,6 +136,14 @@ export class SaleRegisterComponent implements OnChanges {
     quickServiceName = '';
     quickServicePrice: number = 0;
     quickServiceDiscount: number = 0;
+    quickServiceDetractionId = '';
+
+    // =============================
+    // DETRACCIÓN
+    // =============================
+    detractionCodeOptions: Option[] = [];
+    loadingDetractionCodes = false;
+    allDetractionCodes: DetractionCodeResponse[] = [];
 
     // =============================
     // MONEDA / TIPO DE PAGO
@@ -152,7 +171,7 @@ export class SaleRegisterComponent implements OnChanges {
     // =============================
     // ITEMS
     // =============================
-    items: SaleItemRequest[] = [];
+    items: SaleItemForm[] = [];
 
     // =============================
     // PAGOS
@@ -206,14 +225,26 @@ export class SaleRegisterComponent implements OnChanges {
     isSubmitting = false;
     isGeneratingQuotation = false;
 
+    // TIPO DE CAMBIO
+    exchangeRateSale = 0;
+
     constructor(
         private clientService: ClientService,
         private productService: ProductService,
         private serviceService: ServiceService,
         private saleService: SaleService,
         private documentSeriesService: DocumentSeriesService,
+        private detractionCodeService: DetractionCodeService,
+        private exchangeRateService: ExchangeRateService,
         private notify: NotificationService
     ) { }
+
+    private loadExchangeRate(): void {
+        this.exchangeRateService.getToday().subscribe({
+            next: res => { this.exchangeRateSale = res.data?.sale ?? 0; },
+            error: () => { this.exchangeRateSale = 0; }
+        });
+    }
 
 
     previewCorrelative(typeCode: string) {
@@ -284,6 +315,9 @@ export class SaleRegisterComponent implements OnChanges {
     // =========================================================
 
     ngOnChanges(changes: SimpleChanges): void {
+        if (changes['isOpen'] && this.isOpen) {
+            this.loadExchangeRate();
+        }
         if (changes['selectedSale']) {
             if (this.selectedSale && this.isOpen) {
                 this.loadSaleForEdit(this.selectedSale);
@@ -473,6 +507,10 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     addProduct(product: ProductResponse) {
+        if (!this.checkDetractionCompatibility(product.detractionId)) {
+            this.showProductModal = false;
+            return;
+        }
         const price = this.currencyCode === 'USD'
             ? (product.salePriceUsd ?? 0)
             : (product.salePricePen ?? 0);
@@ -481,7 +519,11 @@ export class SaleRegisterComponent implements OnChanges {
             productId: product.id,
             description: product.name,
             quantity: 1,
-            unitPrice: price
+            unitPrice: price,
+            _detractionId: product.detractionId ?? undefined,
+            _detractionCode: product.detractionCode ?? undefined,
+            _detractionDescription: product.detractionDescription ?? undefined,
+            _detractionPercentage: product.detractionPercentage ?? undefined,
         });
         this.showProductModal = false;
         this.notify.success(`"${product.name}" agregado`, 'Producto agregado', 2500);
@@ -536,6 +578,10 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     addService(service: ServiceResponse) {
+        if (!this.checkDetractionCompatibility(service.detractionId)) {
+            this.showServiceModal = false;
+            return;
+        }
         const price = this.currencyCode === 'USD'
             ? (service.priceUsd ?? 0)
             : (service.pricePen ?? 0);
@@ -544,7 +590,11 @@ export class SaleRegisterComponent implements OnChanges {
             serviceId: service.id,
             description: service.name,
             quantity: 1,
-            unitPrice: price
+            unitPrice: price,
+            _detractionId: service.detractionId ?? undefined,
+            _detractionCode: service.detractionCode ?? undefined,
+            _detractionDescription: service.detractionDescription ?? undefined,
+            _detractionPercentage: service.detractionPercentage ?? undefined,
         });
         this.showServiceModal = false;
         this.notify.success(`"${service.name}" agregado`, 'Servicio agregado', 2500);
@@ -562,6 +612,8 @@ export class SaleRegisterComponent implements OnChanges {
         this.quickServiceName = '';
         this.quickServicePrice = 0;
         this.quickServiceDiscount = 0;
+        this.quickServiceDetractionId = '';
+        this.loadDetractionCodes();
     }
 
     submitQuickService() {
@@ -573,12 +625,26 @@ export class SaleRegisterComponent implements OnChanges {
             this.notify.warning('El precio debe ser mayor a 0');
             return;
         }
+        const selectedDetraction = this.quickServiceDetractionId
+            ? this.allDetractionCodes.find(d => String(d.id) === this.quickServiceDetractionId)
+            : undefined;
+
+        if (!this.checkDetractionCompatibility(selectedDetraction?.id)) {
+            this.showQuickServiceModal = false;
+            return;
+        }
+
         this.items.push({
             itemType: 'PERSONALIZADO',
             description: this.quickServiceName.trim(),
             quantity: 1,
             unitPrice: this.quickServicePrice,
-            discountPercentage: this.quickServiceDiscount || undefined
+            discountPercentage: this.quickServiceDiscount || undefined,
+            detractionCodeId: selectedDetraction?.id ?? undefined,
+            _detractionId: selectedDetraction?.id ?? undefined,
+            _detractionCode: selectedDetraction?.code ?? undefined,
+            _detractionDescription: selectedDetraction?.description ?? undefined,
+            _detractionPercentage: selectedDetraction?.percentage ?? undefined,
         });
         this.showQuickServiceModal = false;
         this.notify.success(`"${this.quickServiceName.trim()}" agregado`, 'Servicio rápido agregado', 2500);
@@ -674,6 +740,114 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     // =============================
+    // DETRACCIÓN (getters y métodos)
+    // =============================
+
+    get activeDetraction(): { id: number; code: string; description: string; percentage: number } | null {
+        const item = this.items.find(i => i._detractionId);
+        if (!item) return null;
+        return {
+            id: item._detractionId!,
+            code: item._detractionCode!,
+            description: item._detractionDescription!,
+            percentage: item._detractionPercentage!
+        };
+    }
+
+    get activeDetractionSourceType(): string | null {
+        return this.items.find(i => i._detractionId)?.itemType ?? null;
+    }
+
+    get detractionCondition(): string {
+        if (this.items.length === 0) return 'No evaluado';
+        return this.activeDetraction ? 'Sujeto a detracción' : 'No sujeto';
+    }
+
+    get detractionAmount(): number {
+        if (!this.activeDetraction) return 0;
+        return Math.round(this.total * (this.activeDetraction.percentage / 100) * 100) / 100;
+    }
+
+    // Siempre en PEN para mostrar en el bloque (convierte si la venta es en USD)
+    get detractionAmountPen(): number {
+        if (!this.activeDetraction) return 0;
+        if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
+            return Math.round(this.detractionAmount * this.exchangeRateSale * 100) / 100;
+        }
+        return this.detractionAmount;
+    }
+
+    get detractionNetAmount(): number {
+        return this.total - this.detractionAmount;
+    }
+
+    get canAddProduct(): boolean {
+        const src = this.activeDetractionSourceType;
+        return src === null || src === 'PRODUCTO';
+    }
+
+    get canAddService(): boolean {
+        const src = this.activeDetractionSourceType;
+        return src === null || src === 'SERVICIO' || src === 'PERSONALIZADO';
+    }
+
+    private checkDetractionCompatibility(detractionId: number | undefined): boolean {
+        const active = this.activeDetraction;
+
+        if (!active && !detractionId) return true;
+
+        if (!active && detractionId) {
+            if (this.items.some(i => !i._detractionId)) {
+                this.notify.warning('No puedes mezclar ítems con y sin detracción en la misma venta');
+                return false;
+            }
+            return true;
+        }
+
+        if (active && !detractionId) {
+            this.notify.warning(`Esta venta es sujeta a detracción (${active.code}). Solo puedes agregar ítems con ese mismo código.`);
+            return false;
+        }
+
+        if (active && detractionId !== active.id) {
+            this.notify.warning(`Solo puedes agregar ítems con el código ${active.code} — ${active.description}`);
+            return false;
+        }
+
+        return true;
+    }
+
+    loadDetractionCodes(): void {
+        if (this.allDetractionCodes.length > 0) {
+            this.buildDetractionOptions();
+            return;
+        }
+        this.loadingDetractionCodes = true;
+        this.detractionCodeService.getAll({ category: 'SERVICIO', status: 1 }).subscribe({
+            next: res => {
+                this.allDetractionCodes = res?.data ?? [];
+                this.buildDetractionOptions();
+                this.loadingDetractionCodes = false;
+            },
+            error: () => {
+                this.allDetractionCodes = [];
+                this.buildDetractionOptions();
+                this.loadingDetractionCodes = false;
+            }
+        });
+    }
+
+    private buildDetractionOptions(): void {
+        this.detractionCodeOptions = [
+            { value: '', label: 'Sin detracción' },
+            ...this.allDetractionCodes.map(d => ({
+                value: String(d.id),
+                label: `${d.code} - ${d.description} (${d.percentage}%)`
+            }))
+        ];
+    }
+
+    // =============================
     // RETENCIÓN IGV
     // =============================
     readonly RETENTION_RATE = 0.03;
@@ -687,6 +861,8 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     get retentionApplies(): boolean {
+        // Detracción tiene prioridad; ambos impuestos no pueden coexistir
+        if (this.activeDetraction) return false;
         return this.clientIsRetentionAgent && this.isFactura && this.total > 700;
     }
 
@@ -700,7 +876,10 @@ export class SaleRegisterComponent implements OnChanges {
 
     // target amount for payments/installments
     get paymentTarget(): number {
-        return this.retentionApplies ? this.netAmount : this.total;
+        let target = this.total;
+        if (this.retentionApplies) target -= this.retentionAmount;
+        if (this.activeDetraction) target -= this.detractionAmount;
+        return Math.round(target * 100) / 100;
     }
 
     get totalPaid(): number {
@@ -738,14 +917,14 @@ export class SaleRegisterComponent implements OnChanges {
                 if (this.installments.some(i => !(i.amount > 0)))
                     return 'El monto de cada cuota debe ser mayor a 0';
                 if (!this.installmentsBalanced) {
-                    const target = this.retentionApplies ? 'monto neto' : 'total';
+                    const target = (this.retentionApplies || this.activeDetraction) ? 'monto neto' : 'total';
                     return `La suma de cuotas (${this.currencySymbol} ${this.installmentsTotal.toFixed(2)}) debe ser igual al ${target}`;
                 }
             } else {
                 if (this.payments.length === 0)
                     return 'Debe registrar al menos un pago';
                 if (this.totalPaid < this.paymentTarget)
-                    return `El total pagado es menor al ${this.retentionApplies ? 'monto neto' : 'total'} de la venta`;
+                    return `El total pagado es menor al ${(this.retentionApplies || this.activeDetraction) ? 'monto neto' : 'total'} de la venta`;
             }
         }
 
@@ -806,7 +985,16 @@ export class SaleRegisterComponent implements OnChanges {
 
         const request: SaleRequest = {
             clientId: this.selectedClient!.id,
-            items: this.items,
+            items: this.items.map(i => ({
+                itemType: i.itemType,
+                productId: i.productId,
+                serviceId: i.serviceId,
+                description: i.description,
+                quantity: i.quantity,
+                unitPrice: i.unitPrice,
+                discountPercentage: i.discountPercentage,
+                detractionCodeId: i.detractionCodeId,
+            })),
             currencyCode: this.currencyCode,
             paymentType: this.paymentType,
             purchaseOrder: this.purchaseOrder.trim() || undefined,
@@ -892,6 +1080,8 @@ export class SaleRegisterComponent implements OnChanges {
         this.documentTypeCode = '03';
         this.allProducts = [];
         this.allServices = [];
+        this.allDetractionCodes = [];
+        this.detractionCodeOptions = [];
     }
 
     getViewPaymentTotal(): number {

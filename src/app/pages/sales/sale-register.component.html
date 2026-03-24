@@ -17,21 +17,26 @@
             }
 
             @if (!isViewMode) {
-            <!-- Currency slider -->
-            <div class="flex items-center gap-2 select-none">
-                <span class="text-sm font-medium" [class.text-brand-600]="currencyCode === 'PEN'" [class.dark:text-brand-400]="currencyCode === 'PEN'" [class.text-gray-400]="currencyCode !== 'PEN'">Soles</span>
-                <button type="button"
-                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                    [class.bg-brand-500]="currencyCode === 'USD'"
-                    [class.bg-gray-300]="currencyCode !== 'USD'"
-                    [class.dark:bg-gray-600]="currencyCode !== 'USD'"
-                    (click)="currencyCode = currencyCode === 'PEN' ? 'USD' : 'PEN'; onCurrencyChange()">
-                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
-                        [class.translate-x-6]="currencyCode === 'USD'"
-                        [class.translate-x-1]="currencyCode !== 'USD'">
-                    </span>
-                </button>
-                <span class="text-sm font-medium" [class.text-brand-600]="currencyCode === 'USD'" [class.dark:text-brand-400]="currencyCode === 'USD'" [class.text-gray-400]="currencyCode !== 'USD'">Dólares</span>
+            <!-- Currency slider + tipo de cambio -->
+            <div class="flex items-center gap-3 select-none flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium" [class.text-brand-600]="currencyCode === 'PEN'" [class.dark:text-brand-400]="currencyCode === 'PEN'" [class.text-gray-400]="currencyCode !== 'PEN'">Soles</span>
+                    <button type="button"
+                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
+                        [class.bg-brand-500]="currencyCode === 'USD'"
+                        [class.bg-gray-300]="currencyCode !== 'USD'"
+                        [class.dark:bg-gray-600]="currencyCode !== 'USD'"
+                        (click)="currencyCode = currencyCode === 'PEN' ? 'USD' : 'PEN'; onCurrencyChange()">
+                        <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                            [class.translate-x-6]="currencyCode === 'USD'"
+                            [class.translate-x-1]="currencyCode !== 'USD'">
+                        </span>
+                    </button>
+                    <span class="text-sm font-medium" [class.text-brand-600]="currencyCode === 'USD'" [class.dark:text-brand-400]="currencyCode === 'USD'" [class.text-gray-400]="currencyCode !== 'USD'">Dólares</span>
+                </div>
+                @if (exchangeRateSale > 0) {
+                <span class="text-sm text-gray-400 dark:text-gray-500">Tipo Cambio: {{ exchangeRateSale | number:'1.3-3' }}</span>
+                }
             </div>
             }
         </div>
@@ -119,19 +124,25 @@
                     @if (!isViewMode) {
                     <div class="flex gap-2 flex-wrap justify-end">
                         <button type="button"
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            [disabled]="!canAddProduct"
+                            [title]="!canAddProduct ? 'No puedes agregar productos junto a servicios con detracción' : ''"
                             (click)="openProductModal()">
                             <span class="text-lg leading-none">+</span> Agregar producto
                         </button>
 
                         <button type="button"
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600 transition-colors"
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            [disabled]="!canAddService"
+                            [title]="!canAddService ? 'No puedes agregar servicios junto a productos con detracción' : ''"
                             (click)="openServiceModal()">
                             <span class="text-lg leading-none">+</span> Agregar servicio
                         </button>
 
                         <button type="button"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-yellow-400 bg-yellow-50 px-3 py-1.5 text-sm font-medium text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-600 dark:text-yellow-400 transition-colors"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-yellow-400 bg-yellow-50 px-3 py-1.5 text-sm font-medium text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-600 dark:text-yellow-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            [disabled]="!canAddService"
+                            [title]="!canAddService ? 'No puedes agregar servicios junto a productos con detracción' : ''"
                             (click)="openQuickServiceModal()">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M13 3L4 14h8l-1 7 9-11h-8l1-7z" />
@@ -149,7 +160,7 @@
                 </p>
                 }
 
-                <!-- TABLA -->
+                <!-- TABLA DE ITEMS -->
                 <div class="overflow-x-auto rounded-lg">
                     <table class="min-w-full text-sm">
 
@@ -267,6 +278,58 @@
                     </table>
                 </div>
 
+                <!-- ORDEN DE COMPRA + DOCUMENTOS RELACIONADOS (debajo de la tabla) -->
+                @if (!isViewMode || selectedSale?.purchaseOrder || selectedSale?.relatedGuides?.length) {
+                <div class="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-gray-100 dark:border-gray-700">
+
+                    <!-- Orden de compra -->
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Orden de compra</p>
+                        @if (isViewMode) {
+                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ selectedSale?.purchaseOrder || '—' }}</p>
+                        } @else {
+                        <app-input-field type="text" [(value)]="purchaseOrder" placeholder="Ej: OC-2026-001" />
+                        }
+                    </div>
+
+                    <!-- Documentos relacionados -->
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Documentos relacionados</p>
+                        @if (isViewMode) {
+                        <div class="space-y-1">
+                            @if (selectedSale?.relatedGuides?.length) {
+                            @for (g of selectedSale!.relatedGuides; track $index) {
+                            <p class="text-sm text-gray-700 dark:text-gray-300">{{ g }}</p>
+                            }
+                            } @else {
+                            <p class="text-sm text-gray-400">—</p>
+                            }
+                        </div>
+                        } @else {
+                        @for (g of relatedGuides; track $index; let i = $index) {
+                        <div class="flex items-center gap-2 mb-2">
+                            <app-input-field type="text" class="w-100" [value]="relatedGuides[i]"
+                                (valueChange)="relatedGuides[i] = $event.toString()"
+                                placeholder="Ej: T001-00000001" />
+                            <button type="button" class="flex-shrink-0 text-red-500 hover:text-red-600"
+                                (click)="removeRelatedGuide(i)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        }
+                        <button type="button"
+                            class="inline-flex items-center justify-center gap-1 rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+                            (click)="addRelatedGuide()">
+                            <span class="text-sm">+</span> Agregar documento
+                        </button>
+                        }
+                    </div>
+
+                </div>
+                }
+
             </div>
 
         </div>
@@ -275,55 +338,6 @@
         <!-- DERECHA (SIDEBAR) -->
         <!-- ========================================================= -->
         <div class="space-y-6">
-
-            <!-- ================= ORDEN DE COMPRA ================= -->
-            @if (!isViewMode || selectedSale?.purchaseOrder) {
-            <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <h4 class="text-base font-semibold mb-3 text-gray-800 dark:text-white">Orden de compra</h4>
-                @if (isViewMode) {
-                <p class="text-sm text-gray-700 dark:text-gray-300">{{ selectedSale?.purchaseOrder }}</p>
-                } @else {
-                <app-input-field type="text" [(value)]="purchaseOrder" placeholder="Ej: OC-2026-001" />
-                }
-            </div>
-            }
-
-            <!-- ================= GUÍAS RELACIONADAS ================= -->
-            @if (!isViewMode || selectedSale?.relatedGuides?.length) {
-            <div
-                class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <h4 class="text-base font-semibold mb-3 text-gray-800 dark:text-white">Guías relacionadas</h4>
-
-                @if (isViewMode) {
-                <div class="space-y-1">
-                    @for (g of selectedSale!.relatedGuides; track $index) {
-                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ g }}</p>
-                    }
-                </div>
-                } @else {
-                @for (g of relatedGuides; track $index; let i = $index) {
-                <div class="flex items-center gap-2 mb-2">
-                    <app-input-field type="text" [value]="relatedGuides[i]"
-                        (valueChange)="relatedGuides[i] = $event.toString()"
-                        placeholder="Ej: T001-00000001" />
-                    <button type="button"
-                        class="flex-shrink-0 text-red-500 hover:text-red-600"
-                        (click)="removeRelatedGuide(i)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                }
-                <button type="button"
-                    class="w-full inline-flex items-center justify-center gap-1 rounded-lg bg-gray-200 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    (click)="addRelatedGuide()">
-                    <span class="text-base">+</span> Agregar guía
-                </button>
-                }
-            </div>
-            }
 
             <!-- ================= TOTALES ================= -->
             <div
@@ -356,7 +370,7 @@
             </div>
 
             <!-- ================= RETENCIÓN IGV ================= -->
-            @if (!isViewMode && clientIsRetentionAgent) {
+            @if (!isViewMode && clientIsRetentionAgent && !activeDetraction) {
             <div
                 class="rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm dark:border-blue-900 dark:bg-blue-950/30">
                 <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Retención IGV</h4>
@@ -419,6 +433,87 @@
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a recibir</p>
                             <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ selectedSale?.netAmount ?? 0 | number:'1.2-2' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- ================= DETRACCIÓN SPOT (edición) ================= -->
+            @if (!isViewMode) {
+            <div class="rounded-2xl border border-teal-200 bg-teal-50 p-6 shadow-sm dark:border-teal-900 dark:bg-teal-950/30">
+                <h4 class="text-base font-semibold mb-1 text-gray-800 dark:text-white">Detracción (SPOT)</h4>
+                <p class="text-xs text-teal-600 dark:text-teal-400 mb-4 leading-relaxed">
+                    Se calcula automáticamente según los ítems, el tipo de comprobante y el monto de la operación.
+                </p>
+
+                <div class="space-y-3 text-sm">
+                    <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Condición de la operación</p>
+                        <p class="font-semibold"
+                            [class.text-green-600]="detractionCondition === 'Sujeto a detracción'"
+                            [class.text-gray-500]="detractionCondition !== 'Sujeto a detracción'">
+                            {{ detractionCondition }}
+                        </p>
+                    </div>
+
+                    @if (activeDetraction) {
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Código detracción</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ activeDetraction.code }}</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Porcentaje</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ activeDetraction.percentage | number:'1.2-2' }} %</p>
+                        </div>
+                    </div>
+                    <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Concepto SUNAT</p>
+                        <p class="font-semibold text-gray-800 dark:text-white">{{ activeDetraction.description }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto detracción</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">S/ {{ detractionAmountPen | number:'1.2-2' }}</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a cobrar</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ detractionNetAmount | number:'1.2-2' }}</p>
+                        </div>
+                    </div>
+                    } @else {
+                    <p class="text-xs text-teal-500 dark:text-teal-400">
+                        {{ items.length === 0 ? 'Agrega ítems para evaluar la detracción.' : 'Los ítems agregados no están sujetos a detracción.' }}
+                    </p>
+                    }
+                </div>
+            </div>
+            }
+
+            @if (isViewMode && selectedSale?.hasDetraction) {
+            <div class="rounded-2xl border border-teal-200 bg-teal-50 p-6 shadow-sm dark:border-teal-900 dark:bg-teal-950/30">
+                <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Detracción (SPOT)</h4>
+                <div class="space-y-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Código detracción</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ selectedSale?.detractionCode ?? '—' }}</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Porcentaje</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ ((selectedSale?.detractionRate ?? 0) * 100) | number:'1.2-2' }} %</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto detracción</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">S/ {{ (selectedSale?.detractionAmount ?? 0) | number:'1.2-2' }}</p>
+                        </div>
+                        <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a cobrar</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">
+                                {{ selectedSale?.currencyCode === 'USD' ? '$' : 'S/' }}
+                                {{ ((selectedSale?.totalAmount ?? 0) * (1 - (selectedSale?.detractionRate ?? 0))) | number:'1.2-2' }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -507,7 +602,7 @@
                     </div>
 
                     <div class="flex justify-between font-medium dark:text-white/90">
-                        <span>Vuelto</span>
+                        <span>{{ (retentionApplies || activeDetraction) ? 'Diferencia con monto neto' : 'Vuelto' }}</span>
                         <span [class.text-red-500]="change < 0">
                             {{ currencySymbol }} {{ change | number:'1.2-2' }}
                         </span>
@@ -560,7 +655,7 @@
                         </span>
                     </div>
                     @if (!installmentsBalanced) {
-                    <p class="text-xs text-red-500">Diferencia con el {{ retentionApplies ? 'monto neto' : 'total' }}: {{ currencySymbol }} {{ installmentsDiff | number:'1.2-2' }}</p>
+                    <p class="text-xs text-red-500">Diferencia con el {{ (retentionApplies || activeDetraction) ? 'monto neto' : 'total' }}: {{ currencySymbol }} {{ installmentsDiff | number:'1.2-2' }}</p>
                     }
                 </div>
 
@@ -1200,6 +1295,13 @@
             <app-label>Precio <span class="text-red-500">*</span></app-label>
             <app-input-field type="number" [step]="0.01" min="0" placeholder="Ej: 250.00" [(value)]="quickServicePrice">
             </app-input-field>
+        </div>
+
+        <div>
+            <app-label>Código sujeto a detracción</app-label>
+            <app-select [options]="detractionCodeOptions" [loading]="loadingDetractionCodes"
+                placeholder="Sin detracción" [(value)]="quickServiceDetractionId">
+            </app-select>
         </div>
 
     </div>

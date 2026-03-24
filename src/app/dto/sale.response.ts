@@ -20,6 +20,9 @@ export interface SaleResponse {
     retentionRate?: number;
     netAmount?: number;
     hasDetraction?: boolean;
+    detractionCode?: string;
+    detractionRate?: number;
+    detractionAmount?: number;
     documentSeries?: string;
     documentSequence?: string;
     client: ClientResponse;

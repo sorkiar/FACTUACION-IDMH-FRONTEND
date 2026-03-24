@@ -83,7 +83,7 @@
                                         Total</th>
                                     <th
                                         class="w-[10%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                        Retención</th>
+                                        Impuesto Ad.</th>
                                     <th
                                         class="w-[12%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Acciones</th>
@@ -167,13 +167,20 @@
                                         {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.totalAmount | number:'1.2-2' }}
                                     </td>
 
-                                    <!-- RETENCIÓN -->
+                                    <!-- IMPUESTO AD. -->
                                     <td class="py-2 text-theme-sm">
                                         @if (sale.hasRetention) {
                                         <div>
-                                            <app-badge size="sm" color="warning">Afecto</app-badge>
+                                            <app-badge size="sm" color="warning">Retención</app-badge>
                                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                 {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.retentionAmount ?? 0 | number:'1.2-2' }}
+                                            </p>
+                                        </div>
+                                        } @else if (sale.hasDetraction) {
+                                        <div>
+                                            <app-badge size="sm" color="info">Detracción</app-badge>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                S/ {{ sale.detractionAmount ?? 0 | number:'1.2-2' }}
                                             </p>
                                         </div>
                                         } @else {

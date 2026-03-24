@@ -12,4 +12,5 @@ export interface SaleItemRequest {
     unitPrice: number;
 
     discountPercentage?: number;
+    detractionCodeId?: number;
 }
