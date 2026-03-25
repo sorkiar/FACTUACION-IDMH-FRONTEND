@@ -388,7 +388,7 @@
                 <h4 class="text-base font-semibold mb-4 text-gray-800 dark:text-white">Retención IGV</h4>
                 <p class="text-xs text-blue-600 dark:text-blue-400 mb-4 leading-relaxed">
                     La retención se evalúa al cobro. Se activa automáticamente cuando el cliente es agente de
-                    retención, el comprobante es factura y el total supera S/ 700.
+                    retención, el comprobante es factura y el total supera S/ 700 o su equivalente en dólares.
                 </p>
 
                 <div class="space-y-3 text-sm">
@@ -462,7 +462,7 @@
             <div class="rounded-2xl border border-teal-200 bg-teal-50 p-6 shadow-sm dark:border-teal-900 dark:bg-teal-950/30">
                 <h4 class="text-base font-semibold mb-1 text-gray-800 dark:text-white">Detracción (SPOT)</h4>
                 <p class="text-xs text-teal-600 dark:text-teal-400 mb-4 leading-relaxed">
-                    Se calcula automáticamente según los ítems, el tipo de comprobante y el monto de la operación.
+                    Se calcula automáticamente según los ítems, el tipo de comprobante y el monto de la operación. Aplica cuando el total supera S/ {{ detractionMinAmount | number:'1.2-2' }} o su equivalente en dólares.
                 </p>
 
                 <div class="space-y-3 text-sm">
@@ -520,7 +520,7 @@
                         </div>
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Porcentaje</p>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ ((selectedSale?.detractionRate ?? 0) * 100) | number:'1.2-2' }} %</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">{{ (selectedSale?.detractionRate ?? 0) | number:'1.2-2' }} %</p>
                         </div>
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-teal-100 dark:border-teal-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto detracción</p>
@@ -530,7 +530,7 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a cobrar</p>
                             <p class="font-semibold text-gray-800 dark:text-white">
                                 {{ selectedSale?.currencyCode === 'USD' ? '$' : 'S/' }}
-                                {{ ((selectedSale?.totalAmount ?? 0) * (1 - (selectedSale?.detractionRate ?? 0))) | number:'1.2-2' }}
+                                {{ ((selectedSale?.totalAmount ?? 0) * (1 - (selectedSale?.detractionRate ?? 0) / 100)) | number:'1.2-2' }}
                             </p>
                         </div>
                     </div>

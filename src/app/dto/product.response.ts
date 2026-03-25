@@ -10,6 +10,7 @@ export interface ProductResponse {
     detractionCode?: string;
     detractionDescription?: string;
     detractionPercentage?: number;
+    detractionMinAmount?: number;
     salePricePen?: number;
     estimatedCostPen?: number;
     salePriceUsd?: number;

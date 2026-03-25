@@ -32,6 +32,7 @@ interface SaleItemForm extends SaleItemRequest {
     _detractionCode?: string;
     _detractionDescription?: string;
     _detractionPercentage?: number;
+    _detractionMinAmount?: number;
 }
 
 @Component({
@@ -524,6 +525,7 @@ export class SaleRegisterComponent implements OnChanges {
             _detractionCode: product.detractionCode ?? undefined,
             _detractionDescription: product.detractionDescription ?? undefined,
             _detractionPercentage: product.detractionPercentage ?? undefined,
+            _detractionMinAmount: product.detractionMinAmount ?? undefined,
         });
         this.showProductModal = false;
         this.notify.success(`"${product.name}" agregado`, 'Producto agregado', 2500);
@@ -595,6 +597,7 @@ export class SaleRegisterComponent implements OnChanges {
             _detractionCode: service.detractionCode ?? undefined,
             _detractionDescription: service.detractionDescription ?? undefined,
             _detractionPercentage: service.detractionPercentage ?? undefined,
+            _detractionMinAmount: service.detractionMinAmount ?? undefined,
         });
         this.showServiceModal = false;
         this.notify.success(`"${service.name}" agregado`, 'Servicio agregado', 2500);
@@ -645,6 +648,7 @@ export class SaleRegisterComponent implements OnChanges {
             _detractionCode: selectedDetraction?.code ?? undefined,
             _detractionDescription: selectedDetraction?.description ?? undefined,
             _detractionPercentage: selectedDetraction?.percentage ?? undefined,
+            _detractionMinAmount: selectedDetraction?.minAmount ?? undefined,
         });
         this.showQuickServiceModal = false;
         this.notify.success(`"${this.quickServiceName.trim()}" agregado`, 'Servicio rápido agregado', 2500);
@@ -743,14 +747,15 @@ export class SaleRegisterComponent implements OnChanges {
     // DETRACCIÓN (getters y métodos)
     // =============================
 
-    get activeDetraction(): { id: number; code: string; description: string; percentage: number } | null {
+    get activeDetraction(): { id: number; code: string; description: string; percentage: number; minAmount: number } | null {
         const item = this.items.find(i => i._detractionId);
         if (!item) return null;
         return {
             id: item._detractionId!,
             code: item._detractionCode!,
             description: item._detractionDescription!,
-            percentage: item._detractionPercentage!
+            percentage: item._detractionPercentage!,
+            minAmount: item._detractionMinAmount ?? 700
         };
     }
 
@@ -758,15 +763,21 @@ export class SaleRegisterComponent implements OnChanges {
         return this.items.find(i => i._detractionId)?.itemType ?? null;
     }
 
+    get detractionMinAmount(): number {
+        return this.activeDetraction?.minAmount ?? 700;
+    }
+
     get detractionCondition(): string {
         if (this.items.length === 0) return 'No evaluado';
         if (!this.activeDetraction) return 'No sujeto';
-        return this.totalInPen > 700 ? 'Sujeto a detracción' : 'No aplica (min. S/ 700)';
+        return this.totalInPen > this.detractionMinAmount
+            ? 'Sujeto a detracción'
+            : `No aplica (min. S/ ${this.detractionMinAmount.toFixed(2)})`;
     }
 
-    /** La detracción se aplica efectivamente solo si hay código Y el monto supera S/ 700 */
+    /** La detracción se aplica efectivamente solo si hay código Y el monto supera el mínimo del código */
     get detractionEffective(): boolean {
-        return !!this.activeDetraction && this.totalInPen > 700;
+        return !!this.activeDetraction && this.totalInPen > this.detractionMinAmount;
     }
 
     get detractionAmount(): number {

@@ -10,6 +10,7 @@ export interface ServiceResponse {
     detractionCode?: string;
     detractionDescription?: string;
     detractionPercentage?: number;
+    detractionMinAmount?: number;
     pricePen?: number;
     priceUsd?: number;
     estimatedTime: string;
