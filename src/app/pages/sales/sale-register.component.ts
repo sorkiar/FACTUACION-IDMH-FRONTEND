@@ -760,17 +760,23 @@ export class SaleRegisterComponent implements OnChanges {
 
     get detractionCondition(): string {
         if (this.items.length === 0) return 'No evaluado';
-        return this.activeDetraction ? 'Sujeto a detracción' : 'No sujeto';
+        if (!this.activeDetraction) return 'No sujeto';
+        return this.totalInPen > 700 ? 'Sujeto a detracción' : 'No aplica (min. S/ 700)';
+    }
+
+    /** La detracción se aplica efectivamente solo si hay código Y el monto supera S/ 700 */
+    get detractionEffective(): boolean {
+        return !!this.activeDetraction && this.totalInPen > 700;
     }
 
     get detractionAmount(): number {
-        if (!this.activeDetraction) return 0;
-        return Math.round(this.total * (this.activeDetraction.percentage / 100) * 100) / 100;
+        if (!this.detractionEffective) return 0;
+        return Math.round(this.total * (this.activeDetraction!.percentage / 100) * 100) / 100;
     }
 
     // Siempre en PEN para mostrar en el bloque (convierte si la venta es en USD)
     get detractionAmountPen(): number {
-        if (!this.activeDetraction) return 0;
+        if (!this.detractionEffective) return 0;
         if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
             return Math.round(this.detractionAmount * this.exchangeRateSale * 100) / 100;
         }
@@ -852,6 +858,14 @@ export class SaleRegisterComponent implements OnChanges {
     // =============================
     readonly RETENTION_RATE = 0.03;
 
+    /** Total de la venta convertido a soles (para validar umbrales de 700 PEN) */
+    get totalInPen(): number {
+        if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
+            return Math.round(this.total * this.exchangeRateSale * 100) / 100;
+        }
+        return this.total;
+    }
+
     get clientIsRetentionAgent(): boolean {
         return this.selectedClient?.retentionAgent === true;
     }
@@ -863,22 +877,40 @@ export class SaleRegisterComponent implements OnChanges {
     get retentionApplies(): boolean {
         // Detracción tiene prioridad; ambos impuestos no pueden coexistir
         if (this.activeDetraction) return false;
-        return this.clientIsRetentionAgent && this.isFactura && this.total > 700;
+        // Umbral siempre en soles: si la venta es en USD se convierte con el TC del día
+        return this.clientIsRetentionAgent && this.isFactura && this.totalInPen > 700;
     }
 
     get retentionAmount(): number {
         return this.retentionApplies ? Math.round(this.total * this.RETENTION_RATE * 100) / 100 : 0;
     }
 
+    /** Equivalente en PEN del monto de retención (solo visual cuando la venta es USD) */
+    get retentionAmountPen(): number {
+        if (!this.retentionApplies) return 0;
+        if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
+            return Math.round(this.retentionAmount * this.exchangeRateSale * 100) / 100;
+        }
+        return this.retentionAmount;
+    }
+
     get netAmount(): number {
         return this.total - this.retentionAmount;
+    }
+
+    get netAmountPen(): number {
+        if (!this.retentionApplies) return 0;
+        if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
+            return Math.round(this.netAmount * this.exchangeRateSale * 100) / 100;
+        }
+        return this.netAmount;
     }
 
     // target amount for payments/installments
     get paymentTarget(): number {
         let target = this.total;
         if (this.retentionApplies) target -= this.retentionAmount;
-        if (this.activeDetraction) target -= this.detractionAmount;
+        if (this.detractionEffective) target -= this.detractionAmount;
         return Math.round(target * 100) / 100;
     }
 
@@ -917,14 +949,14 @@ export class SaleRegisterComponent implements OnChanges {
                 if (this.installments.some(i => !(i.amount > 0)))
                     return 'El monto de cada cuota debe ser mayor a 0';
                 if (!this.installmentsBalanced) {
-                    const target = (this.retentionApplies || this.activeDetraction) ? 'monto neto' : 'total';
+                    const target = (this.retentionApplies || this.detractionEffective) ? 'monto neto' : 'total';
                     return `La suma de cuotas (${this.currencySymbol} ${this.installmentsTotal.toFixed(2)}) debe ser igual al ${target}`;
                 }
             } else {
                 if (this.payments.length === 0)
                     return 'Debe registrar al menos un pago';
                 if (this.totalPaid < this.paymentTarget)
-                    return `El total pagado es menor al ${(this.retentionApplies || this.activeDetraction) ? 'monto neto' : 'total'} de la venta`;
+                    return `El total pagado es menor al ${(this.retentionApplies || this.detractionEffective) ? 'monto neto' : 'total'} de la venta`;
             }
         }
 

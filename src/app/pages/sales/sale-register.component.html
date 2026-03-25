@@ -87,11 +87,16 @@
                     <span>Sin cliente seleccionado</span>
                     } @else {
                     <div>
-                        <p class="font-medium text-gray-800 dark:text-white">
+                        <p class="font-medium text-gray-800 dark:text-white flex items-center gap-2">
                             {{ getClientDisplay(selectedClient) }}
+                            @if (selectedClient!.retentionAgent) {
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                Ag. Retención
+                            </span>
+                            }
                         </p>
                         <p class="text-xs text-gray-500">
-                            {{ selectedClient.documentType }}: {{ selectedClient.documentNumber }}
+                            {{ selectedClient!.documentType }}: {{ selectedClient!.documentNumber }}
                         </p>
                     </div>
                     }
@@ -216,7 +221,14 @@
                                 </td>
 
                                 <td class="py-3 px-3 font-medium text-gray-800 dark:text-white">
-                                    {{ item.description }}
+                                    <span class="flex items-center gap-2">
+                                        {{ item.description }}
+                                        @if (item._detractionCode) {
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400">
+                                            Det. {{ item._detractionCode }}
+                                        </span>
+                                        }
+                                    </span>
                                 </td>
 
                                 <td class="py-3 px-3 text-center text-gray-600 dark:text-gray-400">
@@ -400,11 +412,17 @@
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto de retención</p>
                             <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ retentionAmount | number:'1.2-2' }}</p>
+                            @if (currencyCode === 'USD' && retentionApplies) {
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">≈ S/ {{ retentionAmountPen | number:'1.2-2' }}</p>
+                            }
                         </div>
                     </div>
                     <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a recibir</p>
                         <p class="text-base font-bold text-gray-800 dark:text-white">{{ currencySymbol }} {{ netAmount | number:'1.2-2' }}</p>
+                        @if (currencyCode === 'USD' && retentionApplies) {
+                        <p class="text-sm text-gray-400 dark:text-gray-500 mt-0.5">≈ S/ {{ netAmountPen | number:'1.2-2' }}</p>
+                        }
                     </div>
                 </div>
 
@@ -440,7 +458,7 @@
             }
 
             <!-- ================= DETRACCIÓN SPOT (edición) ================= -->
-            @if (!isViewMode) {
+            @if (!isViewMode && activeDetraction) {
             <div class="rounded-2xl border border-teal-200 bg-teal-50 p-6 shadow-sm dark:border-teal-900 dark:bg-teal-950/30">
                 <h4 class="text-base font-semibold mb-1 text-gray-800 dark:text-white">Detracción (SPOT)</h4>
                 <p class="text-xs text-teal-600 dark:text-teal-400 mb-4 leading-relaxed">
@@ -602,7 +620,7 @@
                     </div>
 
                     <div class="flex justify-between font-medium dark:text-white/90">
-                        <span>{{ (retentionApplies || activeDetraction) ? 'Diferencia con monto neto' : 'Vuelto' }}</span>
+                        <span>{{ (retentionApplies || detractionEffective) ? 'Diferencia con monto neto' : 'Vuelto' }}</span>
                         <span [class.text-red-500]="change < 0">
                             {{ currencySymbol }} {{ change | number:'1.2-2' }}
                         </span>
@@ -655,7 +673,7 @@
                         </span>
                     </div>
                     @if (!installmentsBalanced) {
-                    <p class="text-xs text-red-500">Diferencia con el {{ (retentionApplies || activeDetraction) ? 'monto neto' : 'total' }}: {{ currencySymbol }} {{ installmentsDiff | number:'1.2-2' }}</p>
+                    <p class="text-xs text-red-500">Diferencia con el {{ (retentionApplies || detractionEffective) ? 'monto neto' : 'total' }}: {{ currencySymbol }} {{ installmentsDiff | number:'1.2-2' }}</p>
                     }
                 </div>
 
@@ -990,8 +1008,13 @@
                             </h4>
                         </div>
 
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                             {{ client.documentType }}: {{ client.documentNumber }}
+                            @if (client.retentionAgent) {
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                Ag. Retención
+                            </span>
+                            }
                         </p>
 
                         <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
@@ -1106,7 +1129,14 @@
                     <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
                         {{ product.sku }} — {{ product.name }}
                     </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ product.categoryName }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-2">
+                        {{ product.categoryName }}
+                        @if (product.detractionCode) {
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400">
+                            Det. {{ product.detractionCode }}
+                        </span>
+                        }
+                    </p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     {{ currencySymbol }} {{ (currencyCode === 'USD' ? (product.salePriceUsd ?? 0) : (product.salePricePen ?? 0)) | number:'1.2-2' }}
@@ -1210,7 +1240,14 @@
                     <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
                         {{ service.sku }} — {{ service.name }}
                     </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ service.serviceCategoryName }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-2">
+                        {{ service.serviceCategoryName }}
+                        @if (service.detractionCode) {
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400">
+                            Det. {{ service.detractionCode }}
+                        </span>
+                        }
+                    </p>
                 </div>
                 <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     {{ currencySymbol }} {{ (currencyCode === 'USD' ? (service.priceUsd ?? 0) : (service.pricePen ?? 0)) | number:'1.2-2' }}
