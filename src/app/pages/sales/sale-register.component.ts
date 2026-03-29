@@ -803,7 +803,7 @@ export class SaleRegisterComponent implements OnChanges {
         if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
             return this.roundDetraction(this.detractionAmount * this.exchangeRateSale);
         }
-        return this.detractionAmount;
+        return this.roundDetraction(this.detractionAmount);
     }
 
     get detractionNetAmount(): number {
