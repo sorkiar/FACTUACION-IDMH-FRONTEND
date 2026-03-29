@@ -725,22 +725,22 @@ export class SaleRegisterComponent implements OnChanges {
     // TOTALES
     // =========================================================
 
-    // TOTAL REAL = suma de los items
-    get total(): number {
+    // Subtotal = suma de items SIN IGV (precios base)
+    get subtotal(): number {
         return this.items.reduce((sum, i) => {
             const discount = (i.discountPercentage || 0) / 100;
             return sum + (i.quantity * i.unitPrice * (1 - discount));
         }, 0);
     }
 
-    // Subtotal SIN IGV
-    get subtotal(): number {
-        return this.total / 1.18;
+    // IGV = 18% sobre el subtotal
+    get igv(): number {
+        return this.subtotal * 0.18;
     }
 
-    // IGV calculado desde el total
-    get igv(): number {
-        return this.total - this.subtotal;
+    // Total = subtotal + IGV
+    get total(): number {
+        return this.subtotal + this.igv;
     }
 
     // =============================
@@ -780,6 +780,18 @@ export class SaleRegisterComponent implements OnChanges {
         return !!this.activeDetraction && this.totalInPen > this.detractionMinAmount;
     }
 
+    /**
+     * Redondeo especial para montos de detracción convertidos a PEN:
+     * - decimal > 0.5 → siguiente entero
+     * - decimal <= 0.5 → entero base + 0.5
+     */
+    private roundDetraction(value: number): number {
+        const floor = Math.floor(value);
+        const decimal = value - floor;
+        if (decimal > 0.5) return floor + 1;
+        return floor + 0.5;
+    }
+
     get detractionAmount(): number {
         if (!this.detractionEffective) return 0;
         return Math.round(this.total * (this.activeDetraction!.percentage / 100) * 100) / 100;
@@ -789,7 +801,7 @@ export class SaleRegisterComponent implements OnChanges {
     get detractionAmountPen(): number {
         if (!this.detractionEffective) return 0;
         if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
-            return Math.round(this.detractionAmount * this.exchangeRateSale * 100) / 100;
+            return this.roundDetraction(this.detractionAmount * this.exchangeRateSale);
         }
         return this.detractionAmount;
     }
