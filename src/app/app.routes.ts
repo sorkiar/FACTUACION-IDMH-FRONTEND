@@ -15,6 +15,7 @@ import { CreditDebitNoteComponent } from './pages/credit-debit-notes/credit-debi
 import { RemissionGuideComponent } from './pages/remission-guides/remission-guide.component';
 import { SunatDocumentsComponent } from './pages/sunat-documents/sunat-documents.component';
 import { SalesReportComponent } from './pages/reports/sales-report/sales-report.component';
+import { ConfigurationComponent } from './pages/configuration/configuration.component';
 
 export const routes: Routes = [
   {
@@ -73,6 +74,11 @@ export const routes: Routes = [
         path: 'reports/sales',
         component: SalesReportComponent,
         title: 'Reporte de Ventas | IDMH Perú'
+      },
+      {
+        path: 'configuration',
+        component: ConfigurationComponent,
+        title: 'Configuración | IDMH Perú'
       },
     ]
   },

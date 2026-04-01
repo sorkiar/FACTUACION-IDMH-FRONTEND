@@ -1,0 +1,137 @@
+<div class="p-6 space-y-6">
+
+    <!-- HEADER -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Configuración del Sistema</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Parámetros generales de empresa, tributación y configuración SUNAT.</p>
+        </div>
+        <div class="flex gap-3">
+            <button
+                type="button"
+                (click)="reset()"
+                [disabled]="!hasDirty || saving"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-white/5 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
+                Cancelar
+            </button>
+            <button
+                type="button"
+                (click)="saveAll()"
+                [disabled]="!hasDirty || saving"
+                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+        </div>
+    </div>
+
+    @if (loading) {
+    <div class="text-center py-12 text-gray-500 dark:text-gray-400">Cargando configuración...</div>
+    } @else {
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- FORMULARIO -->
+        <div class="xl:col-span-2 space-y-6">
+            @for (group of groups; track group.label) {
+            <div class="bg-white dark:bg-white/[0.03] rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+                <h2 class="text-base font-semibold text-gray-800 dark:text-white mb-1">{{ group.label }}</h2>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mb-5 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    Completa los campos y guarda los cambios.
+                </p>
+
+                <div class="grid grid-cols-2 gap-5">
+                    @for (c of group.configs; track c.id) {
+                    <div [class]="(c.colSpan === 1 || !c.colSpan) ? 'col-span-2' : 'col-span-1'">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                            {{ c.description || c.configKey }}
+                        </label>
+
+                        @if (isTextarea(c)) {
+                        <textarea
+                            [(ngModel)]="c.editValue"
+                            rows="3"
+                            class="w-full px-3 py-2 text-sm text-gray-800 dark:text-white bg-white dark:bg-white/[0.05] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">
+                        </textarea>
+                        } @else if (isModeSelect(c)) {
+                        <select
+                            [(ngModel)]="c.editValue"
+                            class="w-full px-3 py-2 text-sm text-gray-800 dark:text-white bg-white dark:bg-white/[0.05] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ONLINE">ONLINE (inmediato)</option>
+                            <option value="OFFLINE">OFFLINE (programado)</option>
+                        </select>
+                        } @else {
+                        <div class="flex items-center gap-2">
+                            @if (c.configDatatype === 'DECIMAL' || c.configDatatype === 'INTEGER') {
+                            <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/[0.03] border border-gray-300 dark:border-gray-700 rounded-lg">
+                                {{ (c.configKey.includes('rate') || c.configKey.includes('retencion_rate')) ? '' : 'S/' }}
+                            </span>
+                            }
+                            <input
+                                [type]="inputType(c.configDatatype)"
+                                [(ngModel)]="c.editValue"
+                                [step]="c.configDatatype === 'DECIMAL' ? '0.01' : '1'"
+                                class="flex-1 px-3 py-2 text-sm text-gray-800 dark:text-white bg-white dark:bg-white/[0.05] border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            @if (c.configKey.includes('rate') || c.configKey.includes('retencion_rate')) {
+                            <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/[0.03] border border-gray-300 dark:border-gray-700 rounded-lg">%</span>
+                            }
+                            @if (c.configKey.includes('intervalo')) {
+                            <span class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/[0.03] border border-gray-300 dark:border-gray-700 rounded-lg">min</span>
+                            }
+                        </div>
+                        }
+
+                        @if (c.editValue !== (c.configValue ?? '')) {
+                        <p class="mt-1 text-xs text-amber-500">Valor modificado — recuerda guardar.</p>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+            <!-- BOTONES INFERIORES -->
+            <div class="flex justify-end gap-3 pt-2">
+                <button
+                    type="button"
+                    (click)="reset()"
+                    [disabled]="!hasDirty || saving"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-white/5 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
+                    Restablecer
+                </button>
+                <button
+                    type="button"
+                    (click)="saveAll()"
+                    [disabled]="!hasDirty || saving"
+                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                    {{ saving ? 'Guardando...' : 'Guardar configuración' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL LATERAL -->
+        <div class="space-y-4">
+            <div class="bg-white dark:bg-white/[0.03] rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-white mb-3">Estado y ayuda</h3>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Resumen rápido de la configuración actual del sistema.</p>
+
+                <div class="space-y-3">
+                    <div class="p-3 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-gray-800">
+                        <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Datos del emisor</p>
+                        <p class="text-xs text-gray-400">Se usan en la cabecera de facturas, boletas, notas de crédito, notas de débito y guías de remisión.</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-gray-800">
+                        <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Retención</p>
+                        <p class="text-xs text-gray-400">La tasa debe mantenerse parametrizada para permitir cambios normativos sin tocar código fuente.</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-gray-800">
+                        <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">SUNAT</p>
+                        <p class="text-xs text-gray-400">Los modos ONLINE y OFFLINE determinan si los comprobantes se envían al momento de registrar o en lotes programados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    }
+
+</div>

@@ -59,10 +59,22 @@
         </app-dropdown-item-two>
       </li>
     </ul> -->
+    <!-- Configuración -->
+    <a
+      [routerLink]="'/configuration'"
+      (click)="closeDropdown()"
+      class="flex w-full items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+    >
+      <svg class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2a1 1 0 0 1 .993.883L13 3v.518l.2.077a8.002 8.002 0 0 1 1.03.476l.175.1.366-.366a1 1 0 0 1 1.32-.083l.094.083 1.414 1.414a1 1 0 0 1 .083 1.32l-.083.094-.366.366c.175.321.328.654.452.998l.1.264.052.006L18 8a1 1 0 0 1 .993.883L19 9v2a1 1 0 0 1-.883.993L18 12h-.518l-.077.2a8.002 8.002 0 0 1-.476 1.03l-.1.175.366.366a1 1 0 0 1 .083 1.32l-.083.094-1.414 1.414a1 1 0 0 1-1.32.083l-.094-.083-.366-.366a7.995 7.995 0 0 1-.998.452l-.264.1-.006.052L13 17a1 1 0 0 1-.883.993L12 18h-2a1 1 0 0 1-.993-.883L9 17v-.518l-.2-.077a8.002 8.002 0 0 1-1.03-.476l-.175-.1-.366.366a1 1 0 0 1-1.32.083l-.094-.083-1.414-1.414a1 1 0 0 1-.083-1.32l.083-.094.366-.366a8.004 8.004 0 0 1-.452-.998l-.1-.264-.052-.006L4 12a1 1 0 0 1-.993-.883L3 11V9a1 1 0 0 1 .883-.993L4 8h.518l.077-.2a7.995 7.995 0 0 1 .476-1.03l.1-.175-.366-.366a1 1 0 0 1-.083-1.32l.083-.094 1.414-1.414a1 1 0 0 1 1.32-.083l.094.083.366.366c.321-.175.654-.328.998-.452l.264-.1.006-.052L9 3a1 1 0 0 1 .883-.993L10 2h2zm-1 1h-1v.86l-.572.145a6.003 6.003 0 0 0-1.498.677l-.494.318-.607-.607-.708.707.608.609-.317.493a6.003 6.003 0 0 0-.677 1.498L5.86 8H5v1h.86l.145.572a6.003 6.003 0 0 0 .677 1.498l.318.494-.607.607.707.708.609-.608.493.317a6.003 6.003 0 0 0 1.498.677L10 13.14V14h1v-.86l.572-.145a6.003 6.003 0 0 0 1.498-.677l.494-.318.607.607.708-.707-.608-.609.317-.493a6.003 6.003 0 0 0 .677-1.498L15.14 9H16V8h-.86l-.145-.572a6.003 6.003 0 0 0-.677-1.498l-.318-.494.607-.607-.707-.708-.609.608-.493-.317a6.003 6.003 0 0 0-1.498-.677L11 3.86V3h-1zm.5 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+      </svg>
+      Configuración
+    </a>
+    <!-- Cerrar sesión -->
     <button
       type="button"
       (click)="logout()"
-      class="flex w-full items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+      class="flex w-full items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
     >
       <svg
         class="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
