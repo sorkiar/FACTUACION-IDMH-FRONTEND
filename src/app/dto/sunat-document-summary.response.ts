@@ -29,4 +29,6 @@ export interface SunatDocumentSummaryResponse {
     transferReason?: string;
     transferDate?: string;
     transportMode?: string;
+    /** ID de la entidad origen (guía de remisión, venta, nota) */
+    referenceId?: number;
 }

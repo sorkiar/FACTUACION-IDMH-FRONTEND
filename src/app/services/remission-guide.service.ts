@@ -32,4 +32,8 @@ export class RemissionGuideService {
     create(request: RemissionGuideRequest): Observable<ApiResponse<RemissionGuideResponse>> {
         return this.http.post<ApiResponse<RemissionGuideResponse>>(this.baseUrl, request);
     }
+
+    checkTicket(id: number): Observable<ApiResponse<any>> {
+        return this.http.post<ApiResponse<any>>(`${this.baseUrl}/${id}/check-ticket`, {});
+    }
 }

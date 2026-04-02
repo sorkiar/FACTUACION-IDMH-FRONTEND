@@ -7,6 +7,7 @@ import { BadgeComponent } from '../../shared/components/ui/badge/badge.component
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { SunatDocumentService } from '../../services/sunat-document.service';
+import { RemissionGuideService } from '../../services/remission-guide.service';
 import { SunatDocumentSummaryResponse } from '../../dto/sunat-document-summary.response';
 
 @Component({
@@ -31,6 +32,7 @@ export class SunatDocumentsComponent implements OnInit {
     sortDir: 'asc' | 'desc' = 'asc';
 
     resendingId: number | null = null;
+    checkingTicketId: number | null = null;
     downloadingKey: string | null = null;
 
     tooltipVisible = false;
@@ -55,6 +57,7 @@ export class SunatDocumentsComponent implements OnInit {
 
     constructor(
         private service: SunatDocumentService,
+        private remissionGuideService: RemissionGuideService,
         private notify: NotificationService
     ) {}
 
@@ -178,8 +181,35 @@ export class SunatDocumentsComponent implements OnInit {
         return this.downloadingKey === `${doc.id}-${type}`;
     }
 
+    isGuia(doc: SunatDocumentSummaryResponse): boolean {
+        return doc.category === 'GUIA' || doc.documentTypeName === 'GUIA_REMISION_REMITENTE';
+    }
+
     canResend(doc: SunatDocumentSummaryResponse): boolean {
-        return doc.status !== 'ACEPTADO';
+        if (doc.status === 'ACEPTADO') return false;
+        // Guías en proceso muestran "Consultar", no "Reenviar"
+        if (this.isGuia(doc) && doc.status === 'EN PROCESO') return false;
+        return true;
+    }
+
+    canCheckTicket(doc: SunatDocumentSummaryResponse): boolean {
+        return this.isGuia(doc) && doc.status === 'EN PROCESO';
+    }
+
+    checkTicket(doc: SunatDocumentSummaryResponse): void {
+        const id = doc.referenceId ?? doc.id;
+        this.checkingTicketId = doc.id;
+        this.remissionGuideService.checkTicket(id).subscribe({
+            next: res => {
+                this.notify.success(res.message ?? 'Consulta realizada correctamente', 'Consulta SUNAT');
+                this.checkingTicketId = null;
+                this.load();
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'Error al consultar el ticket SUNAT', 'Error');
+                this.checkingTicketId = null;
+            }
+        });
     }
 
     getDocTypeLabel(doc: SunatDocumentSummaryResponse): string {
