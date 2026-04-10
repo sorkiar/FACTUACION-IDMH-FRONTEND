@@ -12,6 +12,7 @@ import { LabelComponent } from "../../shared/components/form/label/label.compone
 import { Option, SelectComponent } from "../../shared/components/form/select/select.component";
 import { InputFieldComponent } from "../../shared/components/form/input/input-field.component";
 import { DocumentTypeService } from '../../services/document-type.service';
+import { DocumentLookupService } from '../../services/document-lookup.service';
 import { ClientRequest } from '../../dto/client.request';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
@@ -67,9 +68,12 @@ export class ClientsComponent implements OnInit, OnDestroy {
   isEditMode = false;
   selectedClient?: ClientResponse;
 
+  isLookingUp = false;
+
   constructor(
     private clientService: ClientService,
     private documentTypeService: DocumentTypeService,
+    private documentLookupService: DocumentLookupService,
     private notify: NotificationService,
   ) { }
 
@@ -447,6 +451,62 @@ export class ClientsComponent implements OnInit, OnDestroy {
   }
 
   disabledDocumentType = false;
+
+  get lookupDocumentType(): 'DNI' | 'RUC' | null {
+    const label = (this.documentTypeOptions.find(o => o.value === this.documentTypeId)?.label ?? '').toUpperCase();
+    if (label === 'DNI') return 'DNI';
+    if (label === 'RUC') return 'RUC';
+    return null;
+  }
+
+  get canLookup(): boolean {
+    const type = this.lookupDocumentType;
+    if (type === 'DNI') return /^\d{8}$/.test(this.documentNumber);
+    if (type === 'RUC') return /^\d{11}$/.test(this.documentNumber);
+    return false;
+  }
+
+  lookupDocument(): void {
+    if (!this.canLookup || this.isLookingUp) return;
+    const type = this.lookupDocumentType;
+    this.isLookingUp = true;
+
+    if (type === 'DNI') {
+      const s = this.documentLookupService.queryDni(this.documentNumber).subscribe({
+        next: res => {
+          const d = res.data;
+          if (d) {
+            this.firstName = d.firstName ?? '';
+            this.lastName = [d.lastNamePaternal, d.lastNameMaternal].filter(Boolean).join(' ');
+            if (d.address) this.address = d.address;
+          }
+          this.isLookingUp = false;
+        },
+        error: err => {
+          this.notify.error(err?.error?.message ?? 'No se pudo consultar el DNI');
+          this.isLookingUp = false;
+        },
+      });
+      this.sub.add(s);
+    } else if (type === 'RUC') {
+      const s = this.documentLookupService.queryRuc(this.documentNumber).subscribe({
+        next: res => {
+          const d = res.data;
+          if (d) {
+            this.businessName = d.name ?? '';
+            if (d.address) this.address = d.address;
+            if (d.isRetentionAgent != null) this.retentionAgent = d.isRetentionAgent;
+          }
+          this.isLookingUp = false;
+        },
+        error: err => {
+          this.notify.error(err?.error?.message ?? 'No se pudo consultar el RUC');
+          this.isLookingUp = false;
+        },
+      });
+      this.sub.add(s);
+    }
+  }
 
   onPersonTypeChange(value: string): void {
     this.personTypeId = value;

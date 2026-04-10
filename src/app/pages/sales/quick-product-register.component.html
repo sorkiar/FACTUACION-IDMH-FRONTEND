@@ -1,0 +1,124 @@
+<app-modal [isOpen]="isOpen" [className]="'max-w-4xl p-6 sm:p-8'" (close)="close()">
+
+    <div class="mb-5">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Registrar producto</h3>
+        <p class="text-sm text-gray-500">
+            Registro comercial y técnico del producto.
+        </p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="space-y-6">
+
+        <!-- Datos básicos -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-12">
+            <div class="sm:col-span-4">
+                <app-label>SKU *</app-label>
+                <app-input-field [(value)]="sku" placeholder="Ej: PRD000000X" [disabled]="true" />
+            </div>
+
+            <div class="sm:col-span-8">
+                <app-label>Nombre *</app-label>
+                <app-input-field [(value)]="name" />
+                @if (submitted && !name) {
+                <p class="mt-1 text-sm text-red-500">El nombre del producto es obligatorio</p>
+                }
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Categoría *</app-label>
+                <app-select placeholder="Seleccione una categoría" [options]="categoryOptions" [(value)]="categoryId"
+                    [loading]="loadingCategories">
+                </app-select>
+                @if (submitted && !categoryId) {
+                <p class="mt-1 text-sm text-red-500">Debe seleccionar una categoría</p>
+                }
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Unidad de medida *</app-label>
+                <app-select placeholder="Seleccione una unidad de medida" [options]="unitMeasureOptions"
+                    [(value)]="unitMeasureId" [loading]="loadingUnitMeasures">
+                </app-select>
+                @if (submitted && !unitMeasureId) {
+                <p class="mt-1 text-sm text-red-500">Debe seleccionar una unidad de medida</p>
+                }
+            </div>
+
+            <div class="sm:col-span-6">
+                <app-label>Código de bien sujeto a detracción</app-label>
+                <app-select placeholder="Sin detracción" [options]="detractionOptions" [(value)]="detractionCodeId"
+                    [loading]="loadingDetractions">
+                </app-select>
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Costo estimado (S/)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="estimatedCostPen" />
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Precio de venta (S/)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="salePricePen" />
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Costo estimado ($)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="estimatedCostUsd" />
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Precio de venta ($)</app-label>
+                <app-input-field type="number" [step]="0.01" [(value)]="salePriceUsd" />
+                @if (submitted && salePricePen <= 0 && salePriceUsd <= 0) {
+                <p class="mt-1 text-sm text-red-500">Debe ingresar al menos un precio mayor a 0</p>
+                }
+            </div>
+
+            <!-- Imagen -->
+            <div class="sm:col-span-6">
+                <app-label>Imagen principal</app-label>
+                <app-file-input accept="image/*" (change)="onMainImageChange($event)"
+                    className="custom-class"></app-file-input>
+            </div>
+
+            <!-- Ficha -->
+            <div class="sm:col-span-6">
+                <app-label>Ficha técnica (PDF)</app-label>
+                <app-file-input accept="application/pdf" (change)="onTechnicalSheetChange($event)"
+                    className="custom-class"></app-file-input>
+            </div>
+
+            <!-- Descripciones -->
+            <div class="sm:col-span-12">
+                <app-label>Descripción corta *</app-label>
+                <app-text-area [value]="shortDescription" (valueChange)="shortDescription = $event"
+                    placeholder="Ingrese la descripción corta" [rows]="2"></app-text-area>
+                @if (submitted && !shortDescription) {
+                <p class="mt-1 text-sm text-red-500">La descripción corta es obligatoria</p>
+                }
+            </div>
+
+            <div class="sm:col-span-12">
+                <app-label>Especificación técnica *</app-label>
+                <app-text-area [value]="technicalSpec" (valueChange)="technicalSpec = $event" [rows]="4"
+                    placeholder="Ingrese la especificación técnica"></app-text-area>
+                @if (submitted && !technicalSpec) {
+                <p class="mt-1 text-sm text-red-500">La especificación técnica es obligatoria</p>
+                }
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex items-center justify-end gap-3 pt-2">
+            <button type="button" (click)="close()"
+                class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                Cancelar
+            </button>
+            <button type="submit" [disabled]="isSubmitting"
+                class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50">
+                {{ isSubmitting ? 'Guardando…' : 'Registrar y agregar' }}
+            </button>
+        </div>
+
+    </form>
+</app-modal>

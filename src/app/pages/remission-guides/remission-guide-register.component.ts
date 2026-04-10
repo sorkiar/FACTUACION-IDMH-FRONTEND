@@ -17,6 +17,7 @@ import { UbigeoService } from '../../services/ubigeo.service';
 import { RecipientService } from '../../services/recipient.service';
 
 import { ProductResponse } from '../../dto/product.response';
+import { QuickProductRegisterComponent } from '../sales/quick-product-register.component';
 import { RecipientResponse } from '../../dto/recipient.response';
 import { RemissionGuideResponse } from '../../dto/remission-guide.response';
 import { RemissionGuideItemRequest } from '../../dto/remission-guide-item.request';
@@ -39,6 +40,7 @@ import { UbigeoResponse } from '../../dto/ubigeo.response';
         TextAreaComponent,
         DatePickerComponent,
         UbigeoPickerComponent,
+        QuickProductRegisterComponent,
     ],
     templateUrl: './remission-guide-register.component.html',
 })
@@ -170,6 +172,14 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     }
     get productPageEnd(): number {
         return Math.min(this.productCurrentPage * this.productPageSize, this.productResults.length);
+    }
+
+    showQuickProductRegister = false;
+
+    onProductCreated(product: ProductResponse): void {
+        this.showQuickProductRegister = false;
+        this.allProducts = [product, ...this.allProducts];
+        this.addProduct(product);
     }
 
     // ============================

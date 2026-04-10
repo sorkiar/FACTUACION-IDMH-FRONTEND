@@ -26,6 +26,9 @@ import { DetractionCodeService } from '../../services/detraction-code.service';
 import { DetractionCodeResponse } from '../../dto/detraction-code.response';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { Option } from '../../shared/components/form/select/select.component';
+import { QuickClientRegisterComponent } from './quick-client-register.component';
+import { QuickProductRegisterComponent } from './quick-product-register.component';
+import { QuickServiceRegisterComponent } from './quick-service-register.component';
 
 interface SaleItemForm extends SaleItemRequest {
     _detractionId?: number;
@@ -48,6 +51,9 @@ interface SaleItemForm extends SaleItemRequest {
         InputFieldComponent,
         SelectComponent,
         DatePickerComponent,
+        QuickClientRegisterComponent,
+        QuickProductRegisterComponent,
+        QuickServiceRegisterComponent,
     ],
     templateUrl: './sale-register.component.html',
 })
@@ -135,6 +141,35 @@ export class SaleRegisterComponent implements OnChanges {
     // =============================
     showQuickServiceModal = false;
     quickServiceName = '';
+    quickServiceQuantity: number = 1;
+
+    // =============================
+    // REGISTRO RÁPIDO (maestros)
+    // =============================
+    showQuickClientRegister = false;
+    showQuickProductRegister = false;
+    showQuickServiceRegister = false;
+
+    onClientCreated(client: ClientResponse): void {
+        this.showQuickClientRegister = false;
+        this.showClientModal = false;
+        this.allClients = [client, ...this.allClients];
+        this.selectClient(client);
+    }
+
+    onProductCreated(product: ProductResponse): void {
+        this.showQuickProductRegister = false;
+        this.showProductModal = false;
+        this.allProducts = [product, ...this.allProducts];
+        this.addProduct(product);
+    }
+
+    onServiceCreated(service: ServiceResponse): void {
+        this.showQuickServiceRegister = false;
+        this.showServiceModal = false;
+        this.allServices = [service, ...this.allServices];
+        this.addService(service);
+    }
     quickServicePrice: number = 0;
     quickServiceDiscount: number = 0;
     quickServiceDetractionId = '';
@@ -613,6 +648,7 @@ export class SaleRegisterComponent implements OnChanges {
     openQuickServiceModal() {
         this.showQuickServiceModal = true;
         this.quickServiceName = '';
+        this.quickServiceQuantity = 1;
         this.quickServicePrice = 0;
         this.quickServiceDiscount = 0;
         this.quickServiceDetractionId = '';
@@ -640,7 +676,7 @@ export class SaleRegisterComponent implements OnChanges {
         this.items.push({
             itemType: 'PERSONALIZADO',
             description: this.quickServiceName.trim(),
-            quantity: 1,
+            quantity: this.quickServiceQuantity,
             unitPrice: this.quickServicePrice,
             discountPercentage: this.quickServiceDiscount || undefined,
             detractionCodeId: selectedDetraction?.id ?? undefined,

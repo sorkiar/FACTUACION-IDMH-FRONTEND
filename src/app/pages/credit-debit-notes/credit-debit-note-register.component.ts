@@ -167,6 +167,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
     // =============================
     showQuickServiceModal = false;
     quickServiceName = '';
+    quickServiceQuantity: number = 1;
     quickServicePrice: number = 0;
 
     // =============================
@@ -562,6 +563,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
     openQuickServiceModal(): void {
         this.showQuickServiceModal = true;
         this.quickServiceName = '';
+        this.quickServiceQuantity = 1;
         this.quickServicePrice = 0;
     }
 
@@ -577,7 +579,7 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
         this.items.push({
             itemType: 'PERSONALIZADO',
             description: this.quickServiceName.trim(),
-            quantity: 1,
+            quantity: this.quickServiceQuantity,
             unitPrice: this.quickServicePrice
         });
         this.showQuickServiceModal = false;

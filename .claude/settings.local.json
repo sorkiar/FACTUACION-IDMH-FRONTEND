@@ -6,7 +6,8 @@
       "Bash(npm install exceljs file-saver buffer --save)",
       "Bash(npm install @types/file-saver --save-dev)",
       "Bash(npx tsc --noEmit)",
-      "Bash(find 'd:/2. Trabajo Externo/IDMH Peru - Frontend/src' -name navbar* -o -name header* -o -name topbar*)"
+      "Bash(find 'd:/2. Trabajo Externo/IDMH Peru - Frontend/src' -name navbar* -o -name header* -o -name topbar*)",
+      "Bash(npx ng:*)"
     ]
   }
 }

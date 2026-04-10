@@ -264,7 +264,7 @@
 
                                 <!-- Cantidad -->
                                 <td class="py-3 px-3 text-center">
-                                    @if (!isViewMode && !isItemsLocked && (isAutoLoadType || item.itemType === 'PRODUCTO')) {
+                                    @if (!isViewMode && !isItemsLocked) {
                                     <input type="number" min="1" step="1" [(ngModel)]="item.quantity"
                                         class="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                                     } @else {
@@ -744,10 +744,17 @@
             <app-input-field type="text" [(value)]="quickServiceName" placeholder="Ej: Instalación eléctrica">
             </app-input-field>
         </div>
-        <div>
-            <app-label>Precio unitario *</app-label>
-            <app-input-field type="number" [(value)]="quickServicePrice" placeholder="0.00">
-            </app-input-field>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <app-label>Cantidad *</app-label>
+                <app-input-field type="number" [step]="1" min="1" placeholder="1" [(value)]="quickServiceQuantity">
+                </app-input-field>
+            </div>
+            <div>
+                <app-label>Precio unitario *</app-label>
+                <app-input-field type="number" [(value)]="quickServicePrice" placeholder="0.00">
+                </app-input-field>
+            </div>
         </div>
     </div>
 

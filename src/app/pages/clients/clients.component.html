@@ -278,13 +278,29 @@
         </div>
         <!-- DOCUMENT NUMBER -->
         <div class="sm:col-span-4">
-          <app-label>Número de documento
-            <span class="text-error-500">*</span></app-label>
-          <app-input-field [(value)]="documentNumber" name="documentNumber" placeholder="Ingrese número de documento" />
+          <app-label>Número de documento <span class="text-error-500">*</span></app-label>
+          <div class="flex">
+            <input type="text" [(ngModel)]="documentNumber" name="documentNumber"
+              placeholder="Ingrese número de documento"
+              class="h-11 w-full min-w-0 rounded-l-lg border border-r-0 border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+            <button type="button" [disabled]="!canLookup || isLookingUp" (click)="lookupDocument()"
+              title="Consultar documento"
+              class="flex h-11 items-center justify-center rounded-r-lg border border-gray-300 bg-gray-50 px-3 text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
+              @if (isLookingUp) {
+              <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              } @else {
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" />
+              </svg>
+              }
+            </button>
+          </div>
           @if (submittedClient && !documentNumber) {
-          <p class="mt-1 text-sm text-error-500">
-            El número de documento es obligatorio
-          </p>
+          <p class="mt-1 text-sm text-error-500">El número de documento es obligatorio</p>
           }
         </div>
       </div>

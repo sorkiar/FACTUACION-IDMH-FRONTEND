@@ -1,0 +1,124 @@
+<app-modal [isOpen]="isOpen" [className]="'max-w-4xl p-6 sm:p-8'" (close)="close()">
+
+    <div class="mb-5">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Registrar servicio</h3>
+        <p class="text-sm text-gray-500">
+            Registro comercial y técnico del servicio.
+        </p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="space-y-6">
+
+        <!-- Datos básicos -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-12">
+            <div class="sm:col-span-4">
+                <app-label>SKU *</app-label>
+                <app-input-field [(value)]="sku" placeholder="Ej: SRV000000X" [disabled]="true" />
+            </div>
+
+            <div class="sm:col-span-8">
+                <app-label>Nombre *</app-label>
+                <app-input-field [(value)]="name" />
+                @if (submitted && !name) {
+                <p class="mt-1 text-sm text-red-500">El nombre del servicio es obligatorio</p>
+                }
+            </div>
+
+            <div class="sm:col-span-6">
+                <app-label>Categoría de servicio *</app-label>
+                <app-select placeholder="Seleccione categoría" [options]="serviceCategoryOptions"
+                    [(value)]="serviceCategoryId" [loading]="loadingServiceCategories">
+                </app-select>
+                @if (submitted && !serviceCategoryId) {
+                <p class="mt-1 text-sm text-red-500">Debe seleccionar una categoría</p>
+                }
+            </div>
+
+            <div class="sm:col-span-6">
+                <app-label>Unidad de cobro *</app-label>
+                <app-select placeholder="Seleccione unidad" [options]="chargeUnitOptions" [(value)]="chargeUnitId"
+                    [loading]="loadingChargeUnits">
+                </app-select>
+                @if (submitted && !chargeUnitId) {
+                <p class="mt-1 text-sm text-red-500">Debe seleccionar una unidad de cobro</p>
+                }
+            </div>
+
+            <div class="sm:col-span-6">
+                <app-label>Código de servicio sujeto a detracción</app-label>
+                <app-select placeholder="Sin detracción" [options]="detractionOptions" [(value)]="detractionCodeId"
+                    [loading]="loadingDetractions">
+                </app-select>
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Precio (S/.)</app-label>
+                <app-input-field type="number" [(value)]="pricePen" />
+            </div>
+
+            <div class="sm:col-span-3">
+                <app-label>Precio ($)</app-label>
+                <app-input-field type="number" [(value)]="priceUsd" />
+                @if (submitted && !(pricePen > 0) && !(priceUsd > 0)) {
+                <p class="mt-1 text-sm text-red-500">Debe ingresar al menos un precio mayor a 0</p>
+                }
+            </div>
+
+            <!-- Condiciones del servicio -->
+            <div class="sm:col-span-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <app-switch label="Requiere materiales" [defaultChecked]="requiresMaterials"
+                    (valueChange)="requiresMaterials = $event">
+                </app-switch>
+                <app-switch label="Requiere especificación" [defaultChecked]="requiresSpecification"
+                    (valueChange)="requiresSpecification = $event">
+                </app-switch>
+            </div>
+
+            <!-- Descripciones -->
+            <div class="sm:col-span-12">
+                <app-label>Descripción corta *</app-label>
+                <app-text-area [value]="shortDescription" (valueChange)="shortDescription = $event"
+                    placeholder="Ingrese la descripción corta" [rows]="2"></app-text-area>
+                @if (submitted && !shortDescription) {
+                <p class="mt-1 text-sm text-red-500">La descripción corta es obligatoria</p>
+                }
+            </div>
+
+            <div class="sm:col-span-12">
+                <app-label>Descripción detallada *</app-label>
+                <app-text-area [(value)]="detailedDescription" placeholder="Ingrese la descripción detallada"
+                    [rows]="4"></app-text-area>
+                @if (submitted && !detailedDescription) {
+                <p class="mt-1 text-sm text-red-500">La descripción detallada es obligatoria</p>
+                }
+            </div>
+
+            <!-- Imagen -->
+            <div class="sm:col-span-6">
+                <app-label>Imagen principal</app-label>
+                <app-file-input accept="image/*" (change)="onMainImageChange($event)"
+                    className="custom-class"></app-file-input>
+            </div>
+
+            <!-- Ficha -->
+            <div class="sm:col-span-6">
+                <app-label>Ficha técnica (PDF)</app-label>
+                <app-file-input accept="application/pdf" (change)="onTechnicalSheetChange($event)"
+                    className="custom-class"></app-file-input>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex items-center justify-end gap-3 pt-2">
+            <button type="button" (click)="close()"
+                class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                Cancelar
+            </button>
+            <button type="submit" [disabled]="isSubmitting"
+                class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50">
+                {{ isSubmitting ? 'Guardando…' : 'Registrar y agregar' }}
+            </button>
+        </div>
+
+    </form>
+</app-modal>

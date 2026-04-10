@@ -236,7 +236,7 @@
                                 </td>
 
                                 <td class="py-3 px-3 text-center">
-                                    @if (item.itemType === 'PRODUCTO' && !isViewMode) {
+                                    @if (!isViewMode) {
                                     <input type="number" min="1" step="1" [(ngModel)]="item.quantity"
                                         class="w-16 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
                                     } @else {
@@ -1065,7 +1065,15 @@
     }
 
     <!-- FOOTER -->
-    <div class="flex justify-end gap-3 mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
+    <div class="flex justify-between gap-3 mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
+        <button type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
+            (click)="showClientModal = false; showQuickClientRegister = true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo cliente
+        </button>
         <button type="button" (click)="showClientModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
@@ -1174,7 +1182,15 @@
     }
 
     <!-- FOOTER -->
-    <div class="flex justify-end mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div class="flex justify-between mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
+            (click)="showProductModal = false; showQuickProductRegister = true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo producto
+        </button>
         <button type="button" (click)="showProductModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
@@ -1299,7 +1315,15 @@
     </p>
 
     <!-- FOOTER -->
-    <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div class="flex justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
+            (click)="showServiceModal = false; showQuickServiceRegister = true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo servicio
+        </button>
         <button type="button" (click)="showServiceModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
@@ -1328,10 +1352,17 @@
             </app-input-field>
         </div>
 
-        <div>
-            <app-label>Precio <span class="text-red-500">*</span></app-label>
-            <app-input-field type="number" [step]="0.01" min="0" placeholder="Ej: 250.00" [(value)]="quickServicePrice">
-            </app-input-field>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <app-label>Cantidad <span class="text-red-500">*</span></app-label>
+                <app-input-field type="number" [step]="1" min="1" placeholder="1" [(value)]="quickServiceQuantity">
+                </app-input-field>
+            </div>
+            <div>
+                <app-label>Precio <span class="text-red-500">*</span></app-label>
+                <app-input-field type="number" [step]="0.01" min="0" placeholder="Ej: 250.00" [(value)]="quickServicePrice">
+                </app-input-field>
+            </div>
         </div>
 
         <div>
@@ -1356,3 +1387,30 @@
     </div>
 
 </app-modal>
+
+<!-- ================================================================ -->
+<!-- REGISTRO RÁPIDO: CLIENTE -->
+<!-- ================================================================ -->
+<app-quick-client-register
+    [isOpen]="showQuickClientRegister"
+    (onClose)="showQuickClientRegister = false"
+    (onCreated)="onClientCreated($event)">
+</app-quick-client-register>
+
+<!-- ================================================================ -->
+<!-- REGISTRO RÁPIDO: PRODUCTO -->
+<!-- ================================================================ -->
+<app-quick-product-register
+    [isOpen]="showQuickProductRegister"
+    (onClose)="showQuickProductRegister = false"
+    (onCreated)="onProductCreated($event)">
+</app-quick-product-register>
+
+<!-- ================================================================ -->
+<!-- REGISTRO RÁPIDO: SERVICIO -->
+<!-- ================================================================ -->
+<app-quick-service-register
+    [isOpen]="showQuickServiceRegister"
+    (onClose)="showQuickServiceRegister = false"
+    (onCreated)="onServiceCreated($event)">
+</app-quick-service-register>

@@ -604,7 +604,15 @@
     </div>
     }
 
-    <div class="flex justify-end mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div class="flex justify-between mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
+            (click)="showProductModal = false; showQuickProductRegister = true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo producto
+        </button>
         <button type="button" (click)="showProductModal = false"
             class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             Cancelar
@@ -729,3 +737,12 @@
     }
 
 </app-modal>
+
+<!-- ================================================================ -->
+<!-- REGISTRO RÁPIDO: PRODUCTO -->
+<!-- ================================================================ -->
+<app-quick-product-register
+    [isOpen]="showQuickProductRegister"
+    (onClose)="showQuickProductRegister = false"
+    (onCreated)="onProductCreated($event)">
+</app-quick-product-register>

@@ -16,6 +16,8 @@ import { RemissionGuideComponent } from './pages/remission-guides/remission-guid
 import { SunatDocumentsComponent } from './pages/sunat-documents/sunat-documents.component';
 import { SalesReportComponent } from './pages/reports/sales-report/sales-report.component';
 import { ConfigurationComponent } from './pages/configuration/configuration.component';
+import { CarrierComponent } from './pages/carriers/carrier.component';
+import { DriverComponent } from './pages/drivers/driver.component';
 
 export const routes: Routes = [
   {
@@ -79,6 +81,16 @@ export const routes: Routes = [
         path: 'configuration',
         component: ConfigurationComponent,
         title: 'Configuración | IDMH Perú'
+      },
+      {
+        path: 'carriers',
+        component: CarrierComponent,
+        title: 'Transportistas | IDMH Perú'
+      },
+      {
+        path: 'drivers',
+        component: DriverComponent,
+        title: 'Conductores | IDMH Perú'
       },
     ]
   },
