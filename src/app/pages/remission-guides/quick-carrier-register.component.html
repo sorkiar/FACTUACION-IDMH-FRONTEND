@@ -1,0 +1,68 @@
+<app-modal [isOpen]="isOpen" [className]="'max-w-lg p-6 sm:p-8'" (close)="close()">
+
+    <div class="mb-5">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Registrar transportista</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Completa los datos del transportista para registrarlo.</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+        <div class="space-y-4">
+
+            <div>
+                <app-label>Tipo de documento</app-label>
+                <app-input-field value="RUC" [disabled]="true" />
+            </div>
+
+            <div>
+                <app-label>RUC <span class="text-error-500">*</span></app-label>
+                <div class="flex">
+                    <input type="text" [(ngModel)]="docNumber" name="docNumber" placeholder="Ej: 20123456789"
+                        class="h-11 w-full min-w-0 rounded-l-lg border border-r-0 border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+                    <button type="button" [disabled]="!canLookup || isLookingUp" (click)="lookupDocument()"
+                        title="Consultar RUC"
+                        class="flex h-11 items-center justify-center rounded-r-lg border border-gray-300 bg-gray-50 px-3 text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
+                        @if (isLookingUp) {
+                        <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        } @else {
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" />
+                        </svg>
+                        }
+                    </button>
+                </div>
+                @if (submitted && !docNumber.trim()) {
+                <p class="mt-1 text-sm text-error-500">El RUC es obligatorio</p>
+                } @else if (submitted && !/^\d{11}$/.test(docNumber.trim())) {
+                <p class="mt-1 text-sm text-error-500">El RUC debe tener exactamente 11 dígitos</p>
+                } @else if (docNumber.trim().length > 0 && !/^\d{11}$/.test(docNumber.trim())) {
+                <p class="mt-1 text-xs text-orange-500">Debe tener exactamente 11 dígitos</p>
+                }
+            </div>
+
+            <div>
+                <app-label>Razón social <span class="text-error-500">*</span></app-label>
+                <app-input-field [(value)]="businessName" name="businessName" placeholder="Ej: Transportes SAC" />
+                @if (submitted && !businessName.trim()) {
+                <p class="mt-1 text-sm text-error-500">La razón social es obligatoria</p>
+                }
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button type="button" (click)="close()"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                    Cancelar
+                </button>
+                <button type="submit" [disabled]="isSubmitting"
+                    class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50">
+                    {{ isSubmitting ? 'Registrando...' : 'Registrar y seleccionar' }}
+                </button>
+            </div>
+
+        </div>
+    </form>
+
+</app-modal>

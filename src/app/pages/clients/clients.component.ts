@@ -17,6 +17,11 @@ import { ClientRequest } from '../../dto/client.request';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
+import { ClientAddressResponse } from '../../dto/client-address.response';
+import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+import { UbigeoPickerComponent } from '../../shared/components/form/ubigeo-picker/ubigeo-picker.component';
+import { UbigeoService } from '../../services/ubigeo.service';
+import { UbigeoResponse } from '../../dto/ubigeo.response';
 
 @Component({
   selector: 'app-clients',
@@ -32,7 +37,9 @@ import { CheckboxComponent } from '../../shared/components/form/input/checkbox.c
     LabelComponent,
     InputFieldComponent,
     SelectComponent,
-    CheckboxComponent
+    CheckboxComponent,
+    DatePickerComponent,
+    UbigeoPickerComponent,
   ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.css',
@@ -55,13 +62,10 @@ export class ClientsComponent implements OnInit, OnDestroy {
   // Filters
   filters: ClientFilter = {};
 
-  // Search input (del input "Search..." del HTML)
   searchTerm = '';
 
-  // Data (desde API)
   clients: ClientResponse[] = [];
 
-  // Subscription container
   private sub = new Subscription();
 
   showForm = false;
@@ -70,24 +74,35 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
   isLookingUp = false;
 
+  // Ubigeos for address picker
+  allUbigeos: UbigeoResponse[] = [];
+  loadingUbigeos = false;
+
   constructor(
     private clientService: ClientService,
     private documentTypeService: DocumentTypeService,
     private documentLookupService: DocumentLookupService,
+    private ubigeoService: UbigeoService,
     private notify: NotificationService,
   ) { }
 
   ngOnInit(): void {
     this.loadClients();
+    this.loadUbigeos();
+  }
+
+  private loadUbigeos(): void {
+    this.loadingUbigeos = true;
+    this.ubigeoService.listActive().subscribe({
+      next: res => { this.allUbigeos = res.data ?? []; this.loadingUbigeos = false; },
+      error: () => { this.loadingUbigeos = false; },
+    });
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
 
-  // -----------------------------
-  // Data loading
-  // -----------------------------
   loadClients(): void {
     this.loading = true;
     this.loadingTable = true;
@@ -95,7 +110,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
     const s = this.clientService.getAll(this.filters).subscribe({
       next: (res) => {
-        // Asumiendo ApiResponse { message, data }
         this.clients = res?.data ?? [];
         this.currentPage = 1;
         this.loading = false;
@@ -112,9 +126,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.sub.add(s);
   }
 
-  // -----------------------------
-  // Search (sin cambiar tu HTML, filtra en frontend)
-  // -----------------------------
   setSearchTerm(value: string): void {
     this.searchTerm = (value ?? '').trim().toLowerCase();
     this.currentPage = 1;
@@ -122,10 +133,8 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
   private matchesSearch(c: ClientResponse): boolean {
     if (!this.searchTerm) return true;
-
     const fullName = `${c.firstName ?? ''} ${c.lastName ?? ''}`.trim();
     const doc = `${c.documentType ?? ''} ${c.documentNumber ?? ''}`.trim();
-
     return (
       fullName.toLowerCase().includes(this.searchTerm) ||
       (c.businessName ?? '').toLowerCase().includes(this.searchTerm) ||
@@ -135,9 +144,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
     );
   }
 
-  // -----------------------------
-  // Pagination computed
-  // -----------------------------
   get filteredClients(): ClientResponse[] {
     let list = (this.clients ?? []).filter((c) => this.matchesSearch(c));
     if (this.sortColumn === 'nombre') {
@@ -160,9 +166,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
   }
 
   goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
+    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
   toggleSort(column: string): void {
@@ -179,9 +183,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
   }
 
-  // -----------------------------
-  // Badge helpers (para tu HTML actual)
-  // -----------------------------
   getBadgeColor(status: number): 'success' | 'warning' | 'error' {
     if (status === 1) return 'success';
     if (status === 0) return 'error';
@@ -194,15 +195,12 @@ export class ClientsComponent implements OnInit, OnDestroy {
     return 'Error';
   }
 
-  // -----------------------------
-  // Actions (para dropdown)
-  // -----------------------------
   onCreateClient(): void {
     this.isEditMode = false;
     this.selectedClient = undefined;
     this.resetClientForm();
     this.disabledDocumentType = this.isLegalPersonSelected;
-    this.loadDocumentTypes(Number(this.personTypeId)); // por defecto Natural
+    this.loadDocumentTypes(Number(this.personTypeId));
     this.showForm = true;
   }
 
@@ -213,6 +211,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.patchClientToForm(client);
     this.disabledDocumentType = this.isLegalPersonSelected;
     this.loadDocumentTypes(Number(this.personTypeId), this.documentTypeId);
+    this.addresses = client.addresses ? [...client.addresses] : [];
     this.showForm = true;
   }
 
@@ -248,13 +247,11 @@ export class ClientsComponent implements OnInit, OnDestroy {
       this.toggleTarget.personType === 'Jurídica'
         ? (this.toggleTarget.businessName ?? 'este cliente')
         : `${this.toggleTarget.firstName ?? ''} ${this.toggleTarget.lastName ?? ''}`.trim() || 'este cliente';
-
     return `¿Deseas ${action} a ${name}?`;
   }
 
   confirmToggleStatus(): void {
     if (!this.toggleTarget) return;
-
     this.isToggleStatus = true;
     const client = this.toggleTarget;
     const newStatus = client.status === 1 ? 0 : 1;
@@ -277,32 +274,32 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
   onSubmitClient(): void {
     this.submittedClient = true;
-
     if (!this.isClientFormValid()) return;
 
     this.isSubmittingClient = true;
-
     const normalizedBirthDate = this.birthDate?.trim() ? this.birthDate : null;
 
     const payload: ClientRequest = {
       personTypeId: Number(this.personTypeId),
       documentTypeId: Number(this.documentTypeId),
       documentNumber: this.documentNumber?.trim(),
-
       firstName: this.isNaturalPerson() ? this.firstName?.trim() : '',
       lastName: this.isNaturalPerson() ? this.lastName?.trim() : '',
       birthDate: normalizedBirthDate as any,
       businessName: this.isLegalPerson() ? this.businessName?.trim() : '',
       contactPersonName: this.isLegalPerson() ? this.contactPersonName?.trim() : '',
-
       phone1: this.phone1?.trim(),
       phone2: this.phone2?.trim() || '',
-
       email1: this.email1?.trim(),
       email2: this.email2?.trim() || '',
-
-      address: this.address?.trim() || '',
       retentionAgent: this.retentionAgent,
+      addresses: !this.isEditMode && this.createAddresses.length > 0
+        ? this.createAddresses.map(a => ({
+            address: a.address,
+            ubigeo: a.ubigeo || undefined,
+            description: a.description || undefined,
+          }))
+        : undefined,
     };
 
     const request$ =
@@ -331,14 +328,13 @@ export class ClientsComponent implements OnInit, OnDestroy {
   submittedClient = false;
   isSubmittingClient = false;
 
-  // ====== selects ======
   documentTypeOptions: Option[] = [];
   personTypeOptions: Option[] = [
     { value: '1', label: 'Natural' },
     { value: '2', label: 'Jurídica' },
   ];
 
-  // ====== form model (ngModel style) ======
+  // Form model
   personTypeId = '1';
   documentTypeId = '';
   documentNumber = '';
@@ -351,7 +347,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
   phone2 = '';
   email1 = '';
   email2 = '';
-  address = '';
   retentionAgent = false;
 
   loadingDocumentTypes = false;
@@ -367,13 +362,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
         }));
 
         const exists = selectedId && this.documentTypeOptions.some(o => o.value === String(selectedId));
-
-        if (exists) {
-          this.documentTypeId = String(selectedId);
-        } else {
-          this.documentTypeId = this.documentTypeOptions[0]?.value ?? '';
-        }
-
+        this.documentTypeId = exists ? String(selectedId) : (this.documentTypeOptions[0]?.value ?? '');
         this.loadingDocumentTypes = false;
       },
       error: () => {
@@ -385,17 +374,12 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.sub.add(s);
   }
 
-  isNaturalPerson(): boolean {
-    return String(this.personTypeId) === '1';
-  }
-  isLegalPerson(): boolean {
-    return String(this.personTypeId) === '2';
-  }
+  isNaturalPerson(): boolean { return String(this.personTypeId) === '1'; }
+  isLegalPerson(): boolean { return String(this.personTypeId) === '2'; }
 
   private resetClientForm(): void {
     this.submittedClient = false;
     this.isSubmittingClient = false;
-
     this.personTypeId = '1';
     this.documentTypeId = '';
     this.documentNumber = '';
@@ -408,8 +392,9 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.phone2 = '';
     this.email1 = '';
     this.email2 = '';
-    this.address = '';
     this.retentionAgent = false;
+    this.addresses = [];
+    this.resetAddressForm();
   }
 
   private patchClientToForm(c: ClientResponse): void {
@@ -425,31 +410,18 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.phone2 = c.phone2 ?? '';
     this.email1 = c.email1 ?? '';
     this.email2 = c.email2 ?? '';
-    this.address = c.address ?? '';
     this.retentionAgent = c.retentionAgent ?? false;
   }
 
-  // Validación mínima para crear/editar
   private isClientFormValid(): boolean {
     if (!this.personTypeId || !this.documentTypeId || !this.documentNumber) return false;
-
-    if (this.isNaturalPerson()) {
-      if (!this.firstName || !this.lastName) return false;
-    }
-
-    if (this.isLegalPerson()) {
-      if (!this.businessName) return false;
-    }
-
+    if (this.isNaturalPerson() && (!this.firstName || !this.lastName)) return false;
+    if (this.isLegalPerson() && !this.businessName) return false;
     if (!this.phone1 || !this.email1) return false;
-
     return true;
   }
 
-  get isLegalPersonSelected(): boolean {
-    return String(this.personTypeId) === '2';
-  }
-
+  get isLegalPersonSelected(): boolean { return String(this.personTypeId) === '2'; }
   disabledDocumentType = false;
 
   get lookupDocumentType(): 'DNI' | 'RUC' | null {
@@ -478,7 +450,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
           if (d) {
             this.firstName = d.firstName ?? '';
             this.lastName = [d.lastNamePaternal, d.lastNameMaternal].filter(Boolean).join(' ');
-            if (d.address) this.address = d.address;
           }
           this.isLookingUp = false;
         },
@@ -494,7 +465,6 @@ export class ClientsComponent implements OnInit, OnDestroy {
           const d = res.data;
           if (d) {
             this.businessName = d.name ?? '';
-            if (d.address) this.address = d.address;
             if (d.isRetentionAgent != null) this.retentionAgent = d.isRetentionAgent;
           }
           this.isLookingUp = false;
@@ -510,14 +480,155 @@ export class ClientsComponent implements OnInit, OnDestroy {
 
   onPersonTypeChange(value: string): void {
     this.personTypeId = value;
-
     this.disabledDocumentType = this.isLegalPersonSelected;
-    this.documentTypeId = ''; // se recalcula cuando llegue la lista
-
-    if (!this.isLegalPersonSelected) {
-      this.retentionAgent = false;
-    }
-
+    this.documentTypeId = '';
+    if (!this.isLegalPersonSelected) this.retentionAgent = false;
     this.loadDocumentTypes(Number(this.personTypeId));
+  }
+
+  // ─── Address management ──────────────────────────────────────────────────
+
+  // CREATE mode: local array submitted with the main request
+  createAddresses: { address: string; ubigeo: string; description: string }[] = [];
+  newCreateAddrAddress = '';
+  newCreateAddrUbigeo = '';
+  newCreateAddrDescription = '';
+
+  addCreateAddress(): void {
+    const addr = this.newCreateAddrAddress.trim();
+    if (!addr) return;
+    this.createAddresses.push({
+      address: addr,
+      ubigeo: this.newCreateAddrUbigeo.trim(),
+      description: this.newCreateAddrDescription.trim(),
+    });
+    this.newCreateAddrAddress = '';
+    this.newCreateAddrUbigeo = '';
+    this.newCreateAddrDescription = '';
+  }
+
+  removeCreateAddress(idx: number): void {
+    this.createAddresses.splice(idx, 1);
+  }
+
+  // EDIT mode: sub-resource endpoints
+  addresses: ClientAddressResponse[] = [];
+
+  // Add new address (edit)
+  newAddrAddress = '';
+  newAddrUbigeo = '';
+  newAddrDescription = '';
+  isAddingAddr = false;
+
+  // Inline edit
+  editingAddressId: number | null = null;
+  editingAddrAddress = '';
+  editingAddrUbigeo = '';
+  editingAddrDescription = '';
+  isSavingAddr = false;
+
+  // Delete confirm
+  showConfirmDeleteAddr = false;
+  deleteAddrTarget?: ClientAddressResponse;
+  isDeletingAddr = false;
+
+  private resetAddressForm(): void {
+    this.createAddresses = [];
+    this.newCreateAddrAddress = '';
+    this.newCreateAddrUbigeo = '';
+    this.newCreateAddrDescription = '';
+    this.newAddrAddress = '';
+    this.newAddrUbigeo = '';
+    this.newAddrDescription = '';
+    this.editingAddressId = null;
+    this.editingAddrAddress = '';
+    this.editingAddrUbigeo = '';
+    this.editingAddrDescription = '';
+  }
+
+  addAddress(): void {
+    if (!this.newAddrAddress.trim() || !this.selectedClient?.id) return;
+    this.isAddingAddr = true;
+
+    const s = this.clientService.addAddress(this.selectedClient.id, {
+      address: this.newAddrAddress.trim(),
+      ubigeo: this.newAddrUbigeo.trim() || undefined,
+      description: this.newAddrDescription.trim() || undefined,
+    }).subscribe({
+      next: res => {
+        this.addresses.push(res.data!);
+        this.newAddrAddress = '';
+        this.newAddrUbigeo = '';
+        this.newAddrDescription = '';
+        this.isAddingAddr = false;
+      },
+      error: err => {
+        this.notify.error(err?.error?.message ?? 'No se pudo agregar la dirección');
+        this.isAddingAddr = false;
+      },
+    });
+    this.sub.add(s);
+  }
+
+  startEditAddress(a: ClientAddressResponse): void {
+    this.editingAddressId = a.id;
+    this.editingAddrAddress = a.address;
+    this.editingAddrUbigeo = a.ubigeo ?? '';
+    this.editingAddrDescription = a.description ?? '';
+  }
+
+  cancelEditAddress(): void {
+    this.editingAddressId = null;
+  }
+
+  saveAddress(a: ClientAddressResponse): void {
+    if (!this.editingAddrAddress.trim() || !this.selectedClient?.id) return;
+    this.isSavingAddr = true;
+
+    const s = this.clientService.updateAddress(this.selectedClient.id, a.id, {
+      address: this.editingAddrAddress.trim(),
+      ubigeo: this.editingAddrUbigeo.trim() || undefined,
+      description: this.editingAddrDescription.trim() || undefined,
+    }).subscribe({
+      next: res => {
+        const idx = this.addresses.findIndex(x => x.id === a.id);
+        if (idx !== -1) this.addresses[idx] = res.data!;
+        this.editingAddressId = null;
+        this.isSavingAddr = false;
+      },
+      error: err => {
+        this.notify.error(err?.error?.message ?? 'No se pudo actualizar la dirección');
+        this.isSavingAddr = false;
+      },
+    });
+    this.sub.add(s);
+  }
+
+  openDeleteAddress(a: ClientAddressResponse): void {
+    this.deleteAddrTarget = a;
+    this.showConfirmDeleteAddr = true;
+  }
+
+  closeDeleteAddress(): void {
+    this.showConfirmDeleteAddr = false;
+    this.deleteAddrTarget = undefined;
+  }
+
+  confirmDeleteAddress(): void {
+    if (!this.deleteAddrTarget || !this.selectedClient?.id) return;
+    this.isDeletingAddr = true;
+
+    const s = this.clientService.deleteAddress(this.selectedClient.id, this.deleteAddrTarget.id).subscribe({
+      next: () => {
+        this.addresses = this.addresses.filter(x => x.id !== this.deleteAddrTarget!.id);
+        this.closeDeleteAddress();
+        this.isDeletingAddr = false;
+      },
+      error: err => {
+        this.notify.error(err?.error?.message ?? 'No se pudo eliminar la dirección');
+        this.isDeletingAddr = false;
+      },
+    });
+    this.sub.add(s);
   }
 }

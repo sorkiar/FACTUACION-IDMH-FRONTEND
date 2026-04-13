@@ -10,8 +10,6 @@
                 {{ isViewMode ? 'Información de la guía registrada.' : 'Completa los datos de traslado, transporte, destinatario y los ítems.' }}
             </p>
         </div>
-
-        <!-- Estado SUNAT en vista -->
         @if (isViewMode && selectedGuide?.status) {
         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mt-1 mr-10 md:mr-12"
             [class.bg-green-100]="selectedGuide!.status === 'ACEPTADO'"
@@ -29,9 +27,9 @@
 
     <div class="space-y-6">
 
-        <!-- ================================================================ -->
-        <!-- DOCUMENTO EMITIDO (solo en modo vista) -->
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
+        <!-- DOCUMENTO EMITIDO (solo vista) -->
+        <!-- ============================================================ -->
         @if (isViewMode && selectedGuide?.series) {
         <div
             class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
@@ -45,8 +43,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Fecha emisión</p>
-                    <p class="text-gray-700 dark:text-gray-300">
-                        {{ selectedGuide!.issueDate | date:'dd/MM/yyyy HH:mm' }}
+                    <p class="text-gray-700 dark:text-gray-300">{{ selectedGuide!.issueDate | date:'dd/MM/yyyy HH:mm' }}
                     </p>
                 </div>
                 @if (selectedGuide!.sunatMessage) {
@@ -71,32 +68,25 @@
         </div>
         }
 
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
         <!-- SECCIÓN 1: DATOS DEL TRASLADO -->
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
         <div
             class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
             <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Datos del traslado</h4>
-
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-                <!-- Fecha de traslado -->
                 <div>
                     <app-label>Fecha de traslado *</app-label>
                     @if (isViewMode) {
                     <app-input-field type="text" [value]="transferDate" [disabled]="true"></app-input-field>
                     } @else {
-                    <app-date-picker
-                        id="transfer-date"
-                        placeholder="Seleccionar fecha de traslado"
-                        [minDate]="todayStr"
-                        [defaultDate]="transferDate || undefined"
-                        (dateChange)="onTransferDateChange($event)">
+                    <app-date-picker id="transfer-date" placeholder="Seleccionar fecha de traslado" [minDate]="todayStr"
+                        [defaultDate]="transferDate || undefined" (dateChange)="onTransferDateChange($event)">
                     </app-date-picker>
                     }
                 </div>
 
-                <!-- Motivo de traslado -->
                 <div>
                     <app-label>Motivo de traslado *</app-label>
                     @if (isViewMode) {
@@ -104,12 +94,10 @@
                         [disabled]="true"></app-input-field>
                     } @else {
                     <app-select placeholder="Seleccionar motivo" [options]="transferReasonOptions"
-                        [(value)]="transferReason">
-                    </app-select>
+                        [(value)]="transferReason"></app-select>
                     }
                 </div>
 
-                <!-- Descripción del motivo (solo si OTROS) -->
                 @if (transferReason === 'OTROS') {
                 <div class="sm:col-span-2">
                     <app-label>Descripción del motivo *</app-label>
@@ -117,13 +105,12 @@
                     <app-input-field type="text" [value]="transferReasonDescription"
                         [disabled]="true"></app-input-field>
                     } @else {
-                    <app-input-field type="text" placeholder="Detalle el motivo" [(value)]="transferReasonDescription">
-                    </app-input-field>
+                    <app-input-field type="text" placeholder="Detalle el motivo"
+                        [(value)]="transferReasonDescription"></app-input-field>
                     }
                 </div>
                 }
 
-                <!-- Tipo de transporte -->
                 <div>
                     <app-label>Tipo de transporte *</app-label>
                     @if (isViewMode) {
@@ -131,12 +118,10 @@
                         [disabled]="true"></app-input-field>
                     } @else {
                     <app-select placeholder="Seleccionar tipo" [options]="transportModeOptions"
-                        [(value)]="transportMode" (valueChange)="onTransportModeChange()">
-                    </app-select>
+                        [(value)]="transportMode" (valueChange)="onTransportModeChange()"></app-select>
                     }
                 </div>
 
-                <!-- Peso bruto -->
                 <div>
                     <app-label>Peso bruto (KGM) *</app-label>
                     @if (isViewMode) {
@@ -148,19 +133,16 @@
                     }
                 </div>
 
-                <!-- N° bultos -->
                 <div>
                     <app-label>Número de bultos</app-label>
                     @if (isViewMode) {
-                    <app-input-field type="text" [value]="packageCount.toString()"
-                        [disabled]="true"></app-input-field>
+                    <app-input-field type="text" [value]="packageCount.toString()" [disabled]="true"></app-input-field>
                     } @else {
                     <app-input-field type="number" [step]="1" min="0" placeholder="1"
                         [(value)]="packageCount"></app-input-field>
                     }
                 </div>
 
-                <!-- Checkbox traslado en vehículo menor -->
                 <div class="sm:col-span-2 flex items-center gap-2 pt-1">
                     <input type="checkbox" id="minorVehicle" [(ngModel)]="minorVehicleTransfer" [disabled]="isViewMode"
                         class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
@@ -169,179 +151,58 @@
                     </label>
                 </div>
 
-                <!-- Observaciones -->
                 <div class="sm:col-span-2">
                     <app-label>Observaciones</app-label>
                     @if (isViewMode) {
                     <app-input-field type="text" [value]="observations || '-'" [disabled]="true"></app-input-field>
                     } @else {
-                    <app-text-area [(value)]="observations" [rows]="2" placeholder="Observaciones adicionales...">
-                    </app-text-area>
+                    <app-text-area [(value)]="observations" [rows]="2"
+                        placeholder="Observaciones adicionales..."></app-text-area>
                     }
                 </div>
 
             </div>
         </div>
 
-        <!-- ================================================================ -->
-        <!-- SECCIÓN 2: TRANSPORTE (condicional) -->
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
+        <!-- SECCIÓN 2: DESTINATARIO -->
+        <!-- ============================================================ -->
         <div
             class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-
-            @if (transportMode === 'TRANSPORTE_PUBLICO') {
-
-            <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-1">Datos del transportista</h4>
-            <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Transportista autorizado (persona jurídica).</p>
-
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                    <app-label>Tipo de documento *</app-label>
-                    <app-input-field type="text" value="RUC" [disabled]="true"></app-input-field>
-                </div>
-                <div>
-                    <app-label>Número de documento *</app-label>
-                    @if (isViewMode) {
-                    <app-input-field type="text" [value]="carrierDocNumber" [disabled]="true"></app-input-field>
-                    } @else {
-                    <app-input-field type="text" placeholder="Ej: 20123456789"
-                        [(value)]="carrierDocNumber"></app-input-field>
-                    @if (carrierDocNumber.trim().length > 0 && carrierDocNumber.trim().length !== 11) {
-                        <p class="mt-1 text-xs text-red-500">El RUC debe tener exactamente 11 dígitos</p>
-                    }
-                    }
-                </div>
-                <div class="sm:col-span-2">
-                    <app-label>Razón social del transportista *</app-label>
-                    @if (isViewMode) {
-                    <app-input-field type="text" [value]="carrierName" [disabled]="true"></app-input-field>
-                    } @else {
-                    <app-input-field type="text" placeholder="Ej: Transportes SAC"
-                        [(value)]="carrierName"></app-input-field>
-                    }
-                </div>
-            </div>
-
-            } @else {
-
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Conductores</h4>
-                    <p class="text-xs text-gray-400 dark:text-gray-500">Datos del conductor / vehículo.</p>
-                </div>
-                @if (!isViewMode) {
-                <button type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
-                    (click)="addDriver()">
-                    <span class="text-lg leading-none">+</span> Agregar conductor
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Destinatario</h4>
+                @if (!isViewMode && !selectedClient) {
+                <button type="button" (click)="showQuickClientRegister = true"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 dark:hover:bg-brand-900/20 transition-colors">
+                    <span class="text-base leading-none">+</span> Registrar nuevo
                 </button>
                 }
             </div>
 
-            @if (drivers.length === 0) {
-            <p class="text-sm text-gray-400 dark:text-gray-500 italic">
-                {{ isViewMode ? 'Sin conductores registrados.' : 'Agrega al menos un conductor.' }}
-            </p>
-            }
-
-            @for (driver of drivers; track $index; let i = $index) {
-            <div class="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-
-                <div class="flex items-center justify-between mb-3">
-                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Conductor {{ i + 1 }}
-                    </p>
-                    @if (!isViewMode) {
-                    <button type="button" class="text-red-500 hover:text-red-700 text-xs font-medium transition-colors"
-                        (click)="removeDriver(i)">
-                        Eliminar
-                    </button>
-                    }
-                </div>
-
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                        <app-label>Tipo documento</app-label>
-                        @if (isViewMode) {
-                        <app-input-field type="text" [value]="driver.docType" [disabled]="true"></app-input-field>
-                        } @else {
-                        <app-select [options]="docTypeOptions" placeholder="Seleccione el tipo de documento:"
-                            [(value)]="driver.docType"></app-select>
-                        }
-                    </div>
-                    <div>
-                        <app-label>N° documento *</app-label>
-                        <app-input-field type="text" placeholder="Ej: 12345678" [(value)]="driver.docNumber"
-                            [disabled]="isViewMode"></app-input-field>
-                    </div>
-                    <div>
-                        <app-label>Nombres *</app-label>
-                        <app-input-field type="text" placeholder="Nombres" [(value)]="driver.firstName"
-                            [disabled]="isViewMode"></app-input-field>
-                    </div>
-                    <div>
-                        <app-label>Apellidos *</app-label>
-                        <app-input-field type="text" placeholder="Apellidos" [(value)]="driver.lastName"
-                            [disabled]="isViewMode"></app-input-field>
-                    </div>
-                    <div>
-                        <app-label>N° licencia *</app-label>
-                        <app-input-field type="text" placeholder="Ej: Q01234567" [value]="driver.licenseNumber"
-                            (valueChange)="driver.licenseNumber = $event.toString().toUpperCase()"
-                            [disabled]="isViewMode"></app-input-field>
-                        @if (driver.licenseNumber.length > 0 && (!/[a-zA-Z]/.test(driver.licenseNumber) || !/[0-9]/.test(driver.licenseNumber))) {
-                            <p class="mt-1 text-xs text-red-500">Debe contener al menos una letra y un número</p>
-                        } @else if (driver.licenseNumber.trim().length > 10) {
-                            <p class="mt-1 text-xs text-red-500">Máximo 10 caracteres</p>
-                        }
-                    </div>
-                    <div>
-                        <app-label>Placa del vehículo *</app-label>
-                        <app-input-field type="text" placeholder="Ej: ABC-123" [value]="driver.vehiclePlate"
-                            (valueChange)="driver.vehiclePlate = $event.toString().toUpperCase()"
-                            [disabled]="isViewMode"></app-input-field>
-                    </div>
-                </div>
-
-            </div>
-            }
-
-            }
-
-        </div>
-
-        <!-- ================================================================ -->
-        <!-- SECCIÓN 3: DESTINATARIO -->
-        <!-- ================================================================ -->
-        <div
-            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-            <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Destinatario</h4>
-
-            @if (selectedRecipient) {
-            <!-- Destinatario seleccionado -->
-            <div class="flex items-start justify-between gap-4 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
+            @if (selectedClient) {
+            <div
+                class="flex items-start justify-between gap-4 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                        {{ selectedRecipient.name }}
+                        {{ getClientName(selectedClient) }}
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {{ selectedRecipient.docType }} {{ selectedRecipient.docNumber }}
-                        @if (selectedRecipient.address) { · {{ selectedRecipient.address }} }
+                        {{ selectedClient.documentType }} {{ selectedClient.documentNumber }}
+                        @if (selectedClient.phone1) { · {{ selectedClient.phone1 }} }
                     </p>
                 </div>
                 @if (!isViewMode) {
-                <button type="button" (click)="openRecipientModal()"
+                <button type="button" (click)="openClientModal()"
                     class="shrink-0 text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
                     Cambiar
                 </button>
                 }
             </div>
             } @else {
-            <!-- Sin destinatario -->
             @if (isViewMode) {
             <p class="text-sm text-gray-500 dark:text-gray-400">Sin destinatario registrado.</p>
             } @else {
-            <button type="button" (click)="openRecipientModal()"
+            <button type="button" (click)="openClientModal()"
                 class="w-full rounded-xl border-2 border-dashed border-gray-300 py-6 text-sm font-medium text-gray-500 hover:border-brand-400 hover:text-brand-500 dark:border-gray-700 dark:text-gray-400 dark:hover:border-brand-600 transition-colors">
                 + Seleccionar destinatario
             </button>
@@ -349,17 +210,179 @@
             }
         </div>
 
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
+        <!-- SECCIÓN 3: TRANSPORTE (condicional) -->
+        <!-- ============================================================ -->
+        <div
+            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+
+            @if (transportMode === 'TRANSPORTE_PUBLICO') {
+
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Transportista</h4>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">Transportista autorizado (persona jurídica con
+                        RUC).</p>
+                </div>
+                @if (!isViewMode && !selectedCarrier) {
+                <button type="button" (click)="showQuickCarrierRegister = true"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 dark:hover:bg-brand-900/20 transition-colors">
+                    <span class="text-base leading-none">+</span> Registrar nuevo
+                </button>
+                }
+            </div>
+
+            @if (selectedCarrier) {
+            <div
+                class="flex items-start justify-between gap-4 rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                        {{ selectedCarrier.businessName }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {{ selectedCarrier.docType }} {{ selectedCarrier.docNumber }}
+                    </p>
+                </div>
+                @if (!isViewMode) {
+                <button type="button" (click)="openCarrierModal()"
+                    class="shrink-0 text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                    Cambiar
+                </button>
+                }
+            </div>
+            } @else {
+            @if (isViewMode) {
+            <p class="text-sm text-gray-500 dark:text-gray-400">Sin transportista registrado.</p>
+            } @else {
+            <button type="button" (click)="openCarrierModal()"
+                class="w-full rounded-xl border-2 border-dashed border-gray-300 py-6 text-sm font-medium text-gray-500 hover:border-brand-400 hover:text-brand-500 dark:border-gray-700 dark:text-gray-400 dark:hover:border-brand-600 transition-colors">
+                + Seleccionar transportista
+            </button>
+            }
+            }
+
+            } @else {
+
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Conductores</h4>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">Conductor y placa del vehículo.</p>
+                </div>
+                @if (!isViewMode) {
+                <div class="flex items-center gap-2">
+                    <button type="button" (click)="showQuickDriverRegister = true"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 dark:hover:bg-brand-900/20 transition-colors">
+                        <span class="text-base leading-none">+</span> Registrar nuevo
+                    </button>
+                    <button type="button" (click)="openDriverModal()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
+                        <span class="text-lg leading-none">+</span> Agregar conductor
+                    </button>
+                </div>
+                }
+            </div>
+
+            @if (selectedDriverEntries.length === 0) {
+            <p class="text-sm text-gray-400 dark:text-gray-500 italic">
+                {{ isViewMode ? 'Sin conductores registrados.' : 'Agrega al menos un conductor.' }}
+            </p>
+            }
+
+            @for (entry of selectedDriverEntries; track $index; let i = $index) {
+            <div class="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            {{ entry.driver.firstName }} {{ entry.driver.lastName }}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {{ entry.driver.docType }} {{ entry.driver.docNumber }}
+                            @if (entry.driver.licenseNumber) { · Lic. {{ entry.driver.licenseNumber }} }
+                        </p>
+                    </div>
+                    @if (!isViewMode) {
+                    <button type="button" (click)="removeDriverEntry(i)"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-300 text-white hover:bg-red-400 shrink-0">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    }
+                </div>
+
+                <!-- Placa -->
+                <div>
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Placa del vehículo *</p>
+
+                    @if (entry.loadingVehicles) {
+                    <p class="text-xs text-gray-400 italic">Cargando placas registradas...</p>
+                    } @else if (!isViewMode) {
+                    <!-- Chips de placas registradas -->
+                    @if (entry.driver.vehicles && entry.driver.vehicles.length > 0) {
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        @for (v of entry.driver.vehicles; track v.id) {
+                        <button type="button" (click)="selectDriverVehicle(entry, v.id, v.plate)"
+                            class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                            [class.border-brand-500]="entry.selectedVehicleId === v.id"
+                            [class.bg-brand-50]="entry.selectedVehicleId === v.id"
+                            [class.text-brand-700]="entry.selectedVehicleId === v.id"
+                            [class.border-gray-300]="entry.selectedVehicleId !== v.id"
+                            [class.bg-white]="entry.selectedVehicleId !== v.id"
+                            [class.text-gray-600]="entry.selectedVehicleId !== v.id"
+                            [class.dark:border-gray-600]="entry.selectedVehicleId !== v.id"
+                            [class.dark:bg-gray-800]="entry.selectedVehicleId !== v.id"
+                            [class.dark:text-gray-300]="entry.selectedVehicleId !== v.id">
+                            {{ v.plate }}
+                        </button>
+                        }
+                        <button type="button" (click)="selectOtherDriverPlate(entry)"
+                            class="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                            [class.border-brand-500]="entry.selectedVehicleId === null && entry.driver.vehicles.length > 0"
+                            [class.bg-brand-50]="entry.selectedVehicleId === null && entry.driver.vehicles.length > 0"
+                            [class.text-brand-700]="entry.selectedVehicleId === null && entry.driver.vehicles.length > 0"
+                            [class.border-gray-300]="!(entry.selectedVehicleId === null && entry.driver.vehicles.length > 0)"
+                            [class.bg-white]="!(entry.selectedVehicleId === null && entry.driver.vehicles.length > 0)"
+                            [class.text-gray-500]="!(entry.selectedVehicleId === null && entry.driver.vehicles.length > 0)"
+                            [class.dark:border-gray-600]="!(entry.selectedVehicleId === null && entry.driver.vehicles.length > 0)"
+                            [class.dark:bg-gray-800]="!(entry.selectedVehicleId === null && entry.driver.vehicles.length > 0)"
+                            [class.dark:text-gray-400]="!(entry.selectedVehicleId === null && entry.driver.vehicles.length > 0)">
+                            <span class="text-sm leading-none">+</span> Otra placa
+                        </button>
+                    </div>
+                    }
+                    <!-- Input placa (visible si no hay placas registradas, o si seleccionó "Otra placa") -->
+                    @if ((entry.driver.vehicles?.length ?? 0) === 0 || entry.selectedVehicleId === null) {
+                    <input type="text" [value]="entry.vehiclePlate"
+                        (input)="onDriverVehiclePlateChange(entry, $any($event.target).value.toUpperCase())"
+                        placeholder="Ej: ABC-123"
+                        class="h-9 w-full max-w-xs rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 uppercase placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30" />
+                    }
+                    } @else {
+                    <!-- Vista: solo mostrar placa -->
+                    <span
+                        class="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 dark:border-brand-700 dark:bg-brand-900/20 dark:text-brand-300">
+                        {{ entry.vehiclePlate || '-' }}
+                    </span>
+                    }
+                </div>
+
+            </div>
+            }
+
+            }
+
+        </div>
+
+        <!-- ============================================================ -->
         <!-- SECCIÓN 4 Y 5: DIRECCIONES -->
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
             <!-- Punto de partida -->
             <div
                 class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">
-                    Punto de partida
-                </h4>
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Punto de partida</h4>
                 <div class="space-y-4">
                     <div>
                         <app-label>Dirección completa *</app-label>
@@ -372,12 +395,8 @@
                         <app-input-field type="text" [value]="getUbigeoLabel(originUbigeo)"
                             [disabled]="true"></app-input-field>
                         } @else {
-                        <app-ubigeo-picker
-                            [(value)]="originUbigeo"
-                            [ubigeos]="allUbigeos"
-                            [loading]="loadingUbigeos"
-                            placeholder="Seleccionar ubigeo de partida...">
-                        </app-ubigeo-picker>
+                        <app-ubigeo-picker [(value)]="originUbigeo" [ubigeos]="allUbigeos" [loading]="loadingUbigeos"
+                            placeholder="Seleccionar ubigeo de partida..."></app-ubigeo-picker>
                         }
                     </div>
                 </div>
@@ -386,43 +405,133 @@
             <!-- Punto de llegada -->
             <div
                 class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">
-                    Punto de llegada
-                </h4>
+                <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Punto de llegada</h4>
                 <div class="space-y-4">
+
+                    @if (isViewMode) {
+                    <!-- VISTA: valores guardados -->
+                    <div>
+                        <app-label>Dirección completa</app-label>
+                        <app-input-field type="text" [value]="destinationAddress" [disabled]="true"></app-input-field>
+                    </div>
+                    <div>
+                        <app-label>Ubigeo</app-label>
+                        <app-input-field type="text" [value]="getUbigeoLabel(destinationUbigeo)" [disabled]="true"></app-input-field>
+                    </div>
+                    } @else if (!selectedClient) {
+                    <!-- SIN DESTINATARIO: inputs libres -->
                     <div>
                         <app-label>Dirección completa *</app-label>
                         <app-input-field type="text" placeholder="Ej: AV. EL RETABLO 890 COMAS"
-                            [(value)]="destinationAddress" [disabled]="isViewMode"></app-input-field>
+                            [(value)]="destinationAddress"></app-input-field>
                     </div>
                     <div>
                         <app-label>Ubigeo *</app-label>
-                        @if (isViewMode) {
-                        <app-input-field type="text" [value]="getUbigeoLabel(destinationUbigeo)"
-                            [disabled]="true"></app-input-field>
-                        } @else {
-                        <app-ubigeo-picker
-                            [(value)]="destinationUbigeo"
-                            [ubigeos]="allUbigeos"
-                            [loading]="loadingUbigeos"
-                            placeholder="Seleccionar ubigeo de llegada...">
-                        </app-ubigeo-picker>
-                        }
+                        <app-ubigeo-picker [(value)]="destinationUbigeo" [ubigeos]="allUbigeos"
+                            [loading]="loadingUbigeos" placeholder="Seleccionar ubigeo de llegada..."></app-ubigeo-picker>
                     </div>
+                    } @else {
+                    <!-- CON DESTINATARIO: selección de dirección como tarjetas -->
+                    <div>
+                        <app-label>Dirección del destinatario *</app-label>
+                        <div class="mt-1 space-y-2">
+
+                            @if (selectedClient.addresses && selectedClient.addresses.length > 0) {
+                            <!-- Direcciones registradas -->
+                            @for (addr of selectedClient.addresses; track addr.id) {
+                            <div class="rounded-xl border p-3 cursor-pointer transition-colors select-none dark:bg-gray-900"
+                                [class.border-brand-500]="selectedClientAddressId === addr.id"
+                                [class.bg-brand-50]="selectedClientAddressId === addr.id"
+                                [class.border-gray-200]="selectedClientAddressId !== addr.id"
+                                [class.dark:border-gray-700]="selectedClientAddressId !== addr.id"
+                                (click)="selectClientAddress(addr.id, addr.address, addr.ubigeo)">
+                                <div class="flex items-start gap-3">
+                                    <div class="mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors"
+                                        [class.border-brand-500]="selectedClientAddressId === addr.id"
+                                        [class.border-gray-400]="selectedClientAddressId !== addr.id"
+                                        [class.dark:border-gray-500]="selectedClientAddressId !== addr.id">
+                                        @if (selectedClientAddressId === addr.id) {
+                                        <div class="h-2 w-2 rounded-full bg-brand-500"></div>
+                                        }
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-800 dark:text-white">{{ addr.address }}</p>
+                                        @if (addr.ubigeo) {
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ getUbigeoLabel(addr.ubigeo) }}</p>
+                                        } @else {
+                                        <p class="text-xs text-orange-400 mt-0.5">Sin ubigeo — deberás seleccionarlo</p>
+                                        }
+                                        @if (addr.description) {
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ addr.description }}</p>
+                                        }
+                                    </div>
+                                </div>
+                                <!-- Si está seleccionada y no tiene ubigeo: mostrar picker inline -->
+                                @if (selectedClientAddressId === addr.id && !addr.ubigeo) {
+                                <div class="mt-3 ml-7" (click)="$event.stopPropagation()">
+                                    <app-label>Ubigeo *</app-label>
+                                    <app-ubigeo-picker [(value)]="destinationUbigeo" [ubigeos]="allUbigeos"
+                                        [loading]="loadingUbigeos" placeholder="Seleccionar ubigeo de esta dirección..."></app-ubigeo-picker>
+                                </div>
+                                }
+                            </div>
+                            }
+                            }
+
+                            <!-- Otra dirección -->
+                            <div class="rounded-xl border p-3 cursor-pointer transition-colors select-none dark:bg-gray-900"
+                                [class.border-brand-500]="selectedClientAddressId === null"
+                                [class.bg-brand-50]="selectedClientAddressId === null"
+                                [class.border-gray-200]="selectedClientAddressId !== null"
+                                [class.dark:border-gray-700]="selectedClientAddressId !== null"
+                                (click)="selectOtherAddress()">
+                                <div class="flex items-start gap-3">
+                                    <div class="mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors"
+                                        [class.border-brand-500]="selectedClientAddressId === null"
+                                        [class.border-gray-400]="selectedClientAddressId !== null"
+                                        [class.dark:border-gray-500]="selectedClientAddressId !== null">
+                                        @if (selectedClientAddressId === null) {
+                                        <div class="h-2 w-2 rounded-full bg-brand-500"></div>
+                                        }
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Otra dirección</p>
+                                </div>
+                                <!-- Inputs para otra dirección -->
+                                @if (selectedClientAddressId === null) {
+                                <div class="mt-3 ml-7 space-y-3" (click)="$event.stopPropagation()">
+                                    <div>
+                                        <app-label>Dirección completa *</app-label>
+                                        <input type="text" [value]="destinationAddress"
+                                            (input)="onDestinationAddressChange($any($event.target).value)"
+                                            placeholder="Ej: AV. EL RETABLO 890 COMAS"
+                                            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+                                    </div>
+                                    <div>
+                                        <app-label>Ubigeo *</app-label>
+                                        <app-ubigeo-picker [(value)]="destinationUbigeo" [ubigeos]="allUbigeos"
+                                            [loading]="loadingUbigeos" placeholder="Seleccionar ubigeo..."></app-ubigeo-picker>
+                                    </div>
+                                </div>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                    }
+
                 </div>
             </div>
 
         </div>
 
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
         <!-- SECCIÓN 6: ÍTEMS -->
-        <!-- ================================================================ -->
+        <!-- ============================================================ -->
         <div
             class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
 
             <div class="flex items-start justify-between mb-4">
                 <h4 class="text-base font-semibold text-gray-800 dark:text-white/90">Ítems a trasladar</h4>
-
                 @if (!isViewMode) {
                 <div class="flex gap-2">
                     <button type="button"
@@ -447,27 +556,20 @@
                             <th class="py-3 px-3 text-center font-medium">Cant.</th>
                             <th class="py-3 px-3 text-center font-medium">Unidad</th>
                             <th class="py-3 px-3 text-center font-medium">P. Unit.</th>
-                            @if (!isViewMode) {
-                            <th class="py-3 px-3 text-center font-medium">Acción</th>
-                            }
+                            @if (!isViewMode) { <th class="py-3 px-3 text-center font-medium">Acción</th> }
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-white/5">
                         @if (items.length === 0) {
                         <tr>
-                            <td colspan="5" class="py-8 text-center text-gray-400">
-                                Aún no hay ítems agregados.
-                            </td>
+                            <td colspan="5" class="py-8 text-center text-gray-400">Aún no hay ítems agregados.</td>
                         </tr>
                         }
                         @for (item of items; track $index; let i = $index) {
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
-                            <td class="py-3 px-3 font-medium text-gray-800 dark:text-white">
-                                {{ item.description }}
-                            </td>
+                            <td class="py-3 px-3 font-medium text-gray-800 dark:text-white">{{ item.description }}</td>
                             <td class="py-3 px-3 text-center text-gray-600 dark:text-gray-400">
-                                @if (isViewMode) {
-                                {{ item.quantity }}
+                                @if (isViewMode) { {{ item.quantity }}
                                 } @else {
                                 <input type="number" min="0.001" step="0.001" [(ngModel)]="item.quantity"
                                     class="w-20 rounded-lg border border-gray-300 bg-transparent px-2 py-1 text-center text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
@@ -520,16 +622,210 @@
 </app-modal>
 
 
-<!-- ================================================================ -->
-<!-- MODAL BUSCAR PRODUCTO -->
-<!-- ================================================================ -->
-<app-modal [isOpen]="showProductModal" [className]="'max-w-2xl p-6'" (close)="showProductModal = false">
-
-    <div class="mb-5">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Agregar producto</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Buscar por SKU / nombre</p>
+<!-- ============================================================ -->
+<!-- MODAL: BUSCAR CLIENTE (DESTINATARIO) -->
+<!-- ============================================================ -->
+<app-modal [isOpen]="showClientModal" [className]="'max-w-2xl p-6'" (close)="showClientModal = false">
+    <div class="mb-5 flex items-center justify-between mr-16">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Seleccionar destinatario</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Buscar por nombre, documento o teléfono</p>
+        </div>
+        <button type="button" (click)="showClientModal = false; showQuickClientRegister = true"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 transition-colors shrink-0">
+            <span class="text-base leading-none">+</span> Registrar nuevo
+        </button>
     </div>
+    <div class="mb-4">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" [(ngModel)]="clientSearchTerm" (input)="searchClients()"
+                placeholder="Ej: Juan Pérez / 20123456789"
+                class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                autofocus>
+        </div>
+    </div>
+    <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+        @if (loadingClients) {
+        <p class="py-8 text-center text-sm text-gray-400">Cargando...</p>
+        } @else if (clientResults.length === 0) {
+        <p class="py-8 text-center text-sm text-gray-400">No se encontraron resultados.</p>
+        } @else {
+        @for (c of pagedClientResults; track c.id) {
+        <button type="button" (click)="selectClient(c)"
+            class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-colors">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 dark:text-white truncate">{{ getClientName(c) }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                    {{ c.documentType }} {{ c.documentNumber }}
+                    @if (c.phone1) { · {{ c.phone1 }} }
+                    @if (c.email1) { · {{ c.email1 }} }
+                </p>
+            </div>
+        </button>
+        }
+        }
+    </div>
+    @if (clientTotalPages > 1) {
+    <div class="flex items-center justify-between mt-3 text-sm text-gray-500 dark:text-gray-400">
+        <span>Pág. {{ clientCurrentPage }} / {{ clientTotalPages }}</span>
+        <div class="flex gap-2">
+            <button type="button" (click)="clientPrevPage()" [disabled]="clientCurrentPage === 1"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Anterior</button>
+            <button type="button" (click)="clientNextPage()" [disabled]="clientCurrentPage === clientTotalPages"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Siguiente</button>
+        </div>
+    </div>
+    }
+</app-modal>
 
+
+<!-- ============================================================ -->
+<!-- MODAL: BUSCAR TRANSPORTISTA -->
+<!-- ============================================================ -->
+<app-modal [isOpen]="showCarrierModal" [className]="'max-w-2xl p-6'" (close)="showCarrierModal = false">
+    <div class="mb-5 flex items-center justify-between mr-16">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Seleccionar transportista</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Buscar por razón social o RUC</p>
+        </div>
+        <button type="button" (click)="showCarrierModal = false; showQuickCarrierRegister = true"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 transition-colors shrink-0">
+            <span class="text-base leading-none">+</span> Registrar nuevo
+        </button>
+    </div>
+    <div class="mb-4">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" [(ngModel)]="carrierSearchTerm" (input)="searchCarriers()"
+                placeholder="Ej: Transportes SAC / 20123456789"
+                class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                autofocus>
+        </div>
+    </div>
+    <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+        @if (loadingCarriers) {
+        <p class="py-8 text-center text-sm text-gray-400">Cargando...</p>
+        } @else if (carrierResults.length === 0) {
+        <p class="py-8 text-center text-sm text-gray-400">No se encontraron resultados.</p>
+        } @else {
+        @for (c of pagedCarrierResults; track c.id) {
+        <button type="button" (click)="selectCarrier(c)"
+            class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-colors">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 dark:text-white truncate">{{ c.businessName }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ c.docType }} {{ c.docNumber }}</p>
+            </div>
+        </button>
+        }
+        }
+    </div>
+    @if (carrierTotalPages > 1) {
+    <div class="flex items-center justify-between mt-3 text-sm text-gray-500 dark:text-gray-400">
+        <span>Pág. {{ carrierCurrentPage }} / {{ carrierTotalPages }}</span>
+        <div class="flex gap-2">
+            <button type="button" (click)="carrierPrevPage()" [disabled]="carrierCurrentPage === 1"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Anterior</button>
+            <button type="button" (click)="carrierNextPage()" [disabled]="carrierCurrentPage === carrierTotalPages"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Siguiente</button>
+        </div>
+    </div>
+    }
+</app-modal>
+
+
+<!-- ============================================================ -->
+<!-- MODAL: BUSCAR CONDUCTOR -->
+<!-- ============================================================ -->
+<app-modal [isOpen]="showDriverModal" [className]="'max-w-2xl p-6'" (close)="showDriverModal = false">
+    <div class="mb-5 flex items-center justify-between mr-16">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Agregar conductor</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Buscar por nombre, documento o licencia</p>
+        </div>
+        <button type="button" (click)="showDriverModal = false; showQuickDriverRegister = true"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 transition-colors shrink-0">
+            <span class="text-base leading-none">+</span> Registrar nuevo
+        </button>
+    </div>
+    <div class="mb-4">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" [(ngModel)]="driverSearchTerm" (input)="searchDrivers()"
+                placeholder="Ej: Juan Pérez / 12345678 / Q01234567"
+                class="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-gray-900 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                autofocus>
+        </div>
+    </div>
+    <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+        @if (loadingDrivers) {
+        <p class="py-8 text-center text-sm text-gray-400">Cargando...</p>
+        } @else if (driverResults.length === 0) {
+        <p class="py-8 text-center text-sm text-gray-400">No se encontraron resultados.</p>
+        } @else {
+        @for (d of pagedDriverResults; track d.id) {
+        <button type="button" (click)="addDriverFromMaster(d)"
+            class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-colors"
+            [class.opacity-50]="isDriverAdded(d.id)">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 dark:text-white truncate">
+                    {{ d.firstName }} {{ d.lastName }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ d.docType }} {{ d.docNumber }}
+                    @if (d.licenseNumber) { · Lic. {{ d.licenseNumber }} }
+                </p>
+            </div>
+            @if (isDriverAdded(d.id)) {
+            <span class="text-xs text-gray-400 italic shrink-0">Ya agregado</span>
+            }
+        </button>
+        }
+        }
+    </div>
+    @if (driverTotalPages > 1) {
+    <div class="flex items-center justify-between mt-3 text-sm text-gray-500 dark:text-gray-400">
+        <span>Pág. {{ driverCurrentPage }} / {{ driverTotalPages }}</span>
+        <div class="flex gap-2">
+            <button type="button" (click)="driverPrevPage()" [disabled]="driverCurrentPage === 1"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Anterior</button>
+            <button type="button" (click)="driverNextPage()" [disabled]="driverCurrentPage === driverTotalPages"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Siguiente</button>
+        </div>
+    </div>
+    }
+</app-modal>
+
+
+<!-- ============================================================ -->
+<!-- MODAL: BUSCAR PRODUCTO -->
+<!-- ============================================================ -->
+<app-modal [isOpen]="showProductModal" [className]="'max-w-2xl p-6'" (close)="showProductModal = false">
+    <div class="mb-5 flex items-center justify-between mr-16">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Agregar producto</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Buscar por SKU / nombre</p>
+        </div>
+        <button type="button" (click)="showProductModal = false; showQuickProductRegister = true"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-400 transition-colors shrink-0">
+            <span class="text-base leading-none">+</span> Registrar nuevo
+        </button>
+    </div>
     <div class="mb-4">
         <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -544,205 +840,98 @@
                 autofocus>
         </div>
     </div>
-
-    <div class="max-h-95 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
+    <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg dark:border-gray-700">
         @if (loadingProducts) {
-        <div class="py-10 text-center text-gray-400">
-            <svg class="w-10 h-10 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p class="text-sm">Cargando productos...</p>
-        </div>
+        <p class="py-8 text-center text-sm text-gray-400">Cargando...</p>
         } @else if (productResults.length === 0) {
-        <div class="py-10 text-center text-gray-400">
-            <p class="text-sm">{{ productSearchTerm ? 'No se encontraron productos' : 'Sin productos disponibles' }}
-            </p>
-        </div>
+        <p class="py-8 text-center text-sm text-gray-400">No se encontraron resultados.</p>
         } @else {
-        <div class="divide-y divide-gray-100 dark:divide-gray-700">
-            @for (product of pagedProductResults; track product.id) {
-            <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
-                (click)="addProduct(product)">
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                        {{ product.sku }} — {{ product.name }}
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ product.categoryName }}</p>
-                </div>
-                <span class="ml-4 text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                    S/ {{ (product.salePricePen ?? 0) | number:'1.2-2' }}
-                </span>
+        @for (p of pagedProductResults; track p.id) {
+        <button type="button" (click)="addProduct(p)"
+            class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-colors">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 dark:text-white truncate">{{ p.name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ p.sku }}
+                    @if (p.salePricePen) { · S/ {{ p.salePricePen | number:'1.2-2' }} }
+                </p>
             </div>
-            }
-        </div>
+        </button>
+        }
         }
     </div>
-
-    @if (productResults.length > productPageSize) {
-    <div class="flex items-center justify-between mt-3 px-1">
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ (productCurrentPage - 1) * productPageSize + 1 }}–{{ productPageEnd }} de {{ productResults.length }}
-        </p>
-        <div class="flex gap-1">
-            <button type="button" [disabled]="productCurrentPage === 1" (click)="productPrevPage()"
-                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
-            <span class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">{{ productCurrentPage }} /
-                {{ productTotalPages }}</span>
-            <button type="button" [disabled]="productCurrentPage === productTotalPages" (click)="productNextPage()"
-                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
+    @if (productTotalPages > 1) {
+    <div class="flex items-center justify-between mt-3 text-sm text-gray-500 dark:text-gray-400">
+        <span>Pág. {{ productCurrentPage }} / {{ productTotalPages }}</span>
+        <div class="flex gap-2">
+            <button type="button" (click)="productPrevPage()" [disabled]="productCurrentPage === 1"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Anterior</button>
+            <button type="button" (click)="productNextPage()" [disabled]="productCurrentPage === productTotalPages"
+                class="px-3 py-1 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">Siguiente</button>
         </div>
     </div>
     }
-
-    <div class="flex justify-between mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-brand-600 hover:text-brand-700 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
-            (click)="showProductModal = false; showQuickProductRegister = true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Nuevo producto
-        </button>
-        <button type="button" (click)="showProductModal = false"
-            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-            Cancelar
-        </button>
-    </div>
-
 </app-modal>
 
 
-<!-- ================================================================ -->
-<!-- MODAL ÍTEM PERSONALIZADO -->
-<!-- ================================================================ -->
+<!-- ============================================================ -->
+<!-- MODAL: ÍTEM PERSONALIZADO -->
+<!-- ============================================================ -->
 <app-modal [isOpen]="showCustomItemModal" [className]="'max-w-lg p-6'" (close)="showCustomItemModal = false">
-
     <div class="mb-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Ítem personalizado</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            Agrega un ítem que no esté en el catálogo de productos.
-        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Ingresa los datos del ítem manualmente.</p>
     </div>
-
     <div class="space-y-4">
         <div>
             <app-label>Descripción *</app-label>
-            <app-input-field type="text" placeholder="Ej: Baranda metálica" [(value)]="customDescription">
-            </app-input-field>
+            <app-input-field type="text" [(value)]="customDescription"
+                placeholder="Ej: Cajas de madera"></app-input-field>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-3">
             <div>
                 <app-label>Cantidad *</app-label>
-                <app-input-field type="number" [step]="0.001" placeholder="1" [(value)]="customQuantity">
-                </app-input-field>
+                <app-input-field type="number" [step]="0.001" min="0.001" [(value)]="customQuantity"></app-input-field>
             </div>
             <div>
-                <app-label>Unidad SUNAT</app-label>
-                <app-input-field type="text" placeholder="NIU" [(value)]="customUnitMeasure">
-                </app-input-field>
+                <app-label>Unidad</app-label>
+                <app-input-field type="text" [(value)]="customUnitMeasure" placeholder="NIU"></app-input-field>
+            </div>
+            <div>
+                <app-label>P. Unitario</app-label>
+                <app-input-field type="number" [step]="0.01" min="0" [(value)]="customUnitPrice"></app-input-field>
             </div>
         </div>
-        <div>
-            <app-label>Precio unitario</app-label>
-            <app-input-field type="number" [step]="0.01" placeholder="0.00" [(value)]="customUnitPrice">
-            </app-input-field>
-        </div>
-    </div>
-
-    <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-gray-200 dark:border-gray-700">
-        <button type="button" (click)="showCustomItemModal = false"
-            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-            Cancelar
-        </button>
-        <button type="button" (click)="submitCustomItem()"
-            [disabled]="!customDescription.trim() || !customQuantity || customQuantity <= 0"
-            class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-            Agregar
-        </button>
-    </div>
-
-</app-modal>
-
-<!-- ================================================================ -->
-<!-- MODAL BUSCAR DESTINATARIO -->
-<!-- ================================================================ -->
-<app-modal [isOpen]="showRecipientModal" [className]="'max-w-xl p-6'" (close)="showRecipientModal = false">
-
-    <div class="mb-4">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Buscar destinatario</h3>
-    </div>
-
-    <!-- Buscador -->
-    <div class="relative mb-4">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" width="16" height="16"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" />
-        </svg>
-        <input type="text" placeholder="Buscar por nombre o documento..."
-            [(ngModel)]="recipientSearchTerm"
-            (input)="searchRecipients()"
-            class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500" />
-    </div>
-
-    <!-- Lista -->
-    <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        @if (loadingRecipients) {
-        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Cargando...</div>
-        } @else if (recipientResults.length === 0) {
-        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">No se encontraron destinatarios activos.</div>
-        } @else {
-        @for (r of pagedRecipientResults; track r.id) {
-        <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-b-0"
-            (click)="selectRecipient(r)">
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ r.name }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {{ r.docType }} {{ r.docNumber }}
-                    @if (r.address) { · {{ r.address }} }
-                </p>
-            </div>
-        </div>
-        }
-        }
-    </div>
-
-    <!-- Paginación -->
-    @if (recipientResults.length > recipientPageSize) {
-    <div class="flex items-center justify-between mt-3 px-1">
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ (recipientCurrentPage - 1) * recipientPageSize + 1 }}–{{ recipientPageEnd }} de {{ recipientResults.length }}
-        </p>
-        <div class="flex gap-1">
-            <button type="button" [disabled]="recipientCurrentPage === 1" (click)="recipientPrevPage()"
-                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
-                ‹
+        <div class="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <button type="button" (click)="showCustomItemModal = false"
+                class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                Cancelar
             </button>
-            <button type="button" [disabled]="recipientCurrentPage === recipientTotalPages" (click)="recipientNextPage()"
-                class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300">
-                ›
+            <button type="button" (click)="submitCustomItem()"
+                class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-brand-500 hover:bg-brand-600">
+                Agregar ítem
             </button>
         </div>
     </div>
-    }
-
 </app-modal>
 
-<!-- ================================================================ -->
-<!-- REGISTRO RÁPIDO: PRODUCTO -->
-<!-- ================================================================ -->
-<app-quick-product-register
-    [isOpen]="showQuickProductRegister"
-    (onClose)="showQuickProductRegister = false"
+
+<!-- ============================================================ -->
+<!-- QUICK REGISTERS -->
+<!-- ============================================================ -->
+<app-quick-client-register [isOpen]="showQuickClientRegister" title="Registrar nuevo destinatario"
+    subtitle="Completa los datos del destinatario para registrarlo y seleccionarlo en la guía de remisión."
+    (onClose)="showQuickClientRegister = false" (onCreated)="onClientCreated($event)">
+</app-quick-client-register>
+
+<app-quick-carrier-register [isOpen]="showQuickCarrierRegister" (onClose)="showQuickCarrierRegister = false"
+    (onCreated)="onCarrierCreated($event)">
+</app-quick-carrier-register>
+
+<app-quick-driver-register [isOpen]="showQuickDriverRegister" (onClose)="showQuickDriverRegister = false"
+    (onCreated)="onDriverCreated($event)">
+</app-quick-driver-register>
+
+<app-quick-product-register [isOpen]="showQuickProductRegister" (onClose)="showQuickProductRegister = false"
     (onCreated)="onProductCreated($event)">
 </app-quick-product-register>

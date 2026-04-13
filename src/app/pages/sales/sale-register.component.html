@@ -101,6 +101,53 @@
                     </div>
                     }
                 </div>
+
+                <!-- ADDRESS SELECTION -->
+                @if (selectedClient && !isViewMode) {
+                <div class="mt-3">
+                    <p class="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">Dirección <span class="text-error-500">*</span></p>
+
+                    @if (selectedClient.addresses?.length) {
+                    <!-- Registered address chips -->
+                    <div class="mb-2 flex flex-wrap gap-1.5">
+                        @for (a of selectedClient.addresses; track a.id) {
+                        <button type="button"
+                            (click)="selectClientAddress(a.id, a.address)"
+                            class="inline-flex max-w-xs items-center truncate rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                            [ngClass]="selectedClientAddressId === a.id
+                                ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-500/10 dark:text-brand-300'
+                                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-gray-600'">
+                            {{ a.address }}
+                            @if (a.description) {
+                            <span class="ml-1 text-gray-400 dark:text-gray-500">· {{ a.description }}</span>
+                            }
+                        </button>
+                        }
+                        <!-- Custom address chip -->
+                        <button type="button"
+                            (click)="selectedClientAddressId = null; clientAddress = ''"
+                            class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                            [ngClass]="selectedClientAddressId === null
+                                ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-500/10 dark:text-brand-300'
+                                : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-gray-600'">
+                            <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Otra dirección
+                        </button>
+                    </div>
+                    }
+
+                    <!-- Address text input: always shown if no registered addresses, or if "Otra dirección" selected -->
+                    @if (!selectedClient.addresses?.length || selectedClientAddressId === null) {
+                    <input type="text" [(ngModel)]="clientAddress" name="clientAddress"
+                        (ngModelChange)="onClientAddressInputChange($event)"
+                        placeholder="Ingrese la dirección del cliente"
+                        class="h-9 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+                    }
+                </div>
+                }
+
             </div>
 
             <!-- ================= OBSERVACIONES ================= -->
@@ -1018,7 +1065,7 @@
                         </p>
 
                         <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            @if (client.address) { 📍 {{ client.address }}}
+                            @if (client.addresses?.length) { 📍 {{ client.addresses![0].address }} }
                             @if (client.phone1) { - 📞 {{ client.phone1 }} }
                         </p>
                     </div>

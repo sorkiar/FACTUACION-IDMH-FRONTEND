@@ -15,6 +15,7 @@ import { NotificationService } from '../../shared/components/ui/notification/not
 import { DriverService } from '../../services/driver.service';
 import { DriverResponse } from '../../dto/driver.response';
 import { DriverRequest } from '../../dto/driver.request';
+import { DocumentLookupService } from '../../services/document-lookup.service';
 import { DriverVehicleResponse } from '../../dto/driver-vehicle.response';
 
 @Component({
@@ -67,6 +68,7 @@ export class DriverComponent implements OnInit, OnDestroy {
     // Form state
     submitted = false;
     isSubmitting = false;
+    isLookingUp = false;
 
     // Form model
     docType = 'DNI';
@@ -82,10 +84,27 @@ export class DriverComponent implements OnInit, OnDestroy {
     ];
 
     // ── Vehicles sub-management ──────────────────────────
+
+    // CREATE mode: local plate list submitted after driver creation
+    createPlates: string[] = [];
+    newCreatePlate = '';
+
+    addCreatePlate(): void {
+        const plate = this.newCreatePlate.trim().toUpperCase();
+        if (!plate) return;
+        this.createPlates.push(plate);
+        this.newCreatePlate = '';
+    }
+
+    removeCreatePlate(idx: number): void {
+        this.createPlates.splice(idx, 1);
+    }
+
+    // EDIT mode: sub-resource endpoints
     vehicles: DriverVehicleResponse[] = [];
     loadingVehicles = false;
 
-    // New plate input
+    // New plate input (edit)
     newPlate = '';
     isAddingPlate = false;
 
@@ -101,6 +120,7 @@ export class DriverComponent implements OnInit, OnDestroy {
 
     constructor(
         private driverService: DriverService,
+        private documentLookupService: DocumentLookupService,
         private notify: NotificationService,
     ) { }
 
@@ -194,7 +214,6 @@ export class DriverComponent implements OnInit, OnDestroy {
     onCreateDriver(): void {
         this.isEditMode = false;
         this.selectedDriver = undefined;
-        this.vehicles = [];
         this.resetForm();
         this.showForm = true;
     }
@@ -227,6 +246,8 @@ export class DriverComponent implements OnInit, OnDestroy {
         this.firstName = '';
         this.lastName = '';
         this.licenseNumber = '';
+        this.createPlates = [];
+        this.newCreatePlate = '';
         this.vehicles = [];
         this.newPlate = '';
         this.editingVehicleId = null;
@@ -239,6 +260,31 @@ export class DriverComponent implements OnInit, OnDestroy {
         if (!this.lastName.trim()) return false;
         if (!this.licenseNumber.trim()) return false;
         return true;
+    }
+
+    get canLookup(): boolean {
+        return this.docType === 'DNI' && /^\d{8}$/.test(this.docNumber.trim());
+    }
+
+    lookupDocument(): void {
+        if (!this.canLookup || this.isLookingUp) return;
+        this.isLookingUp = true;
+        
+        const s = this.documentLookupService.queryDni(this.docNumber.trim()).subscribe({
+            next: res => {
+                const d = res.data;
+                if (d) {
+                    this.firstName = d.firstName ?? '';
+                    this.lastName = [d.lastNamePaternal, d.lastNameMaternal].filter(Boolean).join(' ');
+                }
+                this.isLookingUp = false;
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'No se pudo consultar el DNI');
+                this.isLookingUp = false;
+            },
+        });
+        this.sub.add(s);
     }
 
     onSubmit(): void {
@@ -254,17 +300,39 @@ export class DriverComponent implements OnInit, OnDestroy {
             licenseNumber: this.licenseNumber.trim(),
         };
 
-        const request$ = this.isEditMode && this.selectedDriver?.id
-            ? this.driverService.update(this.selectedDriver.id, payload)
-            : this.driverService.create(payload);
+        const isCreate = !(this.isEditMode && this.selectedDriver?.id);
+        const request$ = isCreate
+            ? this.driverService.create(payload)
+            : this.driverService.update(this.selectedDriver!.id, payload);
 
         const s = request$.subscribe({
             next: res => {
-                this.isSubmitting = false;
-                this.showForm = false;
-                this.resetForm();
-                this.loadDrivers();
-                this.notify.success(res?.message ?? 'Guardado correctamente');
+                const driverId = res.data?.id ?? this.selectedDriver?.id;
+
+                if (isCreate && this.createPlates.length > 0 && driverId) {
+                    // Add each plate sequentially after creation
+                    const addNext = (idx: number) => {
+                        if (idx >= this.createPlates.length) {
+                            this.isSubmitting = false;
+                            this.showForm = false;
+                            this.resetForm();
+                            this.loadDrivers();
+                            this.notify.success(res?.message ?? 'Conductor registrado correctamente');
+                            return;
+                        }
+                        this.driverService.addVehicle(driverId, this.createPlates[idx]).subscribe({
+                            next: () => addNext(idx + 1),
+                            error: () => addNext(idx + 1), // continue even if one plate fails
+                        });
+                    };
+                    addNext(0);
+                } else {
+                    this.isSubmitting = false;
+                    this.showForm = false;
+                    this.resetForm();
+                    this.loadDrivers();
+                    this.notify.success(res?.message ?? 'Guardado correctamente');
+                }
             },
             error: err => {
                 this.isSubmitting = false;

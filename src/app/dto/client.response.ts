@@ -1,3 +1,5 @@
+import { ClientAddressResponse } from './client-address.response';
+
 export interface ClientResponse {
     id: number
     personTypeId: number
@@ -14,7 +16,7 @@ export interface ClientResponse {
     email1: string
     phone2: string
     email2: string
-    address: string
     retentionAgent?: boolean
     status: number
+    addresses?: ClientAddressResponse[]
 }

@@ -71,6 +71,8 @@ export class SaleRegisterComponent implements OnChanges {
     // CLIENTE
     // =============================
     selectedClient?: ClientResponse;
+    selectedClientAddressId: number | null = null;
+    clientAddress = '';
     clientSearchTerm = '';
     allClients: ClientResponse[] = [];
     clientResults: ClientResponse[] = [];
@@ -480,15 +482,44 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     selectClient(client: ClientResponse) {
+        const changing = this.selectedClient?.id !== client.id;
         this.selectedClient = client;
         this.showClientModal = false;
         this.clientSearchTerm = '';
 
+        if (changing) {
+            this.selectedClientAddressId = null;
+            this.clientAddress = '';
+            // Auto-select first registered address if available
+            const firstAddr = client.addresses?.[0];
+            if (firstAddr) {
+                this.selectedClientAddressId = firstAddr.id;
+                this.clientAddress = firstAddr.address;
+            }
+        }
+
         this.applyDocumentTypeByClient();
+    }
+
+    selectClientAddress(addressId: number, addressText: string): void {
+        this.selectedClientAddressId = addressId;
+        this.clientAddress = addressText;
+    }
+
+    onClientAddressInputChange(newValue: string): void {
+        // If the user typed something different from the currently selected registered address, deselect it
+        if (this.selectedClientAddressId !== null) {
+            const registered = this.selectedClient?.addresses?.find(a => a.id === this.selectedClientAddressId);
+            if (registered && newValue !== registered.address) {
+                this.selectedClientAddressId = null;
+            }
+        }
     }
 
     clearClient() {
         this.selectedClient = undefined;
+        this.selectedClientAddressId = null;
+        this.clientAddress = '';
     }
 
     // =========================================================
@@ -992,6 +1023,9 @@ export class SaleRegisterComponent implements OnChanges {
         if (!this.selectedClient)
             return 'Debe seleccionar un cliente';
 
+        if (!this.clientAddress.trim())
+            return 'Debe consignar la dirección del cliente';
+
         if (this.items.length === 0)
             return 'Debe agregar al menos un item';
 
@@ -1037,6 +1071,8 @@ export class SaleRegisterComponent implements OnChanges {
 
         const request: SaleRequest = {
             clientId: this.selectedClient!.id,
+            clientAddressId: this.selectedClientAddressId ?? undefined,
+            clientAddress: this.clientAddress.trim(),
             items: this.items,
         };
 
@@ -1076,6 +1112,8 @@ export class SaleRegisterComponent implements OnChanges {
 
         const request: SaleRequest = {
             clientId: this.selectedClient!.id,
+            clientAddressId: this.selectedClientAddressId ?? undefined,
+            clientAddress: this.clientAddress.trim(),
             items: this.items.map(i => ({
                 itemType: i.itemType,
                 productId: i.productId,
@@ -1156,6 +1194,8 @@ export class SaleRegisterComponent implements OnChanges {
 
     resetSale() {
         this.selectedClient = undefined;
+        this.selectedClientAddressId = null;
+        this.clientAddress = '';
         this.items = [];
         this.payments = [];
         this.installments = [];

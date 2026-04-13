@@ -15,6 +15,7 @@ import { NotificationService } from '../../shared/components/ui/notification/not
 import { CarrierService } from '../../services/carrier.service';
 import { CarrierResponse } from '../../dto/carrier.response';
 import { CarrierRequest } from '../../dto/carrier.request';
+import { DocumentLookupService } from '../../services/document-lookup.service';
 
 @Component({
     selector: 'app-carrier',
@@ -66,6 +67,7 @@ export class CarrierComponent implements OnInit, OnDestroy {
     // Form state
     submitted = false;
     isSubmitting = false;
+    isLookingUp = false;
 
     // Form model
     docType = 'RUC';
@@ -78,6 +80,7 @@ export class CarrierComponent implements OnInit, OnDestroy {
 
     constructor(
         private carrierService: CarrierService,
+        private documentLookupService: DocumentLookupService,
         private notify: NotificationService,
     ) { }
 
@@ -206,6 +209,30 @@ export class CarrierComponent implements OnInit, OnDestroy {
         if (this.docNumberError) return false;
         if (!this.businessName.trim()) return false;
         return true;
+    }
+
+    get canLookup(): boolean {
+        return this.docType === 'RUC' && /^\d{11}$/.test(this.docNumber.trim());
+    }
+
+    lookupDocument(): void {
+        if (!this.canLookup || this.isLookingUp) return;
+        this.isLookingUp = true;
+        
+        const s = this.documentLookupService.queryRuc(this.docNumber.trim()).subscribe({
+            next: res => {
+                const d = res.data;
+                if (d) {
+                    this.businessName = d.name ?? '';
+                }
+                this.isLookingUp = false;
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'No se pudo consultar el RUC');
+                this.isLookingUp = false;
+            },
+        });
+        this.sub.add(s);
     }
 
     onSubmit(): void {

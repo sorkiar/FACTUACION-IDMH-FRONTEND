@@ -1,3 +1,5 @@
+import { ClientAddressRequest } from './client-address.request';
+
 export interface ClientRequest {
     personTypeId: number
     documentTypeId: number
@@ -11,6 +13,6 @@ export interface ClientRequest {
     phone2: string
     email1: string
     email2: string
-    address: string
     retentionAgent?: boolean
+    addresses?: ClientAddressRequest[]
 }

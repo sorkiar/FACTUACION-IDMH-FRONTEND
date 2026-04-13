@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -7,12 +7,17 @@ import { LabelComponent } from '../../shared/components/form/label/label.compone
 import { InputFieldComponent } from '../../shared/components/form/input/input-field.component';
 import { Option, SelectComponent } from '../../shared/components/form/select/select.component';
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
+import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+import { UbigeoPickerComponent } from '../../shared/components/form/ubigeo-picker/ubigeo-picker.component';
 import { ClientService } from '../../services/client.service';
 import { DocumentTypeService } from '../../services/document-type.service';
 import { DocumentLookupService } from '../../services/document-lookup.service';
+import { UbigeoService } from '../../services/ubigeo.service';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { ClientRequest } from '../../dto/client.request';
 import { ClientResponse } from '../../dto/client.response';
+import { ClientAddressRequest } from '../../dto/client-address.request';
+import { UbigeoResponse } from '../../dto/ubigeo.response';
 
 @Component({
     selector: 'app-quick-client-register',
@@ -25,12 +30,16 @@ import { ClientResponse } from '../../dto/client.response';
         InputFieldComponent,
         SelectComponent,
         CheckboxComponent,
+        DatePickerComponent,
+        UbigeoPickerComponent,
     ],
     templateUrl: './quick-client-register.component.html',
 })
 export class QuickClientRegisterComponent implements OnChanges {
 
     @Input() isOpen = false;
+    @Input() title = 'Registrar nuevo cliente';
+    @Input() subtitle = 'Completa los datos del cliente para registrarlo y seleccionarlo en la venta.';
     @Output() onClose = new EventEmitter<void>();
     @Output() onCreated = new EventEmitter<ClientResponse>();
 
@@ -63,13 +72,40 @@ export class QuickClientRegisterComponent implements OnChanges {
     phone2 = '';
     email1 = '';
     email2 = '';
-    address = '';
     retentionAgent = false;
+
+    // Ubigeos
+    allUbigeos: UbigeoResponse[] = [];
+    loadingUbigeos = false;
+
+    // Addresses (create mode)
+    createAddresses: { address: string; ubigeo: string; description: string }[] = [];
+    newCreateAddrAddress = '';
+    newCreateAddrUbigeo = '';
+    newCreateAddrDescription = '';
+
+    addCreateAddress(): void {
+        const addr = this.newCreateAddrAddress.trim();
+        if (!addr) return;
+        this.createAddresses.push({
+            address: addr,
+            ubigeo: this.newCreateAddrUbigeo.trim(),
+            description: this.newCreateAddrDescription.trim(),
+        });
+        this.newCreateAddrAddress = '';
+        this.newCreateAddrUbigeo = '';
+        this.newCreateAddrDescription = '';
+    }
+
+    removeCreateAddress(idx: number): void {
+        this.createAddresses.splice(idx, 1);
+    }
 
     constructor(
         private clientService: ClientService,
         private documentTypeService: DocumentTypeService,
         private documentLookupService: DocumentLookupService,
+        private ubigeoService: UbigeoService,
         private notify: NotificationService,
     ) { }
 
@@ -77,7 +113,20 @@ export class QuickClientRegisterComponent implements OnChanges {
         if (changes['isOpen'] && this.isOpen) {
             this.reset();
             this.loadDocumentTypes(1);
+            if (this.allUbigeos.length === 0) this.loadUbigeos();
         }
+    }
+
+    private loadUbigeos(): void {
+        this.loadingUbigeos = true;
+        const s = this.ubigeoService.listActive().subscribe({
+            next: (res) => {
+                this.allUbigeos = res?.data ?? [];
+                this.loadingUbigeos = false;
+            },
+            error: () => { this.loadingUbigeos = false; },
+        });
+        this.sub.add(s);
     }
 
     isNaturalPerson(): boolean { return String(this.personTypeId) === '1'; }
@@ -138,8 +187,7 @@ export class QuickClientRegisterComponent implements OnChanges {
                     if (d) {
                         this.firstName = d.firstName ?? '';
                         this.lastName = [d.lastNamePaternal, d.lastNameMaternal].filter(Boolean).join(' ');
-                        if (d.address) this.address = d.address;
-                    }
+                        }
                     this.isLookingUp = false;
                 },
                 error: err => {
@@ -154,7 +202,6 @@ export class QuickClientRegisterComponent implements OnChanges {
                     const d = res.data;
                     if (d) {
                         this.businessName = d.name ?? '';
-                        if (d.address) this.address = d.address;
                         if (d.isRetentionAgent != null) this.retentionAgent = d.isRetentionAgent;
                     }
                     this.isLookingUp = false;
@@ -194,8 +241,14 @@ export class QuickClientRegisterComponent implements OnChanges {
             phone2: this.phone2.trim() || '',
             email1: this.email1.trim(),
             email2: this.email2.trim() || '',
-            address: this.address.trim() || '',
             retentionAgent: this.retentionAgent,
+            addresses: this.createAddresses.length > 0
+                ? this.createAddresses.map(a => ({
+                    address: a.address,
+                    ubigeo: a.ubigeo || undefined,
+                    description: a.description || undefined,
+                } as ClientAddressRequest))
+                : undefined,
         };
 
         const s = this.clientService.create(payload).subscribe({
@@ -231,9 +284,12 @@ export class QuickClientRegisterComponent implements OnChanges {
         this.phone2 = '';
         this.email1 = '';
         this.email2 = '';
-        this.address = '';
         this.retentionAgent = false;
         this.disabledDocumentType = false;
+        this.createAddresses = [];
+        this.newCreateAddrAddress = '';
+        this.newCreateAddrUbigeo = '';
+        this.newCreateAddrDescription = '';
     }
 
     ngOnDestroy(): void {

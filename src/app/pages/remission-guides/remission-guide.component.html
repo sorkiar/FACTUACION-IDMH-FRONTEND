@@ -104,10 +104,10 @@
                                 <!-- Destinatario -->
                                 <td class="py-3 pr-4">
                                     <p class="font-medium text-gray-800 dark:text-white text-sm">
-                                        {{ guide.recipient?.name ?? '—' }}
+                                        {{ guide.client ? (guide.client.businessName || (guide.client.firstName + ' ' + guide.client.lastName)) : '—' }}
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        {{ guide.recipient?.docType }}: {{ guide.recipient?.docNumber }}
+                                        {{ guide.client?.documentType }}: {{ guide.client?.documentNumber }}
                                     </p>
                                 </td>
 

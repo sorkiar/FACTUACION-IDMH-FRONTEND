@@ -4,6 +4,8 @@ import { SaleInstallmentRequest } from './sale-installment.request';
 
 export interface SaleRequest {
     clientId: number;
+    clientAddressId?: number;
+    clientAddress?: string;
     items: SaleItemRequest[];
     currencyCode?: string;
     paymentType?: string;
