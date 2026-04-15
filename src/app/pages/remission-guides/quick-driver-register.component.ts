@@ -5,7 +5,6 @@ import { Subscription } from 'rxjs';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
 import { LabelComponent } from '../../shared/components/form/label/label.component';
 import { InputFieldComponent } from '../../shared/components/form/input/input-field.component';
-import { Option, SelectComponent } from '../../shared/components/form/select/select.component';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { DriverService } from '../../services/driver.service';
 import { DriverResponse } from '../../dto/driver.response';
@@ -20,7 +19,6 @@ import { DocumentLookupService } from '../../services/document-lookup.service';
         ModalComponent,
         LabelComponent,
         InputFieldComponent,
-        SelectComponent,
     ],
     templateUrl: './quick-driver-register.component.html',
 })
@@ -36,12 +34,7 @@ export class QuickDriverRegisterComponent implements OnChanges, OnDestroy {
     isSubmitting = false;
     isLookingUp = false;
 
-    readonly docTypeOptions: Option[] = [
-        { value: 'DNI', label: 'DNI' },
-        { value: 'RUC', label: 'RUC' },
-    ];
-
-    docType = 'DNI';
+    readonly docType = 'DNI';
     docNumber = '';
     firstName = '';
     lastName = '';
@@ -126,7 +119,6 @@ export class QuickDriverRegisterComponent implements OnChanges, OnDestroy {
     private reset(): void {
         this.submitted = false;
         this.isSubmitting = false;
-        this.docType = 'DNI';
         this.docNumber = '';
         this.firstName = '';
         this.lastName = '';

@@ -10,11 +10,8 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <app-label>Tipo de documento <span class="text-error-500">*</span></app-label>
-                    <app-select [options]="docTypeOptions" [(value)]="docType" placeholder="Seleccione tipo" />
-                    @if (submitted && !docType) {
-                    <p class="mt-1 text-sm text-error-500">El tipo de documento es obligatorio</p>
-                    }
+                    <app-label>Tipo de documento</app-label>
+                    <app-input-field value="DNI" [disabled]="true" />
                 </div>
                 <div>
                     <app-label>N° documento <span class="text-error-500">*</span></app-label>
