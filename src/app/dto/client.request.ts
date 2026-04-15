@@ -9,10 +9,12 @@ export interface ClientRequest {
     birthDate: string | null
     businessName: string
     contactPersonName: string
+    countryCode1?: string
     phone1: string
-    phone2: string
-    email1: string
-    email2: string
+    countryCode2?: string
+    phone2?: string
+    email1?: string
+    email2?: string
     retentionAgent?: boolean
     addresses?: ClientAddressRequest[]
 }

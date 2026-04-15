@@ -20,8 +20,10 @@ import { CheckboxComponent } from '../../shared/components/form/input/checkbox.c
 import { ClientAddressResponse } from '../../dto/client-address.response';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { UbigeoPickerComponent } from '../../shared/components/form/ubigeo-picker/ubigeo-picker.component';
+import { PhonePickerComponent } from '../../shared/components/form/phone-picker/phone-picker.component';
 import { UbigeoService } from '../../services/ubigeo.service';
 import { UbigeoResponse } from '../../dto/ubigeo.response';
+import countriesData from '../../services/utils/countries.json';
 
 @Component({
   selector: 'app-clients',
@@ -40,6 +42,7 @@ import { UbigeoResponse } from '../../dto/ubigeo.response';
     CheckboxComponent,
     DatePickerComponent,
     UbigeoPickerComponent,
+    PhonePickerComponent,
   ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.css',
@@ -77,6 +80,13 @@ export class ClientsComponent implements OnInit, OnDestroy {
   // Ubigeos for address picker
   allUbigeos: UbigeoResponse[] = [];
   loadingUbigeos = false;
+
+  // Countries for phone picker
+  readonly countries = countriesData as { phoneCode: string; maxLength: number }[];
+
+  getPhoneMaxLength(code: string): number {
+    return this.countries.find(c => c.phoneCode === code)?.maxLength ?? 15;
+  }
 
   constructor(
     private clientService: ClientService,
@@ -288,10 +298,12 @@ export class ClientsComponent implements OnInit, OnDestroy {
       birthDate: normalizedBirthDate as any,
       businessName: this.isLegalPerson() ? this.businessName?.trim() : '',
       contactPersonName: this.isLegalPerson() ? this.contactPersonName?.trim() : '',
+      countryCode1: this.phone1?.trim() ? this.countryCode1 : undefined,
       phone1: this.phone1?.trim(),
-      phone2: this.phone2?.trim() || '',
-      email1: this.email1?.trim(),
-      email2: this.email2?.trim() || '',
+      countryCode2: this.phone2?.trim() ? this.countryCode2 : undefined,
+      phone2: this.phone2?.trim() || undefined,
+      email1: this.email1?.trim() || undefined,
+      email2: this.email2?.trim() || undefined,
       retentionAgent: this.retentionAgent,
       addresses: !this.isEditMode && this.createAddresses.length > 0
         ? this.createAddresses.map(a => ({
@@ -343,7 +355,9 @@ export class ClientsComponent implements OnInit, OnDestroy {
   birthDate = '';
   businessName = '';
   contactPersonName = '';
+  countryCode1 = '51';
   phone1 = '';
+  countryCode2 = '51';
   phone2 = '';
   email1 = '';
   email2 = '';
@@ -388,7 +402,9 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.birthDate = '';
     this.businessName = '';
     this.contactPersonName = '';
+    this.countryCode1 = '51';
     this.phone1 = '';
+    this.countryCode2 = '51';
     this.phone2 = '';
     this.email1 = '';
     this.email2 = '';
@@ -406,7 +422,9 @@ export class ClientsComponent implements OnInit, OnDestroy {
     this.birthDate = (c.birthDate as any) ?? '';
     this.businessName = c.businessName ?? '';
     this.contactPersonName = c.contactPersonName ?? '';
+    this.countryCode1 = c.countryCode1 ?? '51';
     this.phone1 = c.phone1 ?? '';
+    this.countryCode2 = c.countryCode2 ?? '51';
     this.phone2 = c.phone2 ?? '';
     this.email1 = c.email1 ?? '';
     this.email2 = c.email2 ?? '';
@@ -417,7 +435,8 @@ export class ClientsComponent implements OnInit, OnDestroy {
     if (!this.personTypeId || !this.documentTypeId || !this.documentNumber) return false;
     if (this.isNaturalPerson() && (!this.firstName || !this.lastName)) return false;
     if (this.isLegalPerson() && !this.businessName) return false;
-    if (!this.phone1 || !this.email1) return false;
+    if (!this.phone1) return false;
+    if (this.phone1.length !== this.getPhoneMaxLength(this.countryCode1)) return false;
     return true;
   }
 
@@ -450,6 +469,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
           if (d) {
             this.firstName = d.firstName ?? '';
             this.lastName = [d.lastNamePaternal, d.lastNameMaternal].filter(Boolean).join(' ');
+            if (!this.isEditMode) this.prefillAddressFromLookup(d.fullAddress, d.ubigeoSunat);
           }
           this.isLookingUp = false;
         },
@@ -466,6 +486,7 @@ export class ClientsComponent implements OnInit, OnDestroy {
           if (d) {
             this.businessName = d.name ?? '';
             if (d.isRetentionAgent != null) this.retentionAgent = d.isRetentionAgent;
+            if (!this.isEditMode) this.prefillAddressFromLookup(d.fullAddress, d.ubigeoSunat);
           }
           this.isLookingUp = false;
         },
@@ -475,6 +496,16 @@ export class ClientsComponent implements OnInit, OnDestroy {
         },
       });
       this.sub.add(s);
+    }
+  }
+
+  private prefillAddressFromLookup(fullAddress: string, ubigeo: string): void {
+    if (!fullAddress?.trim()) return;
+    const entry = { address: fullAddress.trim(), ubigeo: ubigeo?.trim() ?? '', description: '' };
+    if (this.createAddresses.length === 0) {
+      this.createAddresses.push(entry);
+    } else {
+      this.createAddresses[0] = entry;
     }
   }
 

@@ -9,11 +9,13 @@ import { Option, SelectComponent } from '../../shared/components/form/select/sel
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { UbigeoPickerComponent } from '../../shared/components/form/ubigeo-picker/ubigeo-picker.component';
+import { PhonePickerComponent } from '../../shared/components/form/phone-picker/phone-picker.component';
 import { ClientService } from '../../services/client.service';
 import { DocumentTypeService } from '../../services/document-type.service';
 import { DocumentLookupService } from '../../services/document-lookup.service';
 import { UbigeoService } from '../../services/ubigeo.service';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
+import countriesData from '../../services/utils/countries.json';
 import { ClientRequest } from '../../dto/client.request';
 import { ClientResponse } from '../../dto/client.response';
 import { ClientAddressRequest } from '../../dto/client-address.request';
@@ -32,6 +34,7 @@ import { UbigeoResponse } from '../../dto/ubigeo.response';
         CheckboxComponent,
         DatePickerComponent,
         UbigeoPickerComponent,
+        PhonePickerComponent,
     ],
     templateUrl: './quick-client-register.component.html',
 })
@@ -68,11 +71,20 @@ export class QuickClientRegisterComponent implements OnChanges {
     birthDate = '';
     businessName = '';
     contactPersonName = '';
+    countryCode1 = '51';
     phone1 = '';
+    countryCode2 = '51';
     phone2 = '';
     email1 = '';
     email2 = '';
     retentionAgent = false;
+
+    // Countries for phone picker
+    readonly countries = countriesData as { phoneCode: string; maxLength: number }[];
+
+    getPhoneMaxLength(code: string): number {
+        return this.countries.find(c => c.phoneCode === code)?.maxLength ?? 15;
+    }
 
     // Ubigeos
     allUbigeos: UbigeoResponse[] = [];
@@ -187,7 +199,8 @@ export class QuickClientRegisterComponent implements OnChanges {
                     if (d) {
                         this.firstName = d.firstName ?? '';
                         this.lastName = [d.lastNamePaternal, d.lastNameMaternal].filter(Boolean).join(' ');
-                        }
+                        this.prefillAddressFromLookup(d.fullAddress, d.ubigeoSunat);
+                    }
                     this.isLookingUp = false;
                 },
                 error: err => {
@@ -203,6 +216,7 @@ export class QuickClientRegisterComponent implements OnChanges {
                     if (d) {
                         this.businessName = d.name ?? '';
                         if (d.isRetentionAgent != null) this.retentionAgent = d.isRetentionAgent;
+                        this.prefillAddressFromLookup(d.fullAddress, d.ubigeoSunat);
                     }
                     this.isLookingUp = false;
                 },
@@ -215,11 +229,22 @@ export class QuickClientRegisterComponent implements OnChanges {
         }
     }
 
+    private prefillAddressFromLookup(fullAddress: string, ubigeo: string): void {
+        if (!fullAddress?.trim()) return;
+        const entry = { address: fullAddress.trim(), ubigeo: ubigeo?.trim() ?? '', description: '' };
+        if (this.createAddresses.length === 0) {
+            this.createAddresses.push(entry);
+        } else {
+            this.createAddresses[0] = entry;
+        }
+    }
+
     private isFormValid(): boolean {
         if (!this.personTypeId || !this.documentTypeId || !this.documentNumber) return false;
         if (this.isNaturalPerson() && (!this.firstName || !this.lastName)) return false;
         if (this.isLegalPerson() && !this.businessName) return false;
-        if (!this.phone1 || !this.email1) return false;
+        if (!this.phone1) return false;
+        if (this.phone1.length !== this.getPhoneMaxLength(this.countryCode1)) return false;
         return true;
     }
 
@@ -237,10 +262,12 @@ export class QuickClientRegisterComponent implements OnChanges {
             birthDate: this.birthDate?.trim() ? this.birthDate as any : null as any,
             businessName: this.isLegalPerson() ? this.businessName.trim() : '',
             contactPersonName: this.isLegalPerson() ? this.contactPersonName.trim() : '',
+            countryCode1: this.phone1.trim() ? this.countryCode1 : undefined,
             phone1: this.phone1.trim(),
-            phone2: this.phone2.trim() || '',
-            email1: this.email1.trim(),
-            email2: this.email2.trim() || '',
+            countryCode2: this.phone2.trim() ? this.countryCode2 : undefined,
+            phone2: this.phone2.trim() || undefined,
+            email1: this.email1.trim() || undefined,
+            email2: this.email2.trim() || undefined,
             retentionAgent: this.retentionAgent,
             addresses: this.createAddresses.length > 0
                 ? this.createAddresses.map(a => ({
@@ -280,7 +307,9 @@ export class QuickClientRegisterComponent implements OnChanges {
         this.birthDate = '';
         this.businessName = '';
         this.contactPersonName = '';
+        this.countryCode1 = '51';
         this.phone1 = '';
+        this.countryCode2 = '51';
         this.phone2 = '';
         this.email1 = '';
         this.email2 = '';

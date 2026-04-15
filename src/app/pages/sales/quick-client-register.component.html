@@ -115,21 +115,30 @@
                 }
                 <div class="sm:col-span-4">
                     <app-label>Teléfono 1 <span class="text-error-500">*</span></app-label>
-                    <app-input-field [(value)]="phone1" name="phone1" placeholder="Ingrese teléfono" />
+                    <div class="flex">
+                        <app-phone-picker [(value)]="countryCode1" class="w-22.5 shrink-0"></app-phone-picker>
+                        <input type="text" [(ngModel)]="phone1" name="phone1" placeholder="Ej: 999888777"
+                            [maxlength]="getPhoneMaxLength(countryCode1)"
+                            class="h-11 w-full min-w-0 rounded-r-lg border border-l-0 border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+                    </div>
                     @if (submitted && !phone1) {
                     <p class="mt-1 text-sm text-error-500">El teléfono es obligatorio</p>
+                    } @else if (submitted && phone1 && phone1.length !== getPhoneMaxLength(countryCode1)) {
+                    <p class="mt-1 text-sm text-error-500">Debe tener {{ getPhoneMaxLength(countryCode1) }} dígitos</p>
                     }
                 </div>
                 <div class="sm:col-span-4">
                     <app-label>Teléfono 2</app-label>
-                    <app-input-field [(value)]="phone2" name="phone2" placeholder="Opcional" />
+                    <div class="flex">
+                        <app-phone-picker [(value)]="countryCode2" class="w-22.5 shrink-0"></app-phone-picker>
+                        <input type="text" [(ngModel)]="phone2" name="phone2" placeholder="Opcional"
+                            [maxlength]="getPhoneMaxLength(countryCode2)"
+                            class="h-11 w-full min-w-0 rounded-r-lg border border-l-0 border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+                    </div>
                 </div>
                 <div [class]="isLegalPerson() ? 'sm:col-span-4' : 'sm:col-span-6'">
-                    <app-label>Correo 1 <span class="text-error-500">*</span></app-label>
+                    <app-label>Correo 1</app-label>
                     <app-input-field [(value)]="email1" name="email1" placeholder="correo@dominio.com" />
-                    @if (submitted && !email1) {
-                    <p class="mt-1 text-sm text-error-500">El correo es obligatorio</p>
-                    }
                 </div>
                 <div [class]="isLegalPerson() ? 'sm:col-span-4' : 'sm:col-span-6'">
                     <app-label>Correo 2</app-label>
