@@ -45,4 +45,12 @@ export class UserService {
     updateStatus(id: number, status: number): Observable<ApiResponse<void>> {
         return this.http.patch<ApiResponse<void>>(`${this.baseUrl}/${id}/status`, { status });
     }
+
+    /**
+     * PATCH /api/users/me/password
+     * body: { newPassword: string }
+     */
+    changePassword(newPassword: string): Observable<ApiResponse<void>> {
+        return this.http.patch<ApiResponse<void>>(`${this.baseUrl}/me/password`, { newPassword });
+    }
 }

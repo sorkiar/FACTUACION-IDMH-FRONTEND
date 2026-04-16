@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfigurationService } from '../../services/configuration.service';
 import { ConfigurationResponse } from '../../dto/configuration.response';
+import { UserService } from '../../services/user.service';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 
 interface ConfigGroup {
@@ -27,6 +28,7 @@ export class ConfigurationComponent implements OnInit {
         'detraccion_retencion': 'Parámetros tributarios',
         'sunat_envio': 'Configuración SUNAT',
         'tipo_cambio': 'Tipo de cambio',
+        'consulta_externa': 'Consultas Externas',
     };
 
     // Claves a excluir de la interfaz (certificados y campos sensibles internos)
@@ -47,8 +49,48 @@ export class ConfigurationComponent implements OnInit {
         'fetch_hour',
     ]);
 
+    // Password change state
+    newPassword = '';
+    confirmPassword = '';
+    savingPassword = false;
+    passwordSubmitted = false;
+
+    get passwordError(): string {
+        if (!this.newPassword) return 'La contraseña es obligatoria';
+        if (this.newPassword.length < 6) return 'Debe tener al menos 6 caracteres';
+        if (this.newPassword !== this.confirmPassword) return 'Las contraseñas no coinciden';
+        return '';
+    }
+
+    savePassword(): void {
+        this.passwordSubmitted = true;
+        if (this.passwordError) return;
+
+        this.savingPassword = true;
+        this.userService.changePassword(this.newPassword).subscribe({
+            next: res => {
+                this.savingPassword = false;
+                this.passwordSubmitted = false;
+                this.newPassword = '';
+                this.confirmPassword = '';
+                this.notify.success(res?.message ?? 'Contraseña actualizada correctamente');
+            },
+            error: err => {
+                this.savingPassword = false;
+                this.notify.error(err?.error?.message ?? 'No se pudo actualizar la contraseña');
+            },
+        });
+    }
+
+    resetPassword(): void {
+        this.newPassword = '';
+        this.confirmPassword = '';
+        this.passwordSubmitted = false;
+    }
+
     constructor(
         private configService: ConfigurationService,
+        private userService: UserService,
         private notify: NotificationService
     ) { }
 
