@@ -34,6 +34,7 @@ export class SunatDocumentsComponent implements OnInit {
     resendingId: number | null = null;
     checkingTicketId: number | null = null;
     downloadingKey: string | null = null;
+    regeneratingPdfId: number | null = null;
 
     tooltipVisible = false;
     tooltipCode = '';
@@ -179,6 +180,21 @@ export class SunatDocumentsComponent implements OnInit {
 
     isDownloading(doc: SunatDocumentSummaryResponse, type: string): boolean {
         return this.downloadingKey === `${doc.id}-${type}`;
+    }
+
+    regeneratePdf(doc: SunatDocumentSummaryResponse): void {
+        this.regeneratingPdfId = doc.id;
+        this.service.regeneratePdf(doc).subscribe({
+            next: res => {
+                this.notify.success(res.message ?? 'PDF regenerado correctamente', 'Éxito');
+                this.regeneratingPdfId = null;
+                this.load();
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'Error al regenerar el PDF');
+                this.regeneratingPdfId = null;
+            }
+        });
     }
 
     isGuia(doc: SunatDocumentSummaryResponse): boolean {

@@ -29,6 +29,10 @@ export class SunatDocumentService {
         return this.http.get(`${this.entityUrl(doc)}/${type}`, { responseType: 'blob' });
     }
 
+    regeneratePdf(doc: SunatDocumentSummaryResponse): Observable<ApiResponse<string>> {
+        return this.http.post<ApiResponse<string>>(`${this.entityUrl(doc)}/regenerate-pdf`, null);
+    }
+
     private entityUrl(doc: SunatDocumentSummaryResponse): string {
         switch (doc.category) {
             case 'NOTA': return `${this.baseUrl}/credit-debit-notes/${doc.id}`;

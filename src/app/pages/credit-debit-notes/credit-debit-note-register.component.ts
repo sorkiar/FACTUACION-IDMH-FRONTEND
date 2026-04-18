@@ -593,19 +593,19 @@ export class CreditDebitNoteRegisterComponent implements OnChanges {
     // =========================================================
     // TOTALES
     // =========================================================
-    get total(): number {
+    get subtotal(): number {
         return this.items.reduce((sum, i) => {
             const discount = (i.discountPercentage || 0) / 100;
             return sum + (i.quantity * i.unitPrice * (1 - discount));
         }, 0);
     }
 
-    get subtotal(): number {
-        return this.total / 1.18;
+    get igv(): number {
+        return this.subtotal * 0.18;
     }
 
-    get igv(): number {
-        return this.total - this.subtotal;
+    get total(): number {
+        return this.subtotal + this.igv;
     }
 
     // =========================================================

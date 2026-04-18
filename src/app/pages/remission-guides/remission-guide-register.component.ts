@@ -88,9 +88,15 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     readonly transferReasonOptions = [
         { value: 'VENTA', label: 'Venta' },
         { value: 'COMPRA', label: 'Compra' },
-        { value: 'TRASLADO_ENTRE_ESTABLECIMIENTOS', label: 'Traslado entre establecimientos' },
+        { value: 'TRASLADO_EMPRESA', label: 'Traslado entre establecimientos' },
+        // { value: 'IMPORTACION', label: 'Importación' },
+        // { value: 'EXPORTACION', label: 'Exportación' },
         { value: 'DEVOLUCION', label: 'Devolución' },
+        { value: 'TRASLADO_TRANSFORMACION', label: 'Traslado de bienes para transformación' },
         { value: 'OTROS', label: 'Otros' },
+        // { value: 'VENTA_CONFIRMACION', label: 'Venta sujeta a confirmación del comprador' },
+        // { value: 'TRASLADO_ITINERANTE', label: 'Traslado emisor itinerante CP' },
+        // { value: 'TRASLADO_ZONA_PRIMARIA', label: 'Traslado a zona primaria' },
     ];
 
     readonly transportModeOptions = [
