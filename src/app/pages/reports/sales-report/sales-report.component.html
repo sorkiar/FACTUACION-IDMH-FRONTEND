@@ -283,7 +283,7 @@
                                     </td>
 
                                     <td class="py-3 text-center text-gray-600 text-theme-sm dark:text-gray-400">
-                                        S/ {{ row.unitPrice | number:'1.2-2' }}
+                                        {{ currencySymbol(row.currencyCode) }} {{ row.unitPrice | number:'1.2-2' }}
                                     </td>
 
                                     <td class="py-3 text-center text-gray-600 text-theme-sm dark:text-gray-400">
@@ -291,11 +291,11 @@
                                     </td>
 
                                     <td class="py-3 text-center text-gray-700 text-theme-sm dark:text-gray-300 font-medium">
-                                        S/ {{ row.subtotal | number:'1.2-2' }}
+                                        {{ currencySymbol(row.currencyCode) }} {{ row.subtotal | number:'1.2-2' }}
                                     </td>
 
                                     <td class="py-3 text-center text-gray-800 text-theme-sm dark:text-white/90 font-semibold">
-                                        S/ {{ row.saleTotal | number:'1.2-2' }}
+                                        {{ currencySymbol(row.currencyCode) }} {{ row.saleTotal | number:'1.2-2' }}
                                     </td>
 
                                 </tr>

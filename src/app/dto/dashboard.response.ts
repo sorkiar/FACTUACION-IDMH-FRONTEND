@@ -3,8 +3,10 @@ export interface DashboardResponse {
     newClientsToday: number;
     totalSalesWeek: number;
     newSalesToday: number;
-    revenueWeek: number;
-    revenueToday: number;
+    revenueWeekPen: number;
+    revenueWeekUsd: number;
+    revenueTodayPen: number;
+    revenueTodayUsd: number;
 }
 
 export interface MonthlyRevenueResponse {

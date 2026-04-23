@@ -458,10 +458,7 @@
                         </div>
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto de retención</p>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ retentionAmount | number:'1.2-2' }}</p>
-                            @if (currencyCode === 'USD' && retentionApplies) {
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">≈ S/ {{ retentionAmountPen | number:'1.2-2' }}</p>
-                            }
+                            <p class="font-semibold text-gray-800 dark:text-white">S/ {{ retentionAmountPen | number:'1.2-2' }}</p>
                         </div>
                     </div>
                     <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">

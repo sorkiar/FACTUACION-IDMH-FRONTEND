@@ -847,16 +847,9 @@ export class SaleRegisterComponent implements OnChanges {
         return !!this.activeDetraction && this.totalInPen > this.detractionMinAmount;
     }
 
-    /**
-     * Redondeo especial para montos de detracción convertidos a PEN:
-     * - decimal > 0.5 → siguiente entero
-     * - decimal <= 0.5 → entero base + 0.5
-     */
+    // Detracción: round to nearest integer, 0.5 rounds UP (14.49→14, 14.50→15)
     private roundDetraction(value: number): number {
-        const floor = Math.floor(value);
-        const decimal = value - floor;
-        if (decimal > 0.5) return floor + 1;
-        return floor + 0.5;
+        return Math.round(value);
     }
 
     get detractionAmount(): number {
@@ -972,14 +965,15 @@ export class SaleRegisterComponent implements OnChanges {
     }
 
     get retentionAmount(): number {
-        return this.retentionApplies ? Math.round(this.total * this.RETENTION_RATE * 100) / 100 : 0;
+        // HALF_UP 2 decimals in sale currency
+        return this.retentionApplies ? Math.floor(this.total * this.RETENTION_RATE * 100 + 0.5) / 100 : 0;
     }
 
-    /** Equivalente en PEN del monto de retención (solo visual cuando la venta es USD) */
+    /** Retención siempre en PEN. USD: convierte total→PEN antes de aplicar tasa */
     get retentionAmountPen(): number {
         if (!this.retentionApplies) return 0;
         if (this.currencyCode === 'USD' && this.exchangeRateSale > 0) {
-            return Math.round(this.retentionAmount * this.exchangeRateSale * 100) / 100;
+            return Math.floor(this.total * this.exchangeRateSale * this.RETENTION_RATE * 100 + 0.5) / 100;
         }
         return this.retentionAmount;
     }

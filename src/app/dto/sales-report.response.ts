@@ -8,6 +8,7 @@ export interface SalesReportRowResponse {
     discountPercentage: number;
     subtotal: number;
     saleTotal: number;
+    currencyCode?: string;
 }
 
 export interface SalesReportResponse {

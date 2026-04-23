@@ -243,12 +243,18 @@ export class SalesReportComponent implements OnInit {
             ws.getRow(6).height = 22;
 
             // Suma un saleTotal por documento único (el total de venta se repite por cada ítem)
+            // Agrupa por moneda para no mezclar PEN y USD
             const seenDocs = new Set<string>();
-            const total = this.rows.reduce((sum, r) => {
-                if (seenDocs.has(r.document)) return sum;
+            const totalsByCurrency = new Map<string, number>();
+            for (const r of this.rows) {
+                if (seenDocs.has(r.document)) continue;
                 seenDocs.add(r.document);
-                return sum + r.saleTotal;
-            }, 0);
+                const sym = this.currencySymbol(r.currencyCode);
+                totalsByCurrency.set(sym, (totalsByCurrency.get(sym) ?? 0) + r.saleTotal);
+            }
+            const totalStr = [...totalsByCurrency.entries()]
+                .map(([sym, amt]) => `${sym} ${amt.toFixed(2)}`)
+                .join(' | ');
             const now = new Date();
             const genDate = `Generado: ${now.toLocaleDateString('es-PE')} ${now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
 
@@ -287,13 +293,13 @@ export class SalesReportComponent implements OnInit {
 
             ws.mergeCells('G4:I4');
             const totCell = ws.getCell('G4');
-            totCell.value = `Total General: S/ ${total.toFixed(2)}`;
+            totCell.value = `Total General: ${totalStr}`;
             totCell.font = { size: 9, bold: true, color: { argb: 'FF047857' } };
             totCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
             // ── Row 6: Column headers
             const COLS     = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-            const HEADERS  = ['Fecha', 'Documento', 'Cliente', 'Descripción ítem', 'Cant.', 'P. Unit. (S/)', 'Dscto%', 'Subtotal (S/)', 'Total Venta (S/)'];
+            const HEADERS  = ['Fecha', 'Documento', 'Cliente', 'Descripción ítem', 'Cant.', 'P. Unit.', 'Dscto%', 'Subtotal', 'Total Venta'];
             const HDR_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1d4ed8' } } as ExcelJS.Fill;
             const HDR_FONT = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } } as Partial<ExcelJS.Font>;
             const THIN_BORDER: Partial<ExcelJS.Borders> = {
@@ -313,33 +319,35 @@ export class SalesReportComponent implements OnInit {
             });
 
             // ── Data rows
-            const NUM_COLS = new Set(['F', 'G', 'H', 'I']);
             this.rows.forEach((row, idx) => {
                 const rowNum  = 7 + idx;
                 const isEven  = idx % 2 === 0;
                 const rowFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF9FAFB' : 'FFFFFFFF' } } as ExcelJS.Fill;
                 ws.getRow(rowNum).height = 15;
 
-                const rowData: [string, any, ExcelJS.Alignment['horizontal']][] = [
-                    ['A', row.issueDate,          'left'],
-                    ['B', row.document,           'left'],
-                    ['C', row.client,             'left'],
-                    ['D', row.itemDescription,    'left'],
-                    ['E', row.quantity,           'right'],
-                    ['F', row.unitPrice,          'right'],
-                    ['G', row.discountPercentage, 'right'],
-                    ['H', row.subtotal,           'right'],
-                    ['I', row.saleTotal,          'right'],
+                const sym = row.currencyCode === 'USD' ? '$ ' : 'S/ ';
+                const currFmt = `"${sym}"#,##0.00`;
+
+                const rowData: [string, any, ExcelJS.Alignment['horizontal'], string][] = [
+                    ['A', row.issueDate,          'left',  '@'],
+                    ['B', row.document,           'left',  '@'],
+                    ['C', row.client,             'left',  '@'],
+                    ['D', row.itemDescription,    'left',  '@'],
+                    ['E', row.quantity,           'right', '#,##0.00'],
+                    ['F', row.unitPrice,          'right', currFmt],
+                    ['G', row.discountPercentage, 'right', '#,##0.00'],
+                    ['H', row.subtotal,           'right', currFmt],
+                    ['I', row.saleTotal,          'right', currFmt],
                 ];
 
-                rowData.forEach(([col, val, align]) => {
+                rowData.forEach(([col, val, align, fmt]) => {
                     const cell = ws.getCell(`${col}${rowNum}`);
                     cell.value  = val;
                     cell.fill   = rowFill;
                     cell.font   = { size: 9 };
                     cell.border = THIN_BORDER;
                     cell.alignment = { vertical: 'middle', horizontal: align };
-                    if (NUM_COLS.has(col)) cell.numFmt = '#,##0.00';
+                    cell.numFmt = fmt;
                 });
             });
 
@@ -369,6 +377,10 @@ export class SalesReportComponent implements OnInit {
     }
 
     // ── Helpers ────────────────────────────────────────────
+    currencySymbol(code?: string): string {
+        return code === 'USD' ? '$' : 'S/';
+    }
+
     private defaultStartDate(): string {
         const now = new Date();
         return new Date(now.getFullYear(), now.getMonth(), 1)

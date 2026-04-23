@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-6">
 
   <!-- CARD: CLIENTES -->
   <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
@@ -50,26 +50,51 @@
     </div>
   </div>
 
-  <!-- CARD: INGRESOS ESTA SEMANA -->
+  <!-- CARD: INGRESOS ESTA SEMANA - PEN -->
   <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
     <div class="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800"
       [innerHTML]="icons.moneyIcon | safeHtml">
     </div>
     <div class="flex items-end justify-between mt-5">
       <div>
-        <span class="text-sm text-gray-500 dark:text-gray-400">Ingresos de la semana</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400">Ingresos de la semana (S/.)</span>
         @if (loading) {
         <div class="mt-2 h-7 w-28 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
         } @else {
         <h4 class="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-          S/ {{ data?.revenueWeek ?? 0 | number:'1.2-2' }}
+          S/ {{ data?.revenueWeekPen ?? 0 | number:'1.2-2' }}
         </h4>
         }
       </div>
       @if (!loading && data) {
       <app-badge color="success">
         <span [innerHTML]="icons.arrowUpIcon | safeHtml"></span>
-        S/ {{ data.revenueToday | number:'1.2-2' }} hoy
+        S/ {{ data.revenueTodayPen | number:'1.2-2' }} hoy
+      </app-badge>
+      }
+    </div>
+  </div>
+
+  <!-- CARD: INGRESOS ESTA SEMANA - USD -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+    <div class="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800"
+      [innerHTML]="icons.moneyIcon | safeHtml">
+    </div>
+    <div class="flex items-end justify-between mt-5">
+      <div>
+        <span class="text-sm text-gray-500 dark:text-gray-400">Ingresos de la semana ($)</span>
+        @if (loading) {
+        <div class="mt-2 h-7 w-28 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
+        } @else {
+        <h4 class="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+          $ {{ data?.revenueWeekUsd ?? 0 | number:'1.2-2' }}
+        </h4>
+        }
+      </div>
+      @if (!loading && data) {
+      <app-badge color="success">
+        <span [innerHTML]="icons.arrowUpIcon | safeHtml"></span>
+        $ {{ data.revenueTodayUsd | number:'1.2-2' }} hoy
       </app-badge>
       }
     </div>
