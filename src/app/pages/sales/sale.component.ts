@@ -215,6 +215,12 @@ export class SaleComponent implements OnInit, OnDestroy {
   // =========================
   // HELPERS
   // =========================
+  retentionSymbol(sale: { currencyCode?: string; document?: { issueDate?: string } }): string {
+    const d = sale.document?.issueDate;
+    if (d && d >= '2026-04-23') return 'S/';
+    return sale.currencyCode === 'USD' ? '$' : 'S/';
+  }
+
   formatIssueDate(dateStr?: string): string {
     if (!dateStr) return '-';
     const d = new Date(dateStr);

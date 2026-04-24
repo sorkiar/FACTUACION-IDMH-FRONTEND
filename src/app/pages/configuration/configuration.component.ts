@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { ConfigurationService } from '../../services/configuration.service';
 import { ConfigurationResponse } from '../../dto/configuration.response';
 import { UserService } from '../../services/user.service';
+import { ExchangeRateService } from '../../services/exchange-rate.service';
+import { ExchangeRateResponse } from '../../dto/exchange-rate.response';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 
 interface ConfigGroup {
@@ -88,14 +91,77 @@ export class ConfigurationComponent implements OnInit {
         this.passwordSubmitted = false;
     }
 
+    // Exchange rate state
+    todayRate?: ExchangeRateResponse;
+    tcTodayLoading = false;
+    tcRangeFrom = this.localToday();
+    tcRangeTo   = this.localToday();
+    tcRangeLoading = false;
+    tcRangeSubmitted = false;
+
+    get tcRangeError(): string {
+        if (!this.tcRangeFrom || !this.tcRangeTo) return 'Ambas fechas son requeridas';
+        if (this.tcRangeFrom > this.tcRangeTo) return 'La fecha inicial no puede ser mayor a la final';
+        const [fy, fm] = this.tcRangeFrom.split('-');
+        const [ty, tm] = this.tcRangeTo.split('-');
+        if (fy !== ty || fm !== tm) return 'El rango debe estar dentro del mismo mes y año';
+        return '';
+    }
+
+    onTcFromChange(e: { dateStr: string }): void { this.tcRangeFrom = e.dateStr; }
+    onTcToChange(e: { dateStr: string }): void { this.tcRangeTo = e.dateStr; }
+
+    updateTodayRate(): void {
+        const today = this.localToday();
+        this.tcTodayLoading = true;
+        this.exchangeRateService.bulkImport(today, today).subscribe({
+            next: res => {
+                this.tcTodayLoading = false;
+                this.todayRate = res.data?.[0] ?? this.todayRate;
+                this.notify.success(res?.message ?? 'Tipo de cambio del día actualizado', 'Tipo de cambio');
+            },
+            error: err => {
+                this.tcTodayLoading = false;
+                this.notify.error(err?.error?.message ?? 'No se pudo actualizar el tipo de cambio');
+            },
+        });
+    }
+
+    updateRangeRate(): void {
+        this.tcRangeSubmitted = true;
+        if (this.tcRangeError) return;
+        this.tcRangeLoading = true;
+        this.exchangeRateService.bulkImport(this.tcRangeFrom, this.tcRangeTo).subscribe({
+            next: res => {
+                this.tcRangeLoading = false;
+                this.tcRangeSubmitted = false;
+                this.notify.success(res?.message ?? 'Tipos de cambio actualizados', 'Tipo de cambio');
+            },
+            error: err => {
+                this.tcRangeLoading = false;
+                this.notify.error(err?.error?.message ?? 'No se pudo actualizar el tipo de cambio');
+            },
+        });
+    }
+
+    private localToday(): string {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
     constructor(
         private configService: ConfigurationService,
         private userService: UserService,
+        private exchangeRateService: ExchangeRateService,
         private notify: NotificationService
     ) { }
 
     ngOnInit(): void {
         this.load();
+        this.exchangeRateService.getToday().subscribe({
+            next: res => { this.todayRate = res.data ?? undefined; },
+            error: () => {}
+        });
     }
 
     load(): void {

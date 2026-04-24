@@ -173,7 +173,7 @@
                                         <div>
                                             <app-badge size="sm" color="warning">Retención</app-badge>
                                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {{ sale.currencyCode === 'USD' ? '$' : 'S/' }} {{ sale.retentionAmount ?? 0 | number:'1.2-2' }}
+                                                {{ retentionSymbol(sale) }} {{ sale.retentionAmount ?? 0 | number:'1.2-2' }}
                                             </p>
                                         </div>
                                         } @else if (sale.hasDetraction) {

@@ -14,4 +14,8 @@ export class ExchangeRateService {
     getToday(): Observable<ApiResponse<ExchangeRateResponse>> {
         return this.http.get<ApiResponse<ExchangeRateResponse>>(this.baseUrl);
     }
+
+    bulkImport(from: string, to: string): Observable<ApiResponse<ExchangeRateResponse[]>> {
+        return this.http.post<ApiResponse<ExchangeRateResponse[]>>(`${this.baseUrl}/bulk`, { from, to });
+    }
 }
