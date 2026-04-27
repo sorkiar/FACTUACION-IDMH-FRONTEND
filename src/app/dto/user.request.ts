@@ -5,5 +5,5 @@ export interface UserRequest {
     firstName?: string;
     lastName?: string;
     username: string;
-    password: string;
+    password?: string;
 }

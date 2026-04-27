@@ -32,6 +32,13 @@ export class UserService {
     }
 
     /**
+     * POST /api/users
+     */
+    create(request: UserRequest): Observable<ApiResponse<UserResponse>> {
+        return this.http.post<ApiResponse<UserResponse>>(this.baseUrl, request);
+    }
+
+    /**
      * PUT /api/users/{id}
      */
     update(id: number, request: UserRequest): Observable<ApiResponse<UserResponse>> {

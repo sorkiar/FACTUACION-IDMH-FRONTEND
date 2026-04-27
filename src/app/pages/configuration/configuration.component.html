@@ -89,61 +89,6 @@
             </div>
             }
 
-            <!-- SEGURIDAD Y ADMINISTRACIÓN -->
-            <div class="bg-white dark:bg-white/3 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
-
-                <div class="flex items-center justify-between mb-5">
-                    <h2 class="text-sm font-bold tracking-wide text-gray-700 dark:text-gray-300 uppercase">
-                        Seguridad y administración
-                    </h2>
-                    <div class="flex items-center gap-2">
-                        <button type="button" (click)="resetPassword()"
-                            [disabled]="(!newPassword && !confirmPassword) || savingPassword"
-                            class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-white/5 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed">
-                            Limpiar
-                        </button>
-                        <button type="button" (click)="savePassword()"
-                            [disabled]="savingPassword"
-                            class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
-                            {{ savingPassword ? 'Guardando...' : 'Guardar contraseña' }}
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-5 mb-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                            Contraseña administrador
-                        </label>
-                        <input type="password" [(ngModel)]="newPassword"
-                            placeholder="Nueva contraseña"
-                            class="w-full px-3 py-2 text-sm text-gray-800 dark:text-white bg-white dark:bg-white/5 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            [class.border-red-400]="passwordSubmitted && !newPassword" />
-                        @if (passwordSubmitted && !newPassword) {
-                        <p class="mt-1 text-xs text-error-500">La contraseña es obligatoria</p>
-                        } @else if (passwordSubmitted && newPassword && newPassword.length < 6) {
-                        <p class="mt-1 text-xs text-error-500">Debe tener al menos 6 caracteres</p>
-                        }
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                            Confirmar contraseña
-                        </label>
-                        <input type="password" [(ngModel)]="confirmPassword"
-                            placeholder="Repite la contraseña"
-                            class="w-full px-3 py-2 text-sm text-gray-800 dark:text-white bg-white dark:bg-white/5 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            [class.border-red-400]="passwordSubmitted && newPassword && newPassword !== confirmPassword" />
-                        @if (passwordSubmitted && newPassword && newPassword !== confirmPassword) {
-                        <p class="mt-1 text-xs text-error-500">Las contraseñas no coinciden</p>
-                        }
-                    </div>
-                </div>
-
-                <p class="text-xs text-gray-400 dark:text-gray-500">
-                    Usar una contraseña segura. Mínimo 6 caracteres.
-                </p>
-            </div>
-
             <!-- TIPO DE CAMBIO -->
             <div class="bg-white dark:bg-white/3 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
 

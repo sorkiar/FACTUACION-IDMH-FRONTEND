@@ -17,6 +17,10 @@ import { SalesReportComponent } from './pages/reports/sales-report/sales-report.
 import { ConfigurationComponent } from './pages/configuration/configuration.component';
 import { CarrierComponent } from './pages/carriers/carrier.component';
 import { DriverComponent } from './pages/drivers/driver.component';
+import { MenusComponent } from './pages/security/menus/menus.component';
+import { ProfilesComponent } from './pages/security/profiles/profiles.component';
+import { SecurityUsersComponent } from './pages/security/users/security-users.component';
+import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 
 export const routes: Routes = [
   {
@@ -85,6 +89,26 @@ export const routes: Routes = [
         path: 'drivers',
         component: DriverComponent,
         title: 'Conductores | IDMH Perú'
+      },
+      {
+        path: 'security/menus',
+        component: MenusComponent,
+        title: 'Menús | IDMH Perú'
+      },
+      {
+        path: 'security/profiles',
+        component: ProfilesComponent,
+        title: 'Perfiles | IDMH Perú'
+      },
+      {
+        path: 'security/users',
+        component: SecurityUsersComponent,
+        title: 'Usuarios | IDMH Perú'
+      },
+      {
+        path: 'my-profile',
+        component: MyProfileComponent,
+        title: 'Mi Perfil | IDMH Perú'
       },
     ]
   },

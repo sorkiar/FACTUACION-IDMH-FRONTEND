@@ -91,6 +91,13 @@
               </svg>
             }
           </h2>
+          @if (loadingSidebar) {
+          <div class="flex flex-col gap-3 px-1 py-2">
+            @for (s of [1,2,3,4,5]; track s) {
+            <div class="h-9 rounded-lg bg-gray-100 dark:bg-white/[0.05] animate-pulse"></div>
+            }
+          </div>
+          } @else {
           <ul class="flex flex-col gap-1">
             @for (nav of navItems; track $index; let i = $index) {
               <li>
@@ -126,24 +133,6 @@
                     ) {
                       <span class="menu-item-text">
                         {{ nav.name }}
-                      </span>
-                    }
-                    @if (
-                      nav.new &&
-                      ((isExpanded$ | async) ||
-                        (isHovered$ | async) ||
-                        (isMobileOpen$ | async))
-                    ) {
-                      <span
-                        class="ml-auto absolute right-10 menu-dropdown-badge"
-                        [ngClass]="{
-                          'menu-dropdown-badge-active':
-                            openSubmenu === 'main-' + i,
-                          'menu-dropdown-badge-inactive':
-                            openSubmenu !== 'main-' + i,
-                        }"
-                      >
-                        new
                       </span>
                     }
                     @if (
@@ -208,37 +197,6 @@
                             }"
                           >
                             {{ subItem.name }}
-                            <span class="flex items-center gap-1 ml-auto">
-                              @if (subItem.new) {
-                                <span
-                                  class="menu-dropdown-badge"
-                                  [ngClass]="{
-                                    'menu-dropdown-badge-active': isActive(
-                                      subItem.path
-                                    ),
-                                    'menu-dropdown-badge-inactive': !isActive(
-                                      subItem.path
-                                    ),
-                                  }"
-                                >
-                                  new
-                                </span>
-                              }
-                              @if (subItem.pro) {
-                                <span
-                                  class="ml-auto menu-dropdown-badge-pro"
-                                  [ngClass]="{
-                                    'menu-dropdown-badge-pro-active': isActive(
-                                      subItem.path
-                                    ),
-                                    'menu-dropdown-badge-pro-inactive':
-                                      !isActive(subItem.path),
-                                  }"
-                                >
-                                  pro
-                                </span>
-                              }
-                            </span>
                           </a>
                         </li>
                       }
@@ -277,6 +235,7 @@
               </li>
             }
           </ul>
+          }
         </div>
         <!-- end main menu -->
 
@@ -435,37 +394,6 @@
                             }"
                           >
                             {{ subItem.name }}
-                            <span class="flex items-center gap-1 ml-auto">
-                              @if (subItem.new) {
-                                <span
-                                  class="menu-dropdown-badge"
-                                  [ngClass]="{
-                                    'menu-dropdown-badge-active': isActive(
-                                      subItem.path
-                                    ),
-                                    'menu-dropdown-badge-inactive': !isActive(
-                                      subItem.path
-                                    ),
-                                  }"
-                                >
-                                  new
-                                </span>
-                              }
-                              @if (subItem.pro) {
-                                <span
-                                  class="ml-auto menu-dropdown-badge-pro"
-                                  [ngClass]="{
-                                    'menu-dropdown-badge-pro-active': isActive(
-                                      subItem.path
-                                    ),
-                                    'menu-dropdown-badge-pro-inactive':
-                                      !isActive(subItem.path),
-                                  }"
-                                >
-                                  pro
-                                </span>
-                              }
-                            </span>
                           </a>
                         </li>
                       }

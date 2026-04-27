@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { ConfigurationService } from '../../services/configuration.service';
 import { ConfigurationResponse } from '../../dto/configuration.response';
-import { UserService } from '../../services/user.service';
 import { ExchangeRateService } from '../../services/exchange-rate.service';
 import { ExchangeRateResponse } from '../../dto/exchange-rate.response';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
@@ -51,45 +49,6 @@ export class ConfigurationComponent implements OnInit {
         'sunat_token',
         'fetch_hour',
     ]);
-
-    // Password change state
-    newPassword = '';
-    confirmPassword = '';
-    savingPassword = false;
-    passwordSubmitted = false;
-
-    get passwordError(): string {
-        if (!this.newPassword) return 'La contraseña es obligatoria';
-        if (this.newPassword.length < 6) return 'Debe tener al menos 6 caracteres';
-        if (this.newPassword !== this.confirmPassword) return 'Las contraseñas no coinciden';
-        return '';
-    }
-
-    savePassword(): void {
-        this.passwordSubmitted = true;
-        if (this.passwordError) return;
-
-        this.savingPassword = true;
-        this.userService.changePassword(this.newPassword).subscribe({
-            next: res => {
-                this.savingPassword = false;
-                this.passwordSubmitted = false;
-                this.newPassword = '';
-                this.confirmPassword = '';
-                this.notify.success(res?.message ?? 'Contraseña actualizada correctamente');
-            },
-            error: err => {
-                this.savingPassword = false;
-                this.notify.error(err?.error?.message ?? 'No se pudo actualizar la contraseña');
-            },
-        });
-    }
-
-    resetPassword(): void {
-        this.newPassword = '';
-        this.confirmPassword = '';
-        this.passwordSubmitted = false;
-    }
 
     // Exchange rate state
     todayRate?: ExchangeRateResponse;
@@ -151,7 +110,6 @@ export class ConfigurationComponent implements OnInit {
 
     constructor(
         private configService: ConfigurationService,
-        private userService: UserService,
         private exchangeRateService: ExchangeRateService,
         private notify: NotificationService
     ) { }

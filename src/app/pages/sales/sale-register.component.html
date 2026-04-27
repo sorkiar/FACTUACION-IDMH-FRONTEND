@@ -490,7 +490,7 @@
                         </div>
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto de retención</p>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ currencySymbol }} {{ selectedSale?.retentionAmount ?? 0 | number:'1.2-2' }}</p>
+                            <p class="font-semibold text-gray-800 dark:text-white">S/ {{ selectedSale?.retentionAmount ?? 0 | number:'1.2-2' }}</p>
                         </div>
                         <div class="rounded-lg bg-white dark:bg-white/[0.05] p-3 border border-blue-100 dark:border-blue-800">
                             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Monto neto a recibir</p>
@@ -775,11 +775,11 @@
 
                         @if (p.paymentReference) {
                         <p class="text-xs text-gray-500 dark:text-gray-400">
-                            Ref: {{ p.paymentReference }} / S/. {{ p.amountPaid }}
+                            Ref: {{ p.paymentReference }} / {{ currencySymbol }} {{ p.amountPaid }}
                         </p>
                         } @else {
                         <p class="text-xs text-gray-500 dark:text-gray-400">
-                            S/. {{ p.amountPaid }}
+                            {{ currencySymbol }} {{ p.amountPaid }}
                         </p>
                         }
 
@@ -805,7 +805,7 @@
                 <div
                     class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between text-sm font-semibold text-gray-800 dark:text-white">
                     <span>Total pagado</span>
-                    <span>S/ {{ getViewPaymentTotal() | number:'1.2-2' }}</span>
+                    <span>{{ currencySymbol }} {{ getViewPaymentTotal() | number:'1.2-2' }}</span>
                 </div>
 
             </div>
