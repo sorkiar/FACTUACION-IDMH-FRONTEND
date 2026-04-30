@@ -88,6 +88,14 @@
         }
       </div>
 
+      <!-- reCAPTCHA v2 -->
+      <div class="flex flex-col items-center gap-1.5">
+        <div id="recaptcha-container"></div>
+        @if (submitted && recaptchaError) {
+          <p class="text-sm text-error-500">{{ recaptchaError }}</p>
+        }
+      </div>
+
       <!-- ERROR BACKEND -->
       @if (submitted && errorMessage) {
         <div

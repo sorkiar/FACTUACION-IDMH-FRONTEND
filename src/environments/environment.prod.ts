@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   frontUrl: 'https://api.facturacion-idmhperu.website/',
   apiUrl: 'https://api.facturacion-idmhperu.website/api',
+  recaptchaSiteKey: '6Lcwa9EsAAAAAGncTsPPhdVG9NXGw6Lwka9N2AKM',
 };
 /**
 
