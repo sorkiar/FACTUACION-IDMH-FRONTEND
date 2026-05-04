@@ -3,7 +3,7 @@ import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, OnIn
 import { SidebarService } from '../../services/sidebar.service';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
-import { combineLatest, Subscription } from 'rxjs';
+import { catchError, combineLatest, forkJoin, of, Subscription } from 'rxjs';
 import { MenuService } from '../../../services/menu.service';
 import { NavStateService } from '../../../services/nav-state.service';
 import { SidebarItemResponse } from '../../../dto/sidebar-item.response';
@@ -82,15 +82,23 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   }
 
   private loadSidebar(): void {
-    this.menuService.getSidebar().subscribe({
-      next: res => {
-        const items = res.data ?? [];
+    const empty = of({ data: [] as SidebarItemResponse[] });
+    forkJoin({
+      sidebar: this.menuService.getSidebar(),
+      navbar: this.menuService.getNavbar().pipe(catchError(() => empty)),
+      internal: this.menuService.getInternal().pipe(catchError(() => empty)),
+    }).subscribe({
+      next: ({ sidebar, navbar, internal }) => {
+        const items = sidebar.data ?? [];
         this.navItems = items.map(item => this.mapItem(item));
         const paths: string[] = [];
-        items.forEach(item => {
+        const addPaths = (list: SidebarItemResponse[]) => list.forEach(item => {
           if (item.path) paths.push(item.path);
           item.subItems?.forEach(s => paths.push(s.path));
         });
+        addPaths(items);
+        addPaths(navbar.data ?? []);
+        addPaths(internal.data ?? []);
         this.navState.setPaths(paths);
         this.loadingSidebar = false;
         this.setActiveMenuFromRoute(this.router.url);

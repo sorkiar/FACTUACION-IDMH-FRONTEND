@@ -4,10 +4,12 @@ import { Subscription } from 'rxjs';
 
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { BadgeComponent } from '../../shared/components/ui/badge/badge.component';
+import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 
 import { RemissionGuideService } from '../../services/remission-guide.service';
 import { NotificationService } from '../../shared/components/ui/notification/notification.service';
 import { RemissionGuideResponse } from '../../dto/remission-guide.response';
+import { TransferReasonResponse } from '../../dto/transfer-reason.response';
 import { RemissionGuideRegisterComponent } from './remission-guide-register.component';
 
 @Component({
@@ -16,6 +18,7 @@ import { RemissionGuideRegisterComponent } from './remission-guide-register.comp
     imports: [
         PageBreadcrumbComponent,
         BadgeComponent,
+        ButtonComponent,
         NgClass,
         RemissionGuideRegisterComponent,
     ],
@@ -148,7 +151,7 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
                 g.series?.toLowerCase().includes(this.searchTerm) ||
                 g.sequence?.toLowerCase().includes(this.searchTerm) ||
                 (g.client ? (g.client.businessName || `${g.client.firstName ?? ''} ${g.client.lastName ?? ''}`).toLowerCase().includes(this.searchTerm) : false) ||
-                g.transferReason?.toLowerCase().includes(this.searchTerm) ||
+                g.transferReason?.name?.toLowerCase().includes(this.searchTerm) ||
                 g.status?.toLowerCase().includes(this.searchTerm)
             );
         }
@@ -164,6 +167,22 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
 
     get totalPages(): number {
         return Math.max(1, Math.ceil(this.filteredGuides.length / this.itemsPerPage));
+    }
+
+    get pageItems(): (number | '...')[] {
+        const total = this.totalPages;
+        const current = this.currentPage;
+        const pages = new Set<number>();
+        for (let i = 1; i <= Math.min(3, total); i++) pages.add(i);
+        for (let i = Math.max(1, total - 2); i <= total; i++) pages.add(i);
+        for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) pages.add(i);
+        const sorted = Array.from(pages).sort((a, b) => a - b);
+        const result: (number | '...')[] = [];
+        for (let i = 0; i < sorted.length; i++) {
+            if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push('...');
+            result.push(sorted[i]);
+        }
+        return result;
     }
 
     get currentItems(): RemissionGuideResponse[] {
@@ -197,15 +216,8 @@ export class RemissionGuideComponent implements OnInit, OnDestroy {
         return `${guide.series}-${guide.sequence}`;
     }
 
-    getTransferReasonLabel(reason: string): string {
-        const map: Record<string, string> = {
-            VENTA: 'Venta',
-            COMPRA: 'Compra',
-            TRASLADO_ENTRE_ESTABLECIMIENTOS: 'Traslado entre establ.',
-            DEVOLUCION: 'Devolución',
-            OTROS: 'Otros',
-        };
-        return map[reason] ?? reason;
+    getTransferReasonLabel(reason: TransferReasonResponse | undefined): string {
+        return reason?.name ?? '';
     }
 
     getTransportModeLabel(mode: string): string {

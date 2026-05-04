@@ -90,15 +90,15 @@
                 <div>
                     <app-label>Motivo de traslado *</app-label>
                     @if (isViewMode) {
-                    <app-input-field type="text" [value]="getTransferReasonLabel(transferReason)"
+                    <app-input-field type="text" [value]="selectedTransferReason?.name ?? ''"
                         [disabled]="true"></app-input-field>
                     } @else {
                     <app-select placeholder="Seleccionar motivo" [options]="transferReasonOptions"
-                        [(value)]="transferReason"></app-select>
+                        [(value)]="transferReasonIdStr"></app-select>
                     }
                 </div>
 
-                @if (transferReason === 'OTROS') {
+                @if (selectedTransferReason?.code === '13') {
                 <div class="sm:col-span-2">
                     <app-label>Descripción del motivo *</app-label>
                     @if (isViewMode) {
@@ -399,6 +399,17 @@
                             placeholder="Seleccionar ubigeo de partida..."></app-ubigeo-picker>
                         }
                     </div>
+                    @if (selectedTransferReason?.code === '04') {
+                    <div>
+                        <app-label>Código de establecimiento de partida *</app-label>
+                        @if (isViewMode) {
+                        <app-input-field type="text" [value]="originLocalCode" [disabled]="true"></app-input-field>
+                        } @else {
+                        <app-input-field type="text" placeholder="Ej: 0001"
+                            [(value)]="originLocalCode"></app-input-field>
+                        }
+                    </div>
+                    }
                 </div>
             </div>
 
@@ -516,6 +527,18 @@
                             </div>
 
                         </div>
+                    </div>
+                    }
+
+                    @if (selectedTransferReason?.code === '04') {
+                    <div>
+                        <app-label>Código de establecimiento de llegada *</app-label>
+                        @if (isViewMode) {
+                        <app-input-field type="text" [value]="destinationLocalCode" [disabled]="true"></app-input-field>
+                        } @else {
+                        <app-input-field type="text" placeholder="Ej: 0001"
+                            [(value)]="destinationLocalCode"></app-input-field>
+                        }
                     </div>
                     }
 

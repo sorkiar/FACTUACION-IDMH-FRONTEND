@@ -21,6 +21,14 @@ export class MenuService {
         return this.http.get<ApiResponse<SidebarItemResponse[]>>(`${this.baseUrl}/sidebar`);
     }
 
+    getNavbar(): Observable<ApiResponse<SidebarItemResponse[]>> {
+        return this.http.get<ApiResponse<SidebarItemResponse[]>>(`${this.baseUrl}/navbar`);
+    }
+
+    getInternal(): Observable<ApiResponse<SidebarItemResponse[]>> {
+        return this.http.get<ApiResponse<SidebarItemResponse[]>>(`${this.baseUrl}/internal`);
+    }
+
     findById(id: number): Observable<ApiResponse<MenuResponse>> {
         return this.http.get<ApiResponse<MenuResponse>>(`${this.baseUrl}/${id}`);
     }

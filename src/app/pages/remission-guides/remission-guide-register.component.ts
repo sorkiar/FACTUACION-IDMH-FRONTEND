@@ -17,6 +17,7 @@ import { UbigeoService } from '../../services/ubigeo.service';
 import { ClientService } from '../../services/client.service';
 import { CarrierService } from '../../services/carrier.service';
 import { DriverService } from '../../services/driver.service';
+import { TransferReasonService } from '../../services/transfer-reason.service';
 
 import { ProductResponse } from '../../dto/product.response';
 import { ClientResponse } from '../../dto/client.response';
@@ -25,6 +26,7 @@ import { DriverResponse } from '../../dto/driver.response';
 import { RemissionGuideResponse } from '../../dto/remission-guide.response';
 import { RemissionGuideItemRequest } from '../../dto/remission-guide-item.request';
 import { RemissionGuideRequest } from '../../dto/remission-guide.request';
+import { TransferReasonResponse } from '../../dto/transfer-reason.response';
 import { UbigeoResponse } from '../../dto/ubigeo.response';
 
 import { QuickProductRegisterComponent } from '../sales/quick-product-register.component';
@@ -85,19 +87,8 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     // ============================
     // SELECT OPTIONS
     // ============================
-    readonly transferReasonOptions = [
-        { value: 'VENTA', label: 'Venta' },
-        { value: 'COMPRA', label: 'Compra' },
-        { value: 'TRASLADO_EMPRESA', label: 'Traslado entre establecimientos' },
-        // { value: 'IMPORTACION', label: 'Importación' },
-        // { value: 'EXPORTACION', label: 'Exportación' },
-        { value: 'DEVOLUCION', label: 'Devolución' },
-        { value: 'TRASLADO_TRANSFORMACION', label: 'Traslado de bienes para transformación' },
-        { value: 'OTROS', label: 'Otros' },
-        // { value: 'VENTA_CONFIRMACION', label: 'Venta sujeta a confirmación del comprador' },
-        // { value: 'TRASLADO_ITINERANTE', label: 'Traslado emisor itinerante CP' },
-        // { value: 'TRASLADO_ZONA_PRIMARIA', label: 'Traslado a zona primaria' },
-    ];
+    transferReasonList: TransferReasonResponse[] = [];
+    transferReasonOptions: { value: string; label: string }[] = [];
 
     readonly transportModeOptions = [
         { value: 'TRANSPORTE_PUBLICO', label: 'Transporte Público' },
@@ -108,8 +99,12 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     // DATOS GENERALES
     // ============================
     transferDate = '';
-    transferReason = '';
+    transferReasonIdStr = '';
     transferReasonDescription = '';
+
+    get selectedTransferReason(): TransferReasonResponse | undefined {
+        return this.transferReasonList.find(r => String(r.id) === this.transferReasonIdStr);
+    }
     transportMode = 'TRANSPORTE_PUBLICO';
     grossWeight: number = 0;
     weightUnit = 'KGM';
@@ -125,8 +120,10 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
 
     originAddress = this.defaultOriginAddress;
     originUbigeo = this.defaultOriginUbigeo;
+    originLocalCode = '';
     destinationAddress = '';
     destinationUbigeo = '';
+    destinationLocalCode = '';
 
     // ============================
     // CLIENTE (DESTINATARIO)
@@ -496,11 +493,23 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         private clientService: ClientService,
         private carrierService: CarrierService,
         private driverService: DriverService,
+        private transferReasonService: TransferReasonService,
         private notify: NotificationService
     ) { }
 
     ngOnInit(): void {
         this.loadUbigeos();
+        this.loadTransferReasons();
+    }
+
+    private loadTransferReasons(): void {
+        this.transferReasonService.getAll({ status: 1 }).subscribe({
+            next: res => {
+                this.transferReasonList = res.data ?? [];
+                this.transferReasonOptions = this.transferReasonList.map(r => ({ value: String(r.id), label: r.name }));
+            },
+            error: () => {}
+        });
     }
 
     private loadUbigeos(): void {
@@ -537,7 +546,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         this.resetForm();
         this.isViewMode = true;
         this.transferDate = guide.transferDate;
-        this.transferReason = guide.transferReason;
+        this.transferReasonIdStr = String(guide.transferReason.id);
         this.transferReasonDescription = guide.transferReasonDescription ?? '';
         this.transportMode = guide.transportMode;
         this.grossWeight = guide.grossWeight;
@@ -551,8 +560,10 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         this.selectedCarrier = guide.carrier ?? undefined;
         this.originAddress = guide.originAddress;
         this.originUbigeo = guide.originUbigeo;
+        this.originLocalCode = guide.originLocalCode ?? '';
         this.destinationAddress = guide.destinationAddress;
         this.destinationUbigeo = guide.destinationUbigeo;
+        this.destinationLocalCode = guide.destinationLocalCode ?? '';
         this.items = guide.items.map(i => ({
             productId: i.productId,
             description: i.description,
@@ -671,8 +682,8 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     // ============================
     submitGuide(): void {
         if (!this.transferDate) { this.notify.warning('Debe ingresar la fecha de traslado', 'Validación'); return; }
-        if (!this.transferReason) { this.notify.warning('Debe seleccionar un motivo de traslado', 'Validación'); return; }
-        if (this.transferReason === 'OTROS' && !this.transferReasonDescription.trim()) {
+        if (!this.transferReasonIdStr) { this.notify.warning('Debe seleccionar un motivo de traslado', 'Validación'); return; }
+        if (this.selectedTransferReason?.code === '13' && !this.transferReasonDescription.trim()) {
             this.notify.warning('Debe ingresar la descripción del motivo', 'Validación'); return;
         }
         if (!this.grossWeight || this.grossWeight <= 0) { this.notify.warning('El peso bruto debe ser mayor a 0', 'Validación'); return; }
@@ -680,6 +691,10 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         if (!this.originUbigeo.trim()) { this.notify.warning('Debe ingresar el ubigeo de partida', 'Validación'); return; }
         if (!this.destinationAddress.trim()) { this.notify.warning('Debe ingresar la dirección de llegada', 'Validación'); return; }
         if (!this.destinationUbigeo.trim()) { this.notify.warning('Debe ingresar el ubigeo de llegada', 'Validación'); return; }
+        if (this.selectedTransferReason?.code === '04') {
+            if (!this.originLocalCode.trim()) { this.notify.warning('Debe ingresar el código de establecimiento de partida', 'Validación'); return; }
+            if (!this.destinationLocalCode.trim()) { this.notify.warning('Debe ingresar el código de establecimiento de llegada', 'Validación'); return; }
+        }
         if (!this.selectedClient) { this.notify.warning('Debe seleccionar un destinatario', 'Validación'); return; }
         if (!this.clientAddress.trim()) { this.notify.warning('Debe consignar la dirección del destinatario', 'Validación'); return; }
         if (this.transportMode === 'TRANSPORTE_PUBLICO' && !this.selectedCarrier) {
@@ -697,8 +712,8 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
 
         const request: RemissionGuideRequest = {
             transferDate: this.transferDate,
-            transferReason: this.transferReason,
-            transferReasonDescription: this.transferReasonDescription.trim() || undefined,
+            transferReasonId: Number(this.transferReasonIdStr),
+            transferReasonDescription: this.selectedTransferReason?.code === '13' ? this.transferReasonDescription.trim() || undefined : undefined,
             transportMode: this.transportMode,
             grossWeight: this.grossWeight,
             weightUnit: this.weightUnit,
@@ -707,8 +722,10 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
             observations: this.observations.trim() || undefined,
             originAddress: this.originAddress.trim(),
             originUbigeo: this.originUbigeo.trim(),
+            originLocalCode: this.selectedTransferReason?.code === '04' ? this.originLocalCode.trim() || undefined : undefined,
             destinationAddress: this.destinationAddress.trim(),
             destinationUbigeo: this.destinationUbigeo.trim(),
+            destinationLocalCode: this.selectedTransferReason?.code === '04' ? this.destinationLocalCode.trim() || undefined : undefined,
             clientId: this.selectedClient!.id,
             clientAddress: this.clientAddress.trim(),
             clientAddressId: this.selectedClientAddressId ?? undefined,
@@ -742,7 +759,7 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     // ============================
     resetForm(): void {
         this.transferDate = '';
-        this.transferReason = '';
+        this.transferReasonIdStr = '';
         this.transferReasonDescription = '';
         this.transportMode = 'TRANSPORTE_PUBLICO';
         this.grossWeight = 0;
@@ -757,8 +774,10 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
         this.selectedDriverEntries = [];
         this.originAddress = this.defaultOriginAddress;
         this.originUbigeo = this.defaultOriginUbigeo;
+        this.originLocalCode = '';
         this.destinationAddress = '';
         this.destinationUbigeo = '';
+        this.destinationLocalCode = '';
         this.items = [];
         this.isViewMode = false;
     }
@@ -770,10 +789,6 @@ export class RemissionGuideRegisterComponent implements OnInit, OnChanges {
     // ============================
     // HELPERS VISTA
     // ============================
-    getTransferReasonLabel(reason: string): string {
-        return this.transferReasonOptions.find(o => o.value === reason)?.label ?? reason;
-    }
-
     getTransportModeLabel(mode: string): string {
         return mode === 'TRANSPORTE_PUBLICO' ? 'Transporte Público' : 'Transporte Privado';
     }

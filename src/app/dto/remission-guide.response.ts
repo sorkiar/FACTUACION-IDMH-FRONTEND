@@ -3,6 +3,7 @@ import { RemissionGuideDriverResponse } from './remission-guide-driver.response'
 import { ClientResponse } from './client.response';
 import { ClientAddressResponse } from './client-address.response';
 import { CarrierResponse } from './carrier.response';
+import { TransferReasonResponse } from './transfer-reason.response';
 
 export interface RemissionGuideResponse {
     id: number;
@@ -11,7 +12,7 @@ export interface RemissionGuideResponse {
     sequence?: string;
     issueDate?: string;
     transferDate: string;
-    transferReason: string;
+    transferReason: TransferReasonResponse;
     transferReasonDescription?: string;
     transportMode: string;
     grossWeight: number;

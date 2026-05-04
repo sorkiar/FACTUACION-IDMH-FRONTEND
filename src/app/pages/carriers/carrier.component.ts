@@ -136,6 +136,22 @@ export class CarrierComponent implements OnInit, OnDestroy {
         return Math.max(1, Math.ceil(this.filteredCarriers.length / this.itemsPerPage));
     }
 
+    get pageItems(): (number | '...')[] {
+        const total = this.totalPages;
+        const current = this.currentPage;
+        const pages = new Set<number>();
+        for (let i = 1; i <= Math.min(3, total); i++) pages.add(i);
+        for (let i = Math.max(1, total - 2); i <= total; i++) pages.add(i);
+        for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) pages.add(i);
+        const sorted = Array.from(pages).sort((a, b) => a - b);
+        const result: (number | '...')[] = [];
+        for (let i = 0; i < sorted.length; i++) {
+            if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push('...');
+            result.push(sorted[i]);
+        }
+        return result;
+    }
+
     get currentItems(): CarrierResponse[] {
         const start = (this.currentPage - 1) * this.itemsPerPage;
         return this.filteredCarriers.slice(start, start + this.itemsPerPage);

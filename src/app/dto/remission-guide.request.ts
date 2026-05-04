@@ -3,7 +3,7 @@ import { RemissionGuideDriverRequest } from './remission-guide-driver.request';
 
 export interface RemissionGuideRequest {
     transferDate: string;
-    transferReason: string;
+    transferReasonId: number;
     transferReasonDescription?: string;
     transportMode: string;
     grossWeight: number;

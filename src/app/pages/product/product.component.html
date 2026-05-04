@@ -1,4 +1,4 @@
-<div>
+﻿<div>
     <app-page-breadcrumb pageTitle="Mantenimiento de Productos" />
 
     <div
@@ -292,19 +292,22 @@
                                 Pág. {{ currentPage }} / {{ totalPages }}
                             </span>
                             <ul class="hidden items-center gap-0.5 sm:flex">
-                                @for (page of [].constructor(totalPages); track $index; let idx = $index) {
-                                <li>
-                                    <button (click)="goToPage(idx + 1)"
-                                        class="flex h-10 w-10 items-center justify-center rounded-lg text-theme-sm font-medium"
-                                        [ngClass]="{
-                                          'bg-brand-500 text-white': currentPage === idx + 1,
-                                          'text-gray-700 hover:bg-brand-500/8 dark:hover:bg-brand-500 dark:hover:text-white hover:text-brand-500 dark:text-gray-400': currentPage !== idx + 1
-                                        }">
-                                        {{ idx + 1 }}
-                                    </button>
-                                </li>
-                                }
-                            </ul>
+                @for (item of pageItems; track $index) {
+                <li>
+                  @if (item === '...') {
+                  <span class="flex h-10 w-8 items-center justify-center text-sm text-gray-400 select-none">…</span>
+                  } @else {
+                  <button (click)="goToPage(item)"
+                    class="flex h-10 w-10 items-center justify-center rounded-lg text-theme-sm font-medium" [ngClass]="{
+                      'bg-brand-500 text-white': currentPage === item,
+                      'text-gray-700 hover:bg-brand-500/8 dark:hover:bg-brand-500 dark:hover:text-white hover:text-brand-500 dark:text-gray-400': currentPage !== item
+                    }">
+                    {{ item }}
+                  </button>
+                  }
+                </li>
+                }
+              </ul>
                             <app-button (btnClick)="goToPage(currentPage + 1)" size="sm" variant="outline"
                                 [disabled]="currentPage === totalPages">
                                 <span class="hidden sm:inline">Siguiente</span>

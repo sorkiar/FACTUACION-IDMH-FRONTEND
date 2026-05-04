@@ -134,7 +134,27 @@
               </svg>
               <span class="hidden sm:inline">Anterior</span>
             </app-button>
-            <span class="text-sm text-gray-700 dark:text-gray-400">{{ currentPage }} / {{ totalPages }}</span>
+            <span class="block text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
+              Pág. {{ currentPage }} / {{ totalPages }}
+            </span>
+            <ul class="hidden items-center gap-0.5 sm:flex">
+              @for (item of pageItems; track $index) {
+              <li>
+                @if (item === '...') {
+                <span class="flex h-10 w-8 items-center justify-center text-sm text-gray-400 select-none">…</span>
+                } @else {
+                <button (click)="goToPage(item)"
+                  class="flex h-10 w-10 items-center justify-center rounded-lg text-theme-sm font-medium"
+                  [ngClass]="{
+                    'bg-brand-500 text-white': currentPage === item,
+                    'text-gray-700 hover:bg-brand-500/8 dark:hover:bg-brand-500 dark:hover:text-white hover:text-brand-500 dark:text-gray-400': currentPage !== item
+                  }">
+                  {{ item }}
+                </button>
+                }
+              </li>
+              }
+            </ul>
             <app-button size="sm" variant="outline" (btnClick)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
               <span class="hidden sm:inline">Siguiente</span>
               <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none">

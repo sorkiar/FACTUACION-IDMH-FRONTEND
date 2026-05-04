@@ -15,6 +15,7 @@ interface MenuTreeNode {
     allChecked: boolean;
     someChecked: boolean;
     expanded: boolean;
+    isStandalone: boolean;
 }
 
 @Component({
@@ -53,10 +54,14 @@ export class ProfilesComponent implements OnInit {
     get selectedMenuIds(): number[] {
         const ids: number[] = [];
         for (const node of this.menuTree) {
-            const checkedChildren = node.children.filter(c => c.checked);
-            if (checkedChildren.length > 0) {
-                ids.push(node.parent.id);
-                checkedChildren.forEach(c => ids.push(c.id));
+            if (node.isStandalone) {
+                if (node.children[0]?.checked) ids.push(node.parent.id);
+            } else {
+                const checkedChildren = node.children.filter(c => c.checked);
+                if (checkedChildren.length > 0) {
+                    ids.push(node.parent.id);
+                    checkedChildren.forEach(c => ids.push(c.id));
+                }
             }
         }
         return ids;
@@ -180,16 +185,27 @@ export class ProfilesComponent implements OnInit {
 
     private buildMenuTree(allMenus: MenuResponse[], assignedIds: Set<number>): void {
         const parents = allMenus.filter(m => !m.parentId).sort((a, b) => a.sortOrder - b.sortOrder);
-        this.menuTree = parents.map(parent => {
-            const children = allMenus
-                .filter(m => m.parentId === parent.id)
-                .sort((a, b) => a.sortOrder - b.sortOrder)
-                .map(c => ({ ...c, checked: assignedIds.has(c.id) }));
 
-            const allChecked = children.length > 0 && children.every(c => c.checked);
-            const someChecked = children.some(c => c.checked);
-            return { parent, children, allChecked, someChecked, expanded: true };
-        }).filter(n => n.children.length > 0);
+        const regularNodes = parents
+            .map(parent => {
+                const children = allMenus
+                    .filter(m => m.parentId === parent.id)
+                    .sort((a, b) => a.sortOrder - b.sortOrder)
+                    .map(c => ({ ...c, checked: assignedIds.has(c.id) }));
+                const allChecked = children.length > 0 && children.every(c => c.checked);
+                const someChecked = children.some(c => c.checked);
+                return { parent, children, allChecked, someChecked, expanded: true, isStandalone: false };
+            })
+            .filter(n => n.children.length > 0);
+
+        const standaloneNodes = parents
+            .filter(m => !!m.path && !allMenus.some(c => c.parentId === m.id))
+            .map(m => {
+                const checked = assignedIds.has(m.id);
+                return { parent: m, children: [{ ...m, checked }], allChecked: checked, someChecked: checked, expanded: true, isStandalone: true };
+            });
+
+        this.menuTree = [...regularNodes, ...standaloneNodes];
     }
 
     toggleParent(node: MenuTreeNode): void {
