@@ -18,6 +18,7 @@ export class MyProfileComponent implements OnInit {
     firstName = '';
     lastName = '';
     username = '';
+    private originalUsername = '';
     documentType = '';
     documentNumber = '';
     profile = '';
@@ -34,7 +35,6 @@ export class MyProfileComponent implements OnInit {
     showConfirmPassword = false;
 
     get profileError(): string {
-        if (!this.username.trim()) return 'El usuario es obligatorio';
         return '';
     }
 
@@ -63,6 +63,7 @@ export class MyProfileComponent implements OnInit {
             this.firstName = user.firstName ?? '';
             this.lastName = user.lastName ?? '';
             this.username = user.username ?? '';
+            this.originalUsername = this.username;
             this.documentType = user.documentType ?? '';
             this.documentNumber = user.documentNumber ?? '';
             this.profile = user.profile ?? '';
@@ -83,7 +84,7 @@ export class MyProfileComponent implements OnInit {
             documentNumber: this.documentNumber,
             firstName: this.firstName.trim() || undefined,
             lastName: this.lastName.trim() || undefined,
-            username: this.username.trim(),
+            username: this.originalUsername,
         }).subscribe({
             next: res => {
                 this.savingProfile = false;
@@ -109,7 +110,7 @@ export class MyProfileComponent implements OnInit {
         if (this.passwordError) return;
         this.savingPassword = true;
 
-        this.userService.changePassword(this.newPassword).subscribe({
+        this.userService.setPassword(this.newPassword).subscribe({
             next: res => {
                 this.savingPassword = false;
                 this.passwordSubmitted = false;

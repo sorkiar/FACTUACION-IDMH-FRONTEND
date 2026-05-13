@@ -31,7 +31,7 @@ export class MenusComponent implements OnInit {
     isEditing = false;
     submitting = false;
 
-    form: MenuRequest = { name: '', path: '', parentId: undefined, sortOrder: 1, menuType: 'SIDEBAR' };
+    form: MenuRequest = { name: '', path: '', parentId: undefined, sortOrder: 1 };
     editingId: number | null = null;
     formSubmitted = false;
     editingHasChildren = false;
@@ -42,18 +42,6 @@ export class MenusComponent implements OnInit {
         // Es raíz en edición con hijos → deshabilitado
         return this.editingHasChildren;
     }
-
-    readonly menuTypeOptions: Option[] = [
-        { value: 'SIDEBAR',   label: 'Sidebar — visible en menú lateral' },
-        { value: 'NAVBAR',    label: 'Navbar — visible en barra superior' },
-        { value: 'INTERNAL',  label: 'Internal — solo permisos, no visible' },
-    ];
-
-    menuTypeColors: Record<string, string> = {
-        SIDEBAR:  'text-brand-600 bg-brand-50 dark:bg-brand-900/20 dark:text-brand-400',
-        NAVBAR:   'text-purple-600 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400',
-        INTERNAL: 'text-gray-500 bg-gray-100 dark:bg-white/10 dark:text-gray-400',
-    };
 
     get parentMenus(): MenuResponse[] {
         return this.menus.filter(m => !m.parentId);
@@ -77,10 +65,6 @@ export class MenusComponent implements OnInit {
         }
         this.form.parentId = val ? Number(val) : undefined;
         if (!val) this.form.path = '';
-    }
-
-    menuTypeLabel(type: string): string {
-        return { SIDEBAR: 'Sidebar', NAVBAR: 'Navbar', INTERNAL: 'Internal' }[type] ?? type;
     }
 
     constructor(
@@ -126,7 +110,7 @@ export class MenusComponent implements OnInit {
         this.editingId = null;
         this.editingHasChildren = false;
         this.formSubmitted = false;
-        this.form = { name: '', path: '', parentId: parentId ?? undefined, sortOrder: 1, menuType: 'SIDEBAR' };
+        this.form = { name: '', path: '', parentId: parentId ?? undefined, sortOrder: 1 };
         this.showModal = true;
     }
 
@@ -141,7 +125,6 @@ export class MenusComponent implements OnInit {
             path: menu.path ?? '',
             parentId: menu.parentId ?? undefined,
             sortOrder: menu.sortOrder,
-            menuType: menu.menuType ?? 'SIDEBAR',
         };
         this.showModal = true;
     }
@@ -165,7 +148,6 @@ export class MenusComponent implements OnInit {
             path: !this.pathDisabled ? (this.form.path?.trim() || undefined) : undefined,
             parentId: this.form.parentId || undefined,
             sortOrder: this.form.sortOrder,
-            menuType: this.form.menuType || 'SIDEBAR',
         };
         const op$ = this.isEditing
             ? this.menuService.update(this.editingId!, req)

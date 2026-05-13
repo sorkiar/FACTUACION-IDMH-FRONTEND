@@ -75,6 +75,17 @@
                                     </td>
                                     <td class="py-2">
                                         <div class="inline-flex items-center gap-1.5">
+                                            @if (isAdmin) {
+                                            <button type="button"
+                                                class="bg-blue-400 hover:bg-blue-500 inline-flex items-center gap-2 px-2.5 py-2 text-sm font-medium text-white rounded-md"
+                                                title="Restablecer contraseña"
+                                                (click)="openResetPassword(user)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                                </svg>
+                                            </button>
+                                            }
                                             <button type="button"
                                                 class="bg-orange-300 hover:bg-orange-400 inline-flex items-center gap-2 px-2.5 py-2 text-sm font-medium text-white rounded-md"
                                                 (click)="openEdit(user)">
@@ -221,7 +232,27 @@
         @if (!isEditing) {
         <div class="sm:col-span-2">
             <app-label>Contraseña *</app-label>
-            <app-input-field type="password" placeholder="Mínimo 6 caracteres" [(value)]="password" />
+            <div class="relative">
+                <app-input-field [type]="showPassword ? 'text' : 'password'" placeholder="Mínimo 6 caracteres"
+                    [(value)]="password" className="pr-10" />
+                <button type="button" (click)="showPassword = !showPassword"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 z-10">
+                    @if (showPassword) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                    } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    }
+                </button>
+            </div>
             @if (formSubmitted && !password.trim()) {
             <p class="mt-1 text-sm text-red-500">Requerida</p>
             } @else if (formSubmitted && password.length < 6) {
@@ -266,6 +297,55 @@
             class="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50"
             [ngClass]="toggleTarget?.status === 1 ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'">
             {{ isToggling ? 'Procesando…' : toggleActionLabel }}
+        </button>
+    </div>
+</app-modal>
+
+<!-- MODAL: Restablecer contraseña -->
+<app-modal [isOpen]="showResetPassword" [className]="'max-w-md p-6'" (close)="closeResetPassword()">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Restablecer contraseña</h3>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Usuario: <strong class="font-mono">{{ resetTarget?.username }}</strong>
+    </p>
+    <div class="mt-4">
+        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nueva contraseña *</label>
+        <div class="relative">
+            <input [type]="showResetPasswordInput ? 'text' : 'password'" [(ngModel)]="resetNewPassword"
+                placeholder="Mínimo 6 caracteres"
+                class="w-full px-3 py-2 pr-10 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-white/5 dark:text-white"
+                [class.border-red-400]="resetSubmitted && (!resetNewPassword.trim() || resetNewPassword.length < 6)"
+                [class.border-gray-300]="!(resetSubmitted && (!resetNewPassword.trim() || resetNewPassword.length < 6))"
+                [class.dark:border-gray-700]="!(resetSubmitted && (!resetNewPassword.trim() || resetNewPassword.length < 6))" />
+            <button type="button" (click)="showResetPasswordInput = !showResetPasswordInput"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                @if (showResetPasswordInput) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+                } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                }
+            </button>
+        </div>
+        @if (resetSubmitted && !resetNewPassword.trim()) {
+        <p class="mt-1 text-xs text-red-500">Requerida</p>
+        } @else if (resetSubmitted && resetNewPassword.length < 6) {
+        <p class="mt-1 text-xs text-red-500">Mínimo 6 caracteres</p>
+        }
+    </div>
+    <div class="flex items-center justify-end gap-3 pt-5">
+        <button type="button" (click)="closeResetPassword()"
+            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            Cancelar
+        </button>
+        <button type="button" (click)="submitResetPassword()" [disabled]="resettingPassword"
+            class="px-4 py-2 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg disabled:opacity-50">
+            {{ resettingPassword ? 'Guardando…' : 'Restablecer' }}
         </button>
     </div>
 </app-modal>

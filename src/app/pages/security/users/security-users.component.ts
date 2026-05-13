@@ -12,6 +12,7 @@ import { NotificationService } from '../../../shared/components/ui/notification/
 import { UserService } from '../../../services/user.service';
 import { ProfileService } from '../../../services/profile.service';
 import { DocumentTypeService } from '../../../services/document-type.service';
+import { AuthService } from '../../../services/auth.service';
 import { UserResponse } from '../../../dto/user.response';
 import { ProfileResponse } from '../../../dto/profile.response';
 import { DocumentTypeResponse } from '../../../dto/document-type.response';
@@ -62,11 +63,20 @@ export class SecurityUsersComponent implements OnInit {
     lastName = '';
     username = '';
     password = '';
+    showPassword = false;
 
     // Confirm toggle modal
     showConfirmToggle = false;
     toggleTarget: UserResponse | null = null;
     isToggling = false;
+
+    // Reset password modal
+    showResetPassword = false;
+    resetTarget: UserResponse | null = null;
+    resetNewPassword = '';
+    showResetPasswordInput = false;
+    resetSubmitted = false;
+    resettingPassword = false;
 
     // Options
     documentTypeOptions: Option[] = [];
@@ -120,10 +130,15 @@ export class SecurityUsersComponent implements OnInit {
         return this.toggleTarget?.status === 1 ? 'Inactivar' : 'Activar';
     }
 
+    get isAdmin(): boolean {
+        return this.authService.user?.profile === 'Administrador';
+    }
+
     constructor(
         private userService: UserService,
         private profileService: ProfileService,
         private documentTypeService: DocumentTypeService,
+        private authService: AuthService,
         private notify: NotificationService,
     ) {}
 
@@ -143,7 +158,9 @@ export class SecurityUsersComponent implements OnInit {
     private loadSelects(): void {
         this.documentTypeService.getAll(1).subscribe({
             next: res => {
-                this.documentTypeOptions = (res.data ?? []).map(d => ({ value: String(d.id), label: d.name }));
+                this.documentTypeOptions = (res.data ?? [])
+                    .filter(d => d.name?.toUpperCase() !== 'RUC')
+                    .map(d => ({ value: String(d.id), label: d.name }));
             },
             error: () => {}
         });
@@ -176,13 +193,14 @@ export class SecurityUsersComponent implements OnInit {
         this.isEditing = false;
         this.editingId = null;
         this.formSubmitted = false;
-        this.documentTypeId = '';
+        this.documentTypeId = '1';
         this.profileId = '';
         this.documentNumber = '';
         this.firstName = '';
         this.lastName = '';
         this.username = '';
         this.password = '';
+        this.showPassword = false;
         this.showForm = true;
     }
 
@@ -267,5 +285,35 @@ export class SecurityUsersComponent implements OnInit {
 
     fullName(user: UserResponse): string {
         return [user.firstName, user.lastName].filter(Boolean).join(' ') || '—';
+    }
+
+    openResetPassword(user: UserResponse): void {
+        this.resetTarget = user;
+        this.resetNewPassword = '';
+        this.showResetPasswordInput = false;
+        this.resetSubmitted = false;
+        this.showResetPassword = true;
+    }
+
+    closeResetPassword(): void {
+        this.showResetPassword = false;
+        this.resetTarget = null;
+    }
+
+    submitResetPassword(): void {
+        this.resetSubmitted = true;
+        if (!this.resetNewPassword.trim() || this.resetNewPassword.length < 6) return;
+        this.resettingPassword = true;
+        this.userService.resetPassword(this.resetTarget!.id, this.resetNewPassword).subscribe({
+            next: res => {
+                this.notify.success(res?.message ?? 'Contraseña restablecida correctamente');
+                this.resettingPassword = false;
+                this.closeResetPassword();
+            },
+            error: err => {
+                this.notify.error(err?.error?.message ?? 'Error al restablecer contraseña');
+                this.resettingPassword = false;
+            }
+        });
     }
 }

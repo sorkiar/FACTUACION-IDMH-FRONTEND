@@ -127,12 +127,15 @@
 
                 @if (node.isStandalone) {
                 <!-- Ítem standalone (NAVBAR sin hijos) -->
-                <div class="rounded-xl border overflow-hidden transition-colors cursor-pointer select-none"
+                <div class="rounded-xl border overflow-hidden transition-colors select-none"
                     [class.border-brand-200]="node.allChecked"
                     [class.dark:border-brand-800]="node.allChecked"
                     [class.border-gray-200]="!node.allChecked"
                     [class.dark:border-gray-700]="!node.allChecked"
-                    (click)="toggleParent(node)">
+                    [class.cursor-pointer]="node.parent.status === 1"
+                    [class.cursor-not-allowed]="node.parent.status !== 1"
+                    [class.opacity-50]="node.parent.status !== 1"
+                    (click)="node.parent.status === 1 && toggleParent(node)">
                     <div class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900"
                         [class.bg-brand-50]="node.allChecked"
                         [class.dark:bg-brand-900/20]="node.allChecked">
@@ -148,7 +151,12 @@
                             }
                         </div>
                         <div>
-                            <p class="text-sm font-semibold text-gray-800 dark:text-white">{{ node.parent.name }}</p>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-semibold text-gray-800 dark:text-white">{{ node.parent.name }}</p>
+                                @if (node.parent.status !== 1) {
+                                <span class="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">Inactivo</span>
+                                }
+                            </div>
                             <p class="text-xs text-gray-400 font-mono">{{ node.parent.path }}</p>
                         </div>
                     </div>
@@ -202,8 +210,9 @@
                     @if (node.expanded) {
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-px bg-gray-100 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-800">
                         @for (child of node.children; track child.id) {
-                        <div class="flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-gray-900 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors select-none"
-                            (click)="toggleChild(node, child)">
+                        <div class="flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-gray-900 transition-colors select-none"
+                            [class]="child.status === 1 ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-white/3' : 'cursor-not-allowed opacity-50'"
+                            (click)="child.status === 1 && toggleChild(node, child)">
                             <div class="w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors"
                                 [class.bg-brand-500]="child.checked"
                                 [class.border-brand-500]="child.checked"
@@ -216,7 +225,12 @@
                                 }
                             </div>
                             <div>
-                                <p class="text-sm text-gray-700 dark:text-gray-300">{{ child.name }}</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ child.name }}</p>
+                                    @if (child.status !== 1) {
+                                    <span class="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">Inactivo</span>
+                                    }
+                                </div>
                                 @if (child.path) {
                                 <p class="text-xs text-gray-400 font-mono">{{ child.path }}</p>
                                 }

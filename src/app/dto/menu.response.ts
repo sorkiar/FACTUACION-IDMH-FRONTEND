@@ -5,5 +5,4 @@ export interface MenuResponse {
     parentId?: number;
     sortOrder: number;
     status: number;
-    menuType: string;
 }

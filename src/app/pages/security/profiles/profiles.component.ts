@@ -6,6 +6,7 @@ import { BadgeComponent } from '../../../shared/components/ui/badge/badge.compon
 import { NotificationService } from '../../../shared/components/ui/notification/notification.service';
 import { ProfileService } from '../../../services/profile.service';
 import { MenuService } from '../../../services/menu.service';
+import { NavStateService } from '../../../services/nav-state.service';
 import { ProfileResponse } from '../../../dto/profile.response';
 import { MenuResponse } from '../../../dto/menu.response';
 
@@ -70,6 +71,7 @@ export class ProfilesComponent implements OnInit {
     constructor(
         private profileService: ProfileService,
         private menuService: MenuService,
+        private navState: NavStateService,
         private notify: NotificationService,
     ) {}
 
@@ -191,8 +193,9 @@ export class ProfilesComponent implements OnInit {
                 const children = allMenus
                     .filter(m => m.parentId === parent.id)
                     .sort((a, b) => a.sortOrder - b.sortOrder)
-                    .map(c => ({ ...c, checked: assignedIds.has(c.id) }));
-                const allChecked = children.length > 0 && children.every(c => c.checked);
+                    .map(c => ({ ...c, checked: c.status === 1 && assignedIds.has(c.id) }));
+                const activeChildren = children.filter(c => c.status === 1);
+                const allChecked = activeChildren.length > 0 && activeChildren.every(c => c.checked);
                 const someChecked = children.some(c => c.checked);
                 return { parent, children, allChecked, someChecked, expanded: true, isStandalone: false };
             })
@@ -201,7 +204,7 @@ export class ProfilesComponent implements OnInit {
         const standaloneNodes = parents
             .filter(m => !!m.path && !allMenus.some(c => c.parentId === m.id))
             .map(m => {
-                const checked = assignedIds.has(m.id);
+                const checked = m.status === 1 && assignedIds.has(m.id);
                 return { parent: m, children: [{ ...m, checked }], allChecked: checked, someChecked: checked, expanded: true, isStandalone: true };
             });
 
@@ -209,8 +212,10 @@ export class ProfilesComponent implements OnInit {
     }
 
     toggleParent(node: MenuTreeNode): void {
+        const activeChildren = node.children.filter(c => c.status === 1);
+        if (activeChildren.length === 0) return;
         const newVal = !node.allChecked;
-        node.children.forEach(c => c.checked = newVal);
+        activeChildren.forEach(c => c.checked = newVal);
         this.updateNodeState(node);
     }
 
@@ -220,7 +225,8 @@ export class ProfilesComponent implements OnInit {
     }
 
     private updateNodeState(node: MenuTreeNode): void {
-        node.allChecked = node.children.length > 0 && node.children.every(c => c.checked);
+        const activeChildren = node.children.filter(c => c.status === 1);
+        node.allChecked = activeChildren.length > 0 && activeChildren.every(c => c.checked);
         node.someChecked = node.children.some(c => c.checked);
     }
 
@@ -235,6 +241,7 @@ export class ProfilesComponent implements OnInit {
             next: res => {
                 this.notify.success(res.message ?? 'Permisos guardados correctamente');
                 this.savingPermissions = false;
+                this.navState.reloadSidebar();
             },
             error: err => {
                 this.notify.error(err?.error?.message ?? 'Error al guardar permisos');

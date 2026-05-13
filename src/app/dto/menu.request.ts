@@ -3,7 +3,6 @@ export interface MenuRequest {
     path?: string;
     parentId?: number;
     sortOrder: number;
-    menuType?: string;
 }
 
 export interface MenuStatusRequest {

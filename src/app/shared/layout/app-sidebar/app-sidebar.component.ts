@@ -75,6 +75,10 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       })
     );
+
+    this.subscription.add(
+      this.navState.sidebarReload$.subscribe(() => this.loadSidebar())
+    );
   }
 
   ngOnDestroy() {
@@ -82,6 +86,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   }
 
   private loadSidebar(): void {
+    this.loadingSidebar = true;
     const empty = of({ data: [] as SidebarItemResponse[] });
     forkJoin({
       sidebar: this.menuService.getSidebar(),

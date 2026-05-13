@@ -57,7 +57,11 @@ export class UserService {
      * PATCH /api/users/me/password
      * body: { newPassword: string }
      */
-    changePassword(newPassword: string): Observable<ApiResponse<void>> {
-        return this.http.patch<ApiResponse<void>>(`${this.baseUrl}/me/password`, { newPassword });
+    resetPassword(id: number, newPassword: string): Observable<ApiResponse<void>> {
+        return this.http.patch<ApiResponse<void>>(`${this.baseUrl}/${id}/password`, { newPassword });
+    }
+
+    setPassword(newPassword: string): Observable<ApiResponse<void>> {
+        return this.http.patch<ApiResponse<void>>(`${this.baseUrl}/me/set-password`, { newPassword });
     }
 }
