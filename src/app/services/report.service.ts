@@ -21,7 +21,8 @@ export class ReportService {
         startDate: string,
         endDate: string,
         clientIds?: string,
-        productIds?: string
+        productIds?: string,
+        documentTypeCodes?: string,
     ): Observable<ApiResponse<SalesReportResponse>> {
         let params = new HttpParams()
             .set('startDate', startDate)
@@ -29,6 +30,7 @@ export class ReportService {
 
         if (clientIds) params = params.set('clientIds', clientIds);
         if (productIds) params = params.set('productIds', productIds);
+        if (documentTypeCodes) params = params.set('documentTypeCodes', documentTypeCodes);
 
         return this.http.get<ApiResponse<SalesReportResponse>>(`${this.baseUrl}/sales`, { params });
     }

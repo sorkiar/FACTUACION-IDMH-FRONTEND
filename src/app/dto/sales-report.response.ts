@@ -1,13 +1,18 @@
 export interface SalesReportRowResponse {
     issueDate: string;
     document: string;
+    documentTypeCode: string | null;
+    documentTypeName: string | null;
+    sunatStatus: string | null;
     client: string;
     itemDescription: string;
     quantity: number;
     unitPrice: number;
     discountPercentage: number;
     subtotal: number;
-    saleTotal: number;
+    saleBaseAmount: number;
+    saleTaxAmount: number;
+    saleTotalAmount: number;
     currencyCode?: string;
 }
 

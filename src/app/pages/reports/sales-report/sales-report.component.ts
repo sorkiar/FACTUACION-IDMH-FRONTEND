@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
@@ -12,6 +12,7 @@ import { MultiSelectComponent, Option } from '../../../shared/components/form/mu
 import { ReportService } from '../../../services/report.service';
 import { ClientService } from '../../../services/client.service';
 import { ProductService } from '../../../services/product.service';
+import { SunatDocumentTypeService } from '../../../services/sunat-document-type.service';
 
 import { SalesReportRowResponse, SalesReportResponse } from '../../../dto/sales-report.response';
 
@@ -36,9 +37,11 @@ export class SalesReportComponent implements OnInit {
 
     clientOptions:  Option[] = [];
     productOptions: Option[] = [];
+    docTypeOptions: Option[] = [];
 
-    selectedClientIds:  string[] = [];
-    selectedProductIds: string[] = [];
+    selectedClientIds:   string[] = [];
+    selectedProductIds:  string[] = [];
+    selectedDocTypeCodes: string[] = [];
 
     /** Flag para destruir/recrear los multi-selects al limpiar */
     multiSelectVisible = true;
@@ -63,12 +66,14 @@ export class SalesReportComponent implements OnInit {
         private reportService: ReportService,
         private clientService: ClientService,
         private productService: ProductService,
+        private sunatDocTypeService: SunatDocumentTypeService,
         private notify: NotificationService,
     ) {}
 
     ngOnInit(): void {
         this.loadClientOptions();
         this.loadProductOptions();
+        this.loadDocTypeOptions();
     }
 
     // ── Options loaders ────────────────────────────────────
@@ -97,6 +102,18 @@ export class SalesReportComponent implements OnInit {
         });
     }
 
+    private loadDocTypeOptions(): void {
+        this.sunatDocTypeService.getAll({ showInSalesReport: true, status: 1 }).subscribe({
+            next: res => {
+                this.docTypeOptions = (res.data ?? []).map(d => ({
+                    value: d.code,
+                    text: d.name,
+                }));
+            },
+            error: () => this.notify.error('No se pudieron cargar los tipos de documento'),
+        });
+    }
+
     // ── Filtered / sorted / paged data ────────────────────
     get filteredRows(): SalesReportRowResponse[] {
         const term = this.searchTerm.trim().toLowerCase();
@@ -105,7 +122,9 @@ export class SalesReportComponent implements OnInit {
                 r.document.toLowerCase().includes(term) ||
                 r.client.toLowerCase().includes(term) ||
                 r.itemDescription.toLowerCase().includes(term) ||
-                r.issueDate.toLowerCase().includes(term)
+                r.issueDate.toLowerCase().includes(term) ||
+                (r.documentTypeName ?? '').toLowerCase().includes(term) ||
+                (r.sunatStatus ?? '').toLowerCase().includes(term)
             )
             : this.rows;
 
@@ -163,10 +182,11 @@ export class SalesReportComponent implements OnInit {
         this.hasSearched = true;
         this.currentPage = 1;
 
-        const clientIds  = this.selectedClientIds.length  ? this.selectedClientIds.join(',')  : undefined;
-        const productIds = this.selectedProductIds.length ? this.selectedProductIds.join(',') : undefined;
+        const clientIds       = this.selectedClientIds.length       ? this.selectedClientIds.join(',')       : undefined;
+        const productIds      = this.selectedProductIds.length      ? this.selectedProductIds.join(',')      : undefined;
+        const documentTypeCodes = this.selectedDocTypeCodes.length  ? this.selectedDocTypeCodes.join(',')    : undefined;
 
-        this.reportService.getSalesReport(this.startDate, this.endDate, clientIds, productIds).subscribe({
+        this.reportService.getSalesReport(this.startDate, this.endDate, clientIds, productIds, documentTypeCodes).subscribe({
             next: res => {
                 const data = res.data!;
                 this.reportMeta = {
@@ -187,8 +207,9 @@ export class SalesReportComponent implements OnInit {
     onClearFilters(): void {
         this.startDate = this.defaultStartDate();
         this.endDate   = this.defaultEndDate();
-        this.selectedClientIds  = [];
-        this.selectedProductIds = [];
+        this.selectedClientIds    = [];
+        this.selectedProductIds   = [];
+        this.selectedDocTypeCodes = [];
         // destruye y recrea los multi-selects para vaciar su estado interno
         this.multiSelectVisible = false;
         setTimeout(() => { this.multiSelectVisible = true; }, 0);
@@ -236,17 +257,21 @@ export class SalesReportComponent implements OnInit {
 
             const ws = wb.addWorksheet('Reporte de Ventas');
 
-            // ── Column widths (A–I = 9 data columns)
+            // ── Column widths (A–N = 14 data columns)
             ws.columns = [
-                { key: 'issueDate',   width: 12 },  // A
-                { key: 'document',    width: 18 },  // B
-                { key: 'client',      width: 30 },  // C
-                { key: 'description', width: 36 },  // D
-                { key: 'quantity',    width: 9  },  // E
-                { key: 'unitPrice',   width: 13 },  // F
-                { key: 'discount',    width: 10 },  // G
-                { key: 'subtotal',    width: 14 },  // H
-                { key: 'saleTotal',   width: 14 },  // I
+                { key: 'issueDate',       width: 12 },  // A
+                { key: 'document',        width: 18 },  // B
+                { key: 'docTypeName',     width: 14 },  // C
+                { key: 'sunatStatus',     width: 14 },  // D
+                { key: 'client',          width: 30 },  // E
+                { key: 'description',     width: 36 },  // F
+                { key: 'quantity',        width: 9  },  // G
+                { key: 'unitPrice',       width: 13 },  // H
+                { key: 'currency',        width: 10 },  // I
+                { key: 'discount',        width: 10 },  // J
+                { key: 'saleBaseAmount',  width: 16 },  // K
+                { key: 'saleTaxAmount',   width: 14 },  // L
+                { key: 'saleTotalAmount', width: 14 },  // M
             ];
 
             // ── Row heights
@@ -257,15 +282,14 @@ export class SalesReportComponent implements OnInit {
             ws.getRow(5).height = 8;
             ws.getRow(6).height = 22;
 
-            // Suma un saleTotal por documento único (el total de venta se repite por cada ítem)
-            // Agrupa por moneda para no mezclar PEN y USD
+            // Suma saleTotalAmount por documento único agrupado por moneda
             const seenDocs = new Set<string>();
             const totalsByCurrency = new Map<string, number>();
             for (const r of this.rows) {
                 if (seenDocs.has(r.document)) continue;
                 seenDocs.add(r.document);
                 const sym = this.currencySymbol(r.currencyCode);
-                totalsByCurrency.set(sym, (totalsByCurrency.get(sym) ?? 0) + r.saleTotal);
+                totalsByCurrency.set(sym, (totalsByCurrency.get(sym) ?? 0) + r.saleTotalAmount);
             }
             const totalStr = [...totalsByCurrency.entries()]
                 .map(([sym, amt]) => `${sym} ${amt.toFixed(2)}`)
@@ -273,48 +297,48 @@ export class SalesReportComponent implements OnInit {
             const now = new Date();
             const genDate = `Generado: ${now.toLocaleDateString('es-PE')} ${now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
 
-            // ── Row 1: Company name (C–H) + generation date (I)
-            ws.mergeCells('C1:H1');
+            // ── Row 1: Company name (C–L) + generation date (M)
+            ws.mergeCells('C1:L1');
             const cnCell = ws.getCell('C1');
             cnCell.value = this.reportMeta?.companyName ?? '';
             cnCell.font = { bold: true, size: 14, color: { argb: 'FF1e3a5f' } };
             cnCell.alignment = { horizontal: 'left', vertical: 'middle' };
 
-            const gdCell = ws.getCell('I1');
+            const gdCell = ws.getCell('M1');
             gdCell.value = genDate;
             gdCell.font = { size: 8, italic: true, color: { argb: 'FF9CA3AF' } };
             gdCell.alignment = { horizontal: 'right', vertical: 'bottom' };
 
-            // ── Row 2: Title (C–I)
-            ws.mergeCells('C2:I2');
+            // ── Row 2: Title (C–M)
+            ws.mergeCells('C2:M2');
             const titleCell = ws.getCell('C2');
             titleCell.value = 'REPORTE DE VENTAS';
             titleCell.font = { bold: true, size: 12, color: { argb: 'FF1e40af' } };
             titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // ── Row 3: Period (C–I)
-            ws.mergeCells('C3:I3');
+            // ── Row 3: Period (C–M)
+            ws.mergeCells('C3:M3');
             const periodCell = ws.getCell('C3');
             periodCell.value = `Período: ${this.reportMeta?.dateRange ?? `${this.startDate} al ${this.endDate}`}`;
             periodCell.font = { size: 9, color: { argb: 'FF6B7280' } };
             periodCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // ── Row 4: Stats (C–F records | G–I total)
-            ws.mergeCells('C4:F4');
+            // ── Row 4: Stats (C–I records | J–M total)
+            ws.mergeCells('C4:I4');
             const recCell = ws.getCell('C4');
             recCell.value = `Número de registros: ${this.reportMeta?.totalItems ?? this.rows.length}`;
             recCell.font = { size: 9, bold: true, color: { argb: 'FF374151' } };
             recCell.alignment = { horizontal: 'left', vertical: 'middle' };
 
-            ws.mergeCells('G4:I4');
-            const totCell = ws.getCell('G4');
+            ws.mergeCells('J4:M4');
+            const totCell = ws.getCell('J4');
             totCell.value = `Total General: ${totalStr}`;
             totCell.font = { size: 9, bold: true, color: { argb: 'FF047857' } };
             totCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
             // ── Row 6: Column headers
-            const COLS     = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-            const HEADERS  = ['Fecha', 'Documento', 'Cliente', 'Descripción ítem', 'Cant.', 'P. Unit.', 'Dscto%', 'Subtotal', 'Total Venta'];
+            const COLS    = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
+            const HEADERS = ['Fecha','Documento','Tipo Documento','Est. SUNAT','Cliente','Descripción ítem','Cant.','P. Unit.','Moneda','Dscto%','Base Imponible','IGV','Total Venta'];
             const HDR_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1d4ed8' } } as ExcelJS.Fill;
             const HDR_FONT = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } } as Partial<ExcelJS.Font>;
             const THIN_BORDER: Partial<ExcelJS.Borders> = {
@@ -344,15 +368,19 @@ export class SalesReportComponent implements OnInit {
                 const currFmt = `"${sym}"#,##0.00`;
 
                 const rowData: [string, any, ExcelJS.Alignment['horizontal'], string][] = [
-                    ['A', row.issueDate,          'left',  '@'],
-                    ['B', row.document,           'left',  '@'],
-                    ['C', row.client,             'left',  '@'],
-                    ['D', row.itemDescription,    'left',  '@'],
-                    ['E', row.quantity,           'right', '#,##0.00'],
-                    ['F', row.unitPrice,          'right', currFmt],
-                    ['G', row.discountPercentage, 'right', '#,##0.00'],
-                    ['H', row.subtotal,           'right', currFmt],
-                    ['I', row.saleTotal,          'right', currFmt],
+                    ['A', row.issueDate,           'left',   '@'],
+                    ['B', row.document,            'left',   '@'],
+                    ['C', row.documentTypeName ?? '', 'left', '@'],
+                    ['D', row.sunatStatus ?? '',   'center', '@'],
+                    ['E', row.client,              'left',   '@'],
+                    ['F', row.itemDescription,     'left',   '@'],
+                    ['G', row.quantity,            'right',  '#,##0.00'],
+                    ['H', row.unitPrice,           'right',  currFmt],
+                    ['I', row.currencyCode ?? '',  'center', '@'],
+                    ['J', row.discountPercentage,  'right',  '#,##0.00'],
+                    ['K', row.saleBaseAmount,      'right',  currFmt],
+                    ['L', row.saleTaxAmount,       'right',  currFmt],
+                    ['M', row.saleTotalAmount,     'right',  currFmt],
                 ];
 
                 rowData.forEach(([col, val, align, fmt]) => {
@@ -394,6 +422,15 @@ export class SalesReportComponent implements OnInit {
     // ── Helpers ────────────────────────────────────────────
     currencySymbol(code?: string): string {
         return code === 'USD' ? '$' : 'S/';
+    }
+
+    sunatStatusClass(status: string | null): string {
+        switch (status?.toUpperCase()) {
+            case 'ACEPTADO':  return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+            case 'RECHAZADO': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+            case 'PENDIENTE': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+            default:          return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+        }
     }
 
     private defaultStartDate(): string {
