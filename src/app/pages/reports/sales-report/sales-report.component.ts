@@ -289,7 +289,7 @@ export class SalesReportComponent implements OnInit {
                 if (seenDocs.has(r.document)) continue;
                 seenDocs.add(r.document);
                 const sym = this.currencySymbol(r.currencyCode);
-                totalsByCurrency.set(sym, (totalsByCurrency.get(sym) ?? 0) + r.saleTotalAmount);
+                totalsByCurrency.set(sym, (totalsByCurrency.get(sym) ?? 0) + r.itemTotalAmount);
             }
             const totalStr = [...totalsByCurrency.entries()]
                 .map(([sym, amt]) => `${sym} ${amt.toFixed(2)}`)
@@ -378,9 +378,9 @@ export class SalesReportComponent implements OnInit {
                     ['H', row.unitPrice,           'right',  currFmt],
                     ['I', row.currencyCode ?? '',  'center', '@'],
                     ['J', row.discountPercentage,  'right',  '#,##0.00'],
-                    ['K', row.saleBaseAmount,      'right',  currFmt],
-                    ['L', row.saleTaxAmount,       'right',  currFmt],
-                    ['M', row.saleTotalAmount,     'right',  currFmt],
+                    ['K', row.itemBaseAmount,      'right',  currFmt],
+                    ['L', row.itemTaxAmount,       'right',  currFmt],
+                    ['M', row.itemTotalAmount,     'right',  currFmt],
                 ];
 
                 rowData.forEach(([col, val, align, fmt]) => {

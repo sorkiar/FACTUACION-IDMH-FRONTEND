@@ -182,13 +182,13 @@
                                             </svg>
                                         </button>
                                     </th>
-                                    <th class="w-[6%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <th class="w-[4%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         Tipo Doc.
                                     </th>
                                     <th class="w-[9%] py-3 font-normal text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                         Est. SUNAT
                                     </th>
-                                    <th class="w-[20%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <th class="w-[18%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         <button class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200"
                                             (click)="toggleSort('cliente')">
                                             Cliente
@@ -205,7 +205,7 @@
                                             </svg>
                                         </button>
                                     </th>
-                                    <th class="w-[19%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <th class="w-[15%] py-3 font-normal text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         <button class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200"
                                             (click)="toggleSort('descripcion')">
                                             Descripción ítem
@@ -231,6 +231,12 @@
                                     <th class="w-[5%] py-3 font-normal text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                         Dscto %
                                     </th>
+                                    <th class="w-[6%] py-3 font-normal text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                                        Base Imp.
+                                    </th>
+                                    <th class="w-[7%] py-3 font-normal text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                                        IGV
+                                    </th>
                                     <th class="w-[8%] py-3 font-normal text-gray-500 text-center text-theme-sm dark:text-gray-400">
                                         Total Venta
                                     </th>
@@ -241,7 +247,7 @@
 
                                 @if (loading) {
                                 <tr>
-                                    <td colspan="10" class="py-16 text-center text-gray-400">
+                                    <td colspan="12" class="py-16 text-center text-gray-400">
                                         <svg class="w-10 h-10 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                                 stroke-width="4"></circle>
@@ -253,7 +259,7 @@
                                 </tr>
                                 } @else if (!hasSearched) {
                                 <tr>
-                                    <td colspan="10" class="py-16 text-center text-gray-400">
+                                    <td colspan="12" class="py-16 text-center text-gray-400">
                                         <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none"
                                             stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -266,7 +272,7 @@
                                 </tr>
                                 } @else if (filteredRows.length === 0) {
                                 <tr>
-                                    <td colspan="10" class="py-16 text-center text-gray-400">
+                                    <td colspan="12" class="py-16 text-center text-gray-400">
                                         <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -322,8 +328,16 @@
                                         {{ row.discountPercentage | number:'1.2-2' }}%
                                     </td>
 
+                                    <td class="py-3 text-center text-gray-600 text-theme-sm dark:text-gray-400">
+                                        {{ currencySymbol(row.currencyCode) }} {{ row.itemBaseAmount | number:'1.2-2' }}
+                                    </td>
+
+                                    <td class="py-3 text-center text-gray-600 text-theme-sm dark:text-gray-400">
+                                        {{ currencySymbol(row.currencyCode) }} {{ row.itemTaxAmount | number:'1.2-2' }}
+                                    </td>
+
                                     <td class="py-3 text-center text-gray-800 text-theme-sm dark:text-white/90 font-semibold">
-                                        {{ currencySymbol(row.currencyCode) }} {{ row.saleTotalAmount | number:'1.2-2' }}
+                                        {{ currencySymbol(row.currencyCode) }} {{ row.itemTotalAmount | number:'1.2-2' }}
                                     </td>
 
                                 </tr>

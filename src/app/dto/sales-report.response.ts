@@ -10,9 +10,9 @@ export interface SalesReportRowResponse {
     unitPrice: number;
     discountPercentage: number;
     subtotal: number;
-    saleBaseAmount: number;
-    saleTaxAmount: number;
-    saleTotalAmount: number;
+    itemBaseAmount: number;
+    itemTaxAmount: number;
+    itemTotalAmount: number;
     currencyCode?: string;
 }
 
