@@ -8,6 +8,7 @@ import { PageBreadcrumbComponent } from '../../../shared/components/common/page-
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { NotificationService } from '../../../shared/components/ui/notification/notification.service';
 import { MultiSelectComponent, Option } from '../../../shared/components/form/multi-select/multi-select.component';
+import { DatePickerComponent } from '../../../shared/components/form/date-picker/date-picker.component';
 
 import { ReportService } from '../../../services/report.service';
 import { ClientService } from '../../../services/client.service';
@@ -26,6 +27,7 @@ import { SalesReportRowResponse, SalesReportResponse } from '../../../dto/sales-
         PageBreadcrumbComponent,
         ButtonComponent,
         MultiSelectComponent,
+        DatePickerComponent,
     ],
     templateUrl: './sales-report.component.html',
 })
@@ -257,7 +259,7 @@ export class SalesReportComponent implements OnInit {
 
             const ws = wb.addWorksheet('Reporte de Ventas');
 
-            // ── Column widths (A–N = 14 data columns)
+            // ── Column widths (A–M = 13 data columns)
             ws.columns = [
                 { key: 'issueDate',       width: 12 },  // A
                 { key: 'document',        width: 18 },  // B
@@ -269,9 +271,10 @@ export class SalesReportComponent implements OnInit {
                 { key: 'unitPrice',       width: 13 },  // H
                 { key: 'currency',        width: 10 },  // I
                 { key: 'discount',        width: 10 },  // J
-                { key: 'saleBaseAmount',  width: 16 },  // K
-                { key: 'saleTaxAmount',   width: 14 },  // L
-                { key: 'saleTotalAmount', width: 14 },  // M
+                { key: 'exchangeRate',    width: 13 },  // K
+                { key: 'itemBaseAmount',  width: 16 },  // L
+                { key: 'itemTaxAmount',   width: 14 },  // M
+                { key: 'itemTotalAmount', width: 14 },  // N
             ];
 
             // ── Row heights
@@ -297,48 +300,48 @@ export class SalesReportComponent implements OnInit {
             const now = new Date();
             const genDate = `Generado: ${now.toLocaleDateString('es-PE')} ${now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
 
-            // ── Row 1: Company name (C–L) + generation date (M)
-            ws.mergeCells('C1:L1');
+            // ── Row 1: Company name (C–M) + generation date (N)
+            ws.mergeCells('C1:M1');
             const cnCell = ws.getCell('C1');
             cnCell.value = this.reportMeta?.companyName ?? '';
             cnCell.font = { bold: true, size: 14, color: { argb: 'FF1e3a5f' } };
             cnCell.alignment = { horizontal: 'left', vertical: 'middle' };
 
-            const gdCell = ws.getCell('M1');
+            const gdCell = ws.getCell('N1');
             gdCell.value = genDate;
             gdCell.font = { size: 8, italic: true, color: { argb: 'FF9CA3AF' } };
             gdCell.alignment = { horizontal: 'right', vertical: 'bottom' };
 
-            // ── Row 2: Title (C–M)
-            ws.mergeCells('C2:M2');
+            // ── Row 2: Title (C–N)
+            ws.mergeCells('C2:N2');
             const titleCell = ws.getCell('C2');
             titleCell.value = 'REPORTE DE VENTAS';
             titleCell.font = { bold: true, size: 12, color: { argb: 'FF1e40af' } };
             titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // ── Row 3: Period (C–M)
-            ws.mergeCells('C3:M3');
+            // ── Row 3: Period (C–N)
+            ws.mergeCells('C3:N3');
             const periodCell = ws.getCell('C3');
             periodCell.value = `Período: ${this.reportMeta?.dateRange ?? `${this.startDate} al ${this.endDate}`}`;
             periodCell.font = { size: 9, color: { argb: 'FF6B7280' } };
             periodCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // ── Row 4: Stats (C–I records | J–M total)
+            // ── Row 4: Stats (C–I records | J–N total)
             ws.mergeCells('C4:I4');
             const recCell = ws.getCell('C4');
             recCell.value = `Número de registros: ${this.reportMeta?.totalItems ?? this.rows.length}`;
             recCell.font = { size: 9, bold: true, color: { argb: 'FF374151' } };
             recCell.alignment = { horizontal: 'left', vertical: 'middle' };
 
-            ws.mergeCells('J4:M4');
+            ws.mergeCells('J4:N4');
             const totCell = ws.getCell('J4');
             totCell.value = `Total General: ${totalStr}`;
             totCell.font = { size: 9, bold: true, color: { argb: 'FF047857' } };
             totCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
             // ── Row 6: Column headers
-            const COLS    = ['A','B','C','D','E','F','G','H','I','J','K','L','M'];
-            const HEADERS = ['Fecha','Documento','Tipo Documento','Est. SUNAT','Cliente','Descripción ítem','Cant.','P. Unit.','Moneda','Dscto%','Base Imponible','IGV','Total Venta'];
+            const COLS    = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
+            const HEADERS = ['Fecha','Documento','Tipo Documento','Est. SUNAT','Cliente','Descripción ítem','Cant.','P. Unit.','Moneda','Dscto%','T. Cambio','Base Imponible','IGV','Total Venta'];
             const HDR_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1d4ed8' } } as ExcelJS.Fill;
             const HDR_FONT = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } } as Partial<ExcelJS.Font>;
             const THIN_BORDER: Partial<ExcelJS.Borders> = {
@@ -377,10 +380,11 @@ export class SalesReportComponent implements OnInit {
                     ['G', row.quantity,            'right',  '#,##0.00'],
                     ['H', row.unitPrice,           'right',  currFmt],
                     ['I', row.currencyCode ?? '',  'center', '@'],
-                    ['J', row.discountPercentage,  'right',  '#,##0.00'],
-                    ['K', row.itemBaseAmount,      'right',  currFmt],
-                    ['L', row.itemTaxAmount,       'right',  currFmt],
-                    ['M', row.itemTotalAmount,     'right',  currFmt],
+                    ['J', row.discountPercentage,          'right',  '#,##0.00'],
+                    ['K', row.exchangeRate ?? '',          'right',  row.exchangeRate ? '#,##0.0000' : '@'],
+                    ['L', row.itemBaseAmount,              'right',  currFmt],
+                    ['M', row.itemTaxAmount,               'right',  currFmt],
+                    ['N', row.itemTotalAmount,             'right',  currFmt],
                 ];
 
                 rowData.forEach(([col, val, align, fmt]) => {

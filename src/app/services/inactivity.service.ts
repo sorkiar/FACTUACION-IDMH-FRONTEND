@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 export class InactivityService {
 
     private timer: ReturnType<typeof setTimeout> | null = null;
-    private readonly TIMEOUT_MS = 3 * 60 * 1000;
+    private readonly TIMEOUT_MS = 10 * 60 * 1000;
     private readonly EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
     private readonly boundReset = this.reset.bind(this);
 

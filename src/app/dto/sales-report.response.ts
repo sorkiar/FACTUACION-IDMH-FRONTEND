@@ -9,7 +9,7 @@ export interface SalesReportRowResponse {
     quantity: number;
     unitPrice: number;
     discountPercentage: number;
-    subtotal: number;
+    exchangeRate: number | null;
     itemBaseAmount: number;
     itemTaxAmount: number;
     itemTotalAmount: number;
